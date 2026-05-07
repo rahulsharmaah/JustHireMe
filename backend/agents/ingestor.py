@@ -96,7 +96,7 @@ def _put_vec(name: str, rows: list):
     if not rows:
         return
     ids = [str(row.get("id") or "") for row in rows if row.get("id")]
-    if name in vec.list_tables():
+    def _add_existing():
         table = vec.open_table(name)
         if ids:
             quoted = ["'" + item.replace("'", "''") + "'" for item in ids]
@@ -105,8 +105,16 @@ def _put_vec(name: str, rows: list):
             except Exception:
                 pass
         table.add(rows)
-    else:
+
+    if name in vec.list_tables():
+        _add_existing()
+        return
+    try:
         vec.create_table(name, data=rows)
+    except Exception as exc:
+        if "already exists" not in str(exc).lower():
+            raise
+        _add_existing()
 
 
 def _graph(p: C):
@@ -322,6 +330,207 @@ def _first_url(value: str) -> str:
     return match.group(0) if match else ""
 
 
+def _normal_resume_text(txt: str) -> str:
+    text = (txt or "").replace("\u2022", "\n- ")
+    text = re.sub(r"[ \t]*\n[ \t]*", "\n", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    text = re.sub(r"\b([A-Z])\s+(?=[A-Z]{2,}\b)", r"\1", text)
+    return text.strip()
+
+
+def _flat_resume_text(txt: str) -> str:
+    return re.sub(r"\s+", " ", _normal_resume_text(txt)).strip()
+
+
+def _resume_name(txt: str) -> str:
+    head = _flat_resume_text(txt)[:500]
+    before_contact = re.split(r"(?i)\b(?:email|phone|mobile|linkedin|github)\b\s*:", head, maxsplit=1)[0]
+    before_contact = re.sub(r"https?://\S+|www\.\S+|\S+@\S+", " ", before_contact)
+    before_contact = re.sub(r"[^A-Za-z .'-]+", " ", before_contact)
+    before_contact = re.sub(r"\s+", " ", before_contact).strip(" .-|")
+    words = before_contact.split()
+    if 1 < len(words) <= 6:
+        return " ".join(word.capitalize() if word.isupper() else word for word in words)
+
+    for line in _normal_resume_text(txt).splitlines()[:12]:
+        clean = re.sub(r"[^A-Za-z .'-]+", " ", line).strip()
+        clean = re.sub(r"\s+", " ", clean)
+        parts = clean.split()
+        if 1 < len(parts) <= 5 and not re.search(r"(?i)resume|curriculum|email|phone|linkedin|github", clean):
+            return " ".join(part.capitalize() if part.isupper() else part for part in parts)
+    return "Candidate"
+
+
+def _resume_section(flat: str, start: str, stops: tuple[str, ...]) -> str:
+    start_match = re.search(start, flat, flags=re.I)
+    if not start_match:
+        return ""
+    tail = flat[start_match.end():]
+    stop_match = re.search("|".join(stops), tail, flags=re.I) if stops else None
+    if stop_match:
+        tail = tail[:stop_match.start()]
+    return tail.strip()
+
+
+def _resume_skills(flat: str) -> list[str]:
+    raw = _resume_section(
+        flat,
+        r"\bskills?\b",
+        (
+            r"\bwork\s+experience\b",
+            r"\bexperience\b",
+            r"\bprojects?\b",
+            r"\beducation\b",
+            r"\bcertifications?\b",
+        ),
+    )
+    if not raw:
+        return []
+    raw = re.sub(r"(?i)\btechnical\s+skills?\b\s*:?", " ", raw)
+    parts = re.split(r"\s*(?:\||,|;|/|\u2022|●)\s*", raw)
+    blocked = {"skills", "development", "developement"}
+    return _dedupe([
+        item
+        for item in parts
+        if 1 <= len(item.strip()) <= 60 and item.strip().lower() not in blocked
+    ])
+
+
+def _project_blocks(flat: str) -> list[tuple[str, str]]:
+    matches = list(re.finditer(r"(?i)\bproject\s*:\s*", flat))
+    blocks: list[tuple[str, str]] = []
+    for idx, match in enumerate(matches):
+        end = matches[idx + 1].start() if idx + 1 < len(matches) else len(flat)
+        chunk = flat[match.end():end].strip()
+        title_match = re.match(
+            r"(.+?)(?=\s+(?:Technology\s+Used|Tech(?:nology)?\s+Stack|Project\s+Description|Description)\s*:)",
+            chunk,
+            flags=re.I,
+        )
+        if not title_match:
+            continue
+        title = _strip_md(title_match.group(1))
+        if title:
+            blocks.append((title, chunk))
+    return blocks
+
+
+def _parse_project_stack(block: str) -> list[str]:
+    match = re.search(
+        r"(?i)(?:Technology\s+Used|Tech(?:nology)?\s+Stack)\s*:\s*(.+?)(?=\s+Project\s+Description\s*:|\s+Description\s*:|\s+\*?Impact\s*:|\s+-\s+|$)",
+        block,
+    )
+    if not match:
+        return []
+    return _dedupe(re.split(r"\s*(?:,|\||/|;)\s*", match.group(1)))
+
+
+def _parse_project_impact(block: str) -> str:
+    parts = []
+    desc = re.search(
+        r"(?i)(?:Project\s+Description|Description)\s*:\s*(.+?)(?=\s+\*?Impact\s*:|$)",
+        block,
+    )
+    impact = re.search(r"(?i)\*?Impact\s*:\s*(.+)$", block)
+    if desc:
+        parts.append(_strip_md(desc.group(1)))
+    if impact:
+        parts.append("Impact: " + _strip_md(impact.group(1)))
+    if not parts:
+        body = re.sub(r"(?i)^.+?(?:Technology\s+Used|Tech(?:nology)?\s+Stack)\s*:\s*.+?(?=\s+-\s+|$)", "", block).strip()
+        if body:
+            parts.append(_strip_md(body[:1200]))
+    return "\n".join(part for part in parts if part)
+
+
+def _parse_standard_resume(txt: str):
+    from models.schema import S, E, P
+
+    flat = _flat_resume_text(txt)
+    if not flat or not re.search(r"(?i)\b(skills?|work\s+experience|education|projects?)\b", flat):
+        return None
+
+    skill_names = _resume_skills(flat)
+    projects: list[P] = []
+    for title, block in _project_blocks(flat):
+        stack = _parse_project_stack(block)
+        projects.append(P(
+            title=title,
+            stack=stack,
+            repo=_first_url(block) or "",
+            impact=_parse_project_impact(block),
+            s=stack,
+        ))
+        skill_names.extend(stack)
+
+    exp: list[E] = []
+    exp_text = _resume_section(
+        flat,
+        r"\bwork\s+experience\b|\bprofessional\s+experience\b|\bexperience\b",
+        (r"\beducation\b", r"\bcertifications?\b", r"\bachievements?\b"),
+    )
+    if exp_text:
+        first_project = re.search(r"(?i)\bproject\s*:", exp_text)
+        header = exp_text[:first_project.start()].strip() if first_project else exp_text[:300].strip()
+        header = re.sub(r"\s+", " ", header)
+        period_match = re.search(
+            r"(?i)\b((?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z’'\-0-9 ]{0,20}\s*-\s*(?:present|current|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z’'\-0-9 ]{0,20}|\d{2,4}))",
+            header,
+        )
+        period = _strip_md(period_match.group(1)) if period_match else ""
+        before_period = header[:period_match.start()].strip() if period_match else header
+        company = ""
+        role = ""
+        if "|" in before_period:
+            company, role = [_strip_md(part) for part in before_period.split("|", 1)]
+        elif "," in before_period:
+            role, company = [_strip_md(part) for part in before_period.rsplit(",", 1)]
+        if company or role:
+            exp.append(E(
+                role=role or "Professional Experience",
+                co=company or "",
+                period=period,
+                d=_strip_md(exp_text[:1800]),
+                s=_dedupe(skill_names),
+            ))
+
+    education = _section_items(txt, ("education", "academic background"))
+    if not education:
+        edu_text = _resume_section(
+            flat,
+            r"\beducation\s+(?=(?:university|college|school|institute|bachelor|master|b\.|m\.))",
+            (r"\bcertifications?\b", r"\bachievements?\b", r"\bprojects?\b"),
+        )
+        education = [_strip_md(edu_text)] if edu_text else []
+
+    certifications = _section_items(txt, ("certifications", "credentials", "certificates"))
+    achievements = _section_items(txt, ("achievements", "awards", "honors"))
+
+    summary_bits = []
+    contact = re.search(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}", flat)
+    if contact:
+        summary_bits.append(f"Email: {contact.group(0)}")
+    links = _dedupe(re.findall(r"(?:https?://)?(?:github|linkedin|medium)\.com/[^\s|,;]+", flat, flags=re.I))
+    if links:
+        summary_bits.append("Links: " + ", ".join(links[:4]))
+
+    skills = [S(n=skill, cat="technical") for skill in _dedupe(skill_names)]
+    profile = C(
+        n=_resume_name(txt),
+        s="; ".join(summary_bits),
+        skills=skills,
+        exp=exp,
+        projects=projects,
+        certifications=certifications,
+        education=education,
+        achievements=achievements,
+    )
+    if profile.n != "Candidate" or profile.skills or profile.exp or profile.projects:
+        return profile
+    return None
+
+
 def _project_from_block(heading: str, block: str):
     from models.schema import P
 
@@ -443,6 +652,10 @@ def _parse_local(txt: str) -> C:
     if portfolio is not None:
         return portfolio
 
+    standard_resume = _parse_standard_resume(txt)
+    if standard_resume is not None:
+        return standard_resume
+
     lines = txt.strip().splitlines()
     fields: dict[str, str] = {}
     projects_raw: list[str] = []
@@ -552,6 +765,17 @@ def run(raw: str = "", pdf: str | None = None) -> C:
 
     txt = (raw + " " + _document_text(pdf)).strip() if pdf else raw
     p, k, model = resolve_config("ingestor")
+
+    if p == "ollama":
+        local = _parse_local(txt)
+        if local.n != "Candidate" or local.skills or local.exp or local.projects:
+            _log.info(
+                "Local resume extraction OK before Ollama fallback - %s skills, %s roles, %s projects",
+                len(local.skills),
+                len(local.exp),
+                len(local.projects),
+            )
+            return local
 
     if p != "ollama" and not k:
         _log.warning(
