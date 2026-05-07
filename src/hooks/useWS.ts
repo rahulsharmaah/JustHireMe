@@ -36,6 +36,9 @@ export function useWS() {
             addLog(`Heartbeat #${d.beat} — uptime ${d.uptime_seconds.toFixed(0)}s`, "heartbeat", "hb");
         } else if (d.type === "agent") {
           addLog(d.msg ?? d.event, "agent", d.event ?? "agent");
+          if (typeof d.event === "string" && d.event.startsWith("worker_")) {
+            window.dispatchEvent(new CustomEvent("worker-task-refresh"));
+          }
           if (d.event === "eval_done") window.dispatchEvent(new CustomEvent("scan-done"));
           if (d.event === "reeval_done") {
             window.dispatchEvent(new CustomEvent("reevaluate-done"));

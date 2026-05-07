@@ -57,6 +57,7 @@ export function FormReader({
 
   const foundFields = result?.fields.filter(f => f.found_on_page) ?? [];
   const missingFields = result?.fields.filter(f => !f.found_on_page) ?? [];
+  const suggestedAnswers = result?.suggested_answers ?? [];
 
   const confidenceDot = (c: FormField["confidence"]) => {
     const color = c === "high" ? "var(--green)" : c === "medium" ? "var(--yellow)" : "var(--ink-4)";
@@ -246,11 +247,49 @@ export function FormReader({
                 </div>
               )}
 
-              {result.unmatched_labels.length > 0 && (
-                <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 2 }}>
-                  Fields we couldn't match: {result.unmatched_labels.join(", ")}
+          {result.unmatched_labels.length > 0 && (
+            <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 2 }}>
+              Fields we couldn't match: {result.unmatched_labels.join(", ")}
+            </div>
+          )}
+
+          {suggestedAnswers.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 6 }}>
+              <div className="eyebrow">Suggested long-form answers</div>
+              {suggestedAnswers.map(item => (
+                <div key={`${item.key}-${item.label}`} style={{
+                  padding: "9px 10px",
+                  background: "var(--paper-3)",
+                  border: "1px solid var(--line)",
+                  borderRadius: 8,
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 4 }}>
+                    <div className="mono" style={{ fontSize: 10, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      {item.label}
+                    </div>
+                    <button
+                      onClick={() => copy(item.answer, `suggested-${item.key}`)}
+                      style={{
+                        padding: "3px 8px",
+                        borderRadius: 6,
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        border: "1px solid var(--line)",
+                        background: copied === `suggested-${item.key}` ? "var(--green-soft)" : "var(--paper)",
+                        color: copied === `suggested-${item.key}` ? "var(--green-ink)" : "var(--ink-3)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {copied === `suggested-${item.key}` ? "Copied!" : "Copy"}
+                    </button>
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--ink-2)", whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
+                    {item.answer}
+                  </div>
                 </div>
-              )}
+              ))}
+            </div>
+          )}
             </div>
           </div>
 

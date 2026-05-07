@@ -25,15 +25,53 @@ _TYPE_TO_CANDIDATE_KEY = {
     "cover_letter":    lambda c: c.get("cover_letter", ""),
 }
 
+_QUESTION_PATTERNS = [
+    ("why_company", ("why do you want to join", "why this company", "why our company", "why do you want to work here", "why would you like to join")),
+    ("why_role", ("why this role", "why this position", "why are you interested in this role", "why are you interested in this position")),
+    ("fit_pitch", ("why should we hire you", "why are you a fit", "what makes you a good fit", "why are you the right person")),
+    ("tell_me_about_yourself", ("tell us about yourself", "tell me about yourself", "introduce yourself", "brief introduction")),
+    ("project_story", ("project you're proud of", "project you are proud of", "describe a project", "tell us about a project")),
+    ("work_authorization", ("authorized to work", "work authorization", "require sponsorship", "need visa sponsorship", "sponsorship")),
+    ("salary_expectation", ("salary expectation", "salary expectations", "expected salary", "compensation expectation")),
+]
 
-def resolve_answer(field_type: str, candidate: dict) -> str:
+
+def normalize_question_label(label: str) -> str:
+    lower = str(label or "").strip().lower()
+    if lower in {key for key, _patterns in _QUESTION_PATTERNS}:
+        return lower
+    for key, patterns in _QUESTION_PATTERNS:
+        if any(pattern in lower for pattern in patterns):
+            return key
+    return ""
+
+
+def application_answer_map(candidate: dict) -> dict[str, dict]:
+    items = candidate.get("application_answers") or []
+    out: dict[str, dict] = {}
+    if not isinstance(items, list):
+        return out
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        key = str(item.get("key") or "").strip()
+        if key:
+            out[key] = item
+    return out
+
+
+def resolve_answer(field_type: str, candidate: dict, label: str = "") -> str:
     resolver = _TYPE_TO_CANDIDATE_KEY.get(field_type)
-    if not resolver:
+    if resolver:
+        try:
+            return str(resolver(candidate) or "").strip()
+        except Exception:
+            return ""
+    normalized = normalize_question_label(label or field_type)
+    if not normalized:
         return ""
-    try:
-        return str(resolver(candidate) or "").strip()
-    except Exception:
-        return ""
+    answer = application_answer_map(candidate).get(normalized) or {}
+    return str(answer.get("answer") or answer.get("short_answer") or "").strip()
 
 
 async def read_form(
@@ -74,7 +112,7 @@ async def read_form(
             for field_cfg in fields_cfg:
                 sel = field_cfg["selector"]
                 ftype = field_cfg["type"]
-                answer = resolve_answer(ftype, candidate_with_cl)
+                answer = resolve_answer(ftype, candidate_with_cl, ftype)
                 found = False
 
                 try:

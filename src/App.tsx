@@ -8,6 +8,7 @@ import { useWS } from "./hooks/useWS";
 import { useLeads } from "./hooks/useLeads";
 import { useDueFollowups } from "./hooks/useDueFollowups";
 import { useGraphStats } from "./hooks/useGraphStats";
+import { useWorkerTasks } from "./hooks/useWorkerTasks";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
@@ -40,6 +41,7 @@ export default function App() {
   const { leads, setLeads, loading: leadsLoading, error: leadsError } = useLeads(api, wsAddLog);
   const dueFollowups = useDueFollowups(api);
   const stats  = useGraphStats(api);
+  const { tasks, refreshTasks } = useWorkerTasks(api);
   const [view, setView]           = useState<View>("apply");
   const [sel, setSel]             = useState<Lead | null>(null);
   // Always pass the live version of the selected lead so the drawer reflects real-time updates
@@ -209,13 +211,13 @@ export default function App() {
     <div className={`app-shell ${sidebarCollapsed ? "sidebar-is-collapsed" : ""}`} style={{ height: "100vh", width: "100vw", overflow: "hidden", alignItems: "stretch" }}>
       <Sidebar view={view} setView={setView} leadCounts={leadCounts} online={conn === "connected"} port={port} beat={beat} onSettings={() => setShowSettings(true)} onSetup={openSetupGuide} collapsed={sidebarCollapsed} onToggleCollapsed={() => setSidebarCollapsed(prev => !prev)} />
       <div className="app-main">
-        <Topbar view={view} sidebarCollapsed={sidebarCollapsed} onToggleSidebar={() => setSidebarCollapsed(prev => !prev)} />
+        <Topbar view={view} sidebarCollapsed={sidebarCollapsed} onToggleSidebar={() => setSidebarCollapsed(prev => !prev)} tasks={tasks} onRefreshTasks={refreshTasks} />
         <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", background: "var(--paper)" }}>
           {view === "apply"     && <ErrorBoundary label="Apply"><ApplyJobView port={port} api={api} leads={leads} openDrawer={setSel} initialInput={applyDraft} autoFocus={applyAutoFocus} /></ErrorBoundary>}
           {view === "dashboard" && <ErrorBoundary label="Dashboard"><DashboardView leads={leads} dueFollowups={dueFollowups} logs={logs} setView={setView} openDrawer={setSel} scanning={scanning} reevaluating={reevaluating} cleaning={cleaning} onScan={onScan} onStopScan={onStopScan} onReevaluate={onReevaluateJobs} onStopReevaluate={onStopReevaluate} onCleanup={onCleanupLeads} scanErr={scanErr} /></ErrorBoundary>}
           {view === "inbox"     && <ErrorBoundary label="Inbox"><LeadInboxView port={port} api={api} onCreated={setSel} /></ErrorBoundary>}
           {view === "pipeline"  && <ErrorBoundary label="Pipeline"><PipelineView leads={leads} openDrawer={setSel} deleteLead={deleteLead} port={port} api={api} scanning={scanning} reevaluating={reevaluating} cleaning={cleaning} onReevaluate={onReevaluateJobs} onStopReevaluate={onStopReevaluate} onCleanup={onCleanupLeads} loading={leadsLoading || !port || !api} error={leadsError} /></ErrorBoundary>}
-          {view === "graph"     && <ErrorBoundary label="Graph"><GraphView stats={stats} /></ErrorBoundary>}
+          {view === "graph"     && <ErrorBoundary label="Graph"><GraphView stats={stats} api={api} /></ErrorBoundary>}
           {view === "activity"  && <ErrorBoundary label="Activity"><ActivityView logs={logs} /></ErrorBoundary>}
           {view === "profile"   && (api ? <ErrorBoundary label="Profile"><ProfileView api={api} setView={setView} /></ErrorBoundary> : <BackendUnavailable title="Profile" conn={conn} port={port} />)}
           {view === "ingestion" && (api ? <ErrorBoundary label="Ingestion"><IngestionView api={api} /></ErrorBoundary> : <BackendUnavailable title="Add Context" conn={conn} port={port} />)}

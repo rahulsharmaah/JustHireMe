@@ -388,6 +388,8 @@ def save_asset_package(
     cover_letter_path: str = "",
     selected_projects: list | None = None,
     keyword_coverage: dict | None = None,
+    generation_artifacts: dict | None = None,
+    application_answers: list | None = None,
 ):
     projects = json.dumps(selected_projects or [])
     c = _sq.connect(sql)
@@ -395,6 +397,10 @@ def save_asset_package(
     source_meta = _json_dict(meta_row[0] if meta_row else "{}")
     if keyword_coverage:
         source_meta["keyword_coverage"] = keyword_coverage
+    if generation_artifacts:
+        source_meta["generation_artifacts"] = generation_artifacts
+    if application_answers is not None:
+        source_meta["application_answers"] = application_answers
     c.execute(
         "UPDATE leads SET status='approved', asset_path=?, cover_letter_path=?, selected_projects=?, source_meta=? WHERE job_id=?",
         (resume_path, cover_letter_path, projects, json.dumps(source_meta, ensure_ascii=False), jid),
@@ -419,6 +425,23 @@ def save_contact_lookup(jid: str, contact_lookup: dict | None):
     c.execute(
         "INSERT INTO events(job_id,action) VALUES(?,?)",
         (jid, f"contact_lookup={source_meta['contact_lookup'].get('status', 'unknown')}"),
+    )
+    c.commit()
+    c.close()
+
+
+def save_application_answers(jid: str, answers: list | None):
+    c = _sq.connect(sql)
+    row = c.execute("SELECT source_meta FROM leads WHERE job_id=?", (jid,)).fetchone()
+    source_meta = _json_dict(row[0] if row else "{}")
+    source_meta["application_answers"] = answers or []
+    c.execute(
+        "UPDATE leads SET source_meta=? WHERE job_id=?",
+        (json.dumps(source_meta, ensure_ascii=False), jid),
+    )
+    c.execute(
+        "INSERT INTO events(job_id,action) VALUES(?,?)",
+        (jid, f"application_answers={len(answers or [])}"),
     )
     c.commit()
     c.close()

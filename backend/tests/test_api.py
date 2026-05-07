@@ -366,6 +366,26 @@ class TestPipelineRunEndpoint(unittest.TestCase):
         self.assertEqual(resp.json().get("status"), "started")
 
 
+class TestWorkerTaskEndpoints(unittest.TestCase):
+    def test_tasks_returns_disabled_when_queue_unavailable(self):
+        with mock.patch.object(main, "_worker_queue", None):
+            resp = get("/api/v1/tasks")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertFalse(data["enabled"])
+        self.assertEqual(data["active"], [])
+
+    def test_tasks_rejects_invalid_status_filter(self):
+        with mock.patch.object(main, "_worker_queue", mock.Mock()):
+            resp = get("/api/v1/tasks", params={"status": "bogus"})
+        self.assertEqual(resp.status_code, 400)
+
+    def test_task_detail_not_found_when_queue_unavailable(self):
+        with mock.patch.object(main, "_worker_queue", None):
+            resp = get("/api/v1/tasks/missing")
+        self.assertEqual(resp.status_code, 404)
+
+
 class TestIngestionEndpoints(unittest.TestCase):
     def test_linkedin_ingest_rejects_non_zip(self):
         resp = CLIENT.post(

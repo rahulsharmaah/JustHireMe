@@ -1,3 +1,5 @@
+import hashlib
+import json
 import os
 import re
 from pydantic import BaseModel, Field
@@ -50,6 +52,23 @@ class _DocPackage(BaseModel):
             "Under 150 words total."
         ),
     )
+
+
+class _ApplicationAnswer(BaseModel):
+    key: str
+    label: str
+    question: str
+    answer: str = Field(default="", description="A concise answer between 2 and 5 sentences.")
+    short_answer: str = Field(default="", description="A one or two sentence compact version.")
+    long_answer: str = Field(default="", description="A richer answer up to roughly 120 words.")
+
+
+class _GenerationArtifacts(BaseModel):
+    fit_summary: str = Field(default="", description="A concise summary of why the candidate fits the role.")
+    company_hook: str = Field(default="", description="A role and company specific motivation hook.")
+    target_role_summary: str = Field(default="", description="How the candidate should position themselves for this role.")
+    selected_evidence: list[str] = Field(default_factory=list, description="Concrete evidence points worth reusing across docs and answers.")
+    application_answers: list[_ApplicationAnswer] = Field(default_factory=list)
 
 
 def _build_proof(profile: dict) -> str:
@@ -509,13 +528,148 @@ def _keyword_coverage(profile: dict, lead: dict, resume_markdown: str = "") -> d
     }
 
 
-def _draft_package(profile: dict, proof: str, j: dict, template: str = "") -> _DocPackage:
+def _generation_fingerprint(profile: dict, lead: dict) -> str:
+    payload = {
+        "lead": {
+            "job_id": lead.get("job_id", ""),
+            "title": lead.get("title", ""),
+            "company": lead.get("company", ""),
+            "description": lead.get("description", ""),
+            "reason": lead.get("reason", ""),
+            "match_points": lead.get("match_points", []) or [],
+            "gaps": lead.get("gaps", []) or [],
+        },
+        "profile": _profile_payload(profile),
+    }
+    raw = json.dumps(payload, ensure_ascii=False, sort_keys=True)
+    return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
+
+
+def _default_application_answers(profile: dict, lead: dict, selected_projects: list[str] | None = None) -> list[dict]:
+    name = (profile.get("n") or "I").strip()
+    summary = str(profile.get("s") or "").strip()
+    company = str(lead.get("company") or "your company").strip()
+    role = str(lead.get("title") or "this role").strip()
+    skills = [s.get("n", "") for s in profile.get("skills", []) if s.get("n")]
+    skill_text = ", ".join(skills[:4]) if skills else "full-stack software engineering"
+    projects = [p for p in selected_projects or [] if str(p).strip()]
+    project_text = ", ".join(projects[:2]) if projects else "relevant shipped projects"
+    fit_points = lead.get("match_points", []) or []
+    fit_text = fit_points[0] if fit_points else f"My work in {skill_text} lines up well with the needs in the role."
+    motivation = (
+        f"I'm interested in joining {company} because the {role} opportunity sits at the intersection of meaningful product work and the areas where I can contribute quickly. "
+        f"The role looks like a strong match for my background in {skill_text}, and I like that the team is focused on practical execution."
+    ).strip()
+    why_role = (
+        f"This role is a strong fit because I already have hands-on experience with {skill_text}, and I can point to {project_text} as evidence that I've built similar systems. "
+        f"{fit_text}"
+    ).strip()
+    intro = (
+        f"I am {name}, a software engineer focused on {skill_text}. "
+        f"{summary or f'I like building reliable product features and turning ambiguous requirements into shipped outcomes.'}"
+    ).strip()
+    project_story = (
+        f"A project I'm proud of is {projects[0]}." if projects else "A project I'm proud of is one where I took ownership from implementation through production hardening."
+    )
+    project_story += (
+        f" It let me demonstrate {skill_text}, make sound engineering tradeoffs, and ship something with visible user value."
+    )
+    return [
+        {
+            "key": "why_company",
+            "label": "Why this company",
+            "question": "Why do you want to join this company?",
+            "answer": motivation,
+            "short_answer": motivation.split(". ")[0].strip() + ".",
+            "long_answer": motivation,
+        },
+        {
+            "key": "why_role",
+            "label": "Why this role",
+            "question": "Why are you interested in this role?",
+            "answer": why_role,
+            "short_answer": why_role.split(". ")[0].strip() + ".",
+            "long_answer": why_role,
+        },
+        {
+            "key": "fit_pitch",
+            "label": "Why I'm a fit",
+            "question": "Why should we hire you for this role?",
+            "answer": why_role,
+            "short_answer": why_role.split(". ")[0].strip() + ".",
+            "long_answer": why_role,
+        },
+        {
+            "key": "tell_me_about_yourself",
+            "label": "Tell me about yourself",
+            "question": "Tell us about yourself.",
+            "answer": intro,
+            "short_answer": intro.split(". ")[0].strip() + ".",
+            "long_answer": intro,
+        },
+        {
+            "key": "project_story",
+            "label": "Project example",
+            "question": "Describe a project you're proud of.",
+            "answer": project_story,
+            "short_answer": project_story.split(". ")[0].strip() + ".",
+            "long_answer": project_story,
+        },
+    ]
+
+
+def _build_generation_artifacts(profile: dict, proof: str, j: dict, template: str = "") -> _GenerationArtifacts:
     from llm import call_llm
-    import json
+
+    recommended = _rank_projects(profile, j, limit=4)
+    selected_titles = [p.get("title", "") for p in recommended if p.get("title")][:3]
+    coverage = _keyword_coverage(profile, j)
+    system = (
+        "You are a careful career strategist preparing reusable generation assets for a job application workflow. "
+        "Return structured output only. Every claim must stay grounded in the candidate profile. "
+        "Your job is to prepare reusable reasoning and answer assets that can feed resume, cover letter, and application question generation."
+    )
+    user = (
+        f"JOB TITLE: {j.get('title','')}\n"
+        f"COMPANY: {j.get('company','')}\n"
+        f"JOB DESCRIPTION:\n{j.get('description','')}\n\n"
+        f"MATCH POINTS:\n{json.dumps(j.get('match_points', []) or [], ensure_ascii=False)}\n"
+        f"GAPS:\n{json.dumps(j.get('gaps', []) or [], ensure_ascii=False)}\n"
+        f"RECOMMENDED PROJECTS:\n{json.dumps(recommended, ensure_ascii=False)}\n"
+        f"ATS COVERAGE:\n{json.dumps(coverage, ensure_ascii=False)}\n\n"
+        f"CANDIDATE PROFILE:\n{json.dumps(_profile_payload(profile), ensure_ascii=False)}\n\n"
+        f"PROOF OF WORK:\n{proof}\n\n"
+        "Create reusable answers for these keys: why_company, why_role, fit_pitch, tell_me_about_yourself, project_story. "
+        "Make them specific to this company and role, but reusable across application forms. "
+        "Prefer crisp, direct language over hype."
+    )
+    artifacts = call_llm(system, user, _GenerationArtifacts, step="generator")
+    if not artifacts.application_answers:
+        artifacts.application_answers = [_ApplicationAnswer(**item) for item in _default_application_answers(profile, j, selected_titles)]
+    if not artifacts.selected_evidence:
+        artifacts.selected_evidence = [str(item) for item in (j.get("match_points", []) or [])[:4]]
+    return artifacts
+
+
+def _draft_package(
+    profile: dict,
+    proof: str,
+    j: dict,
+    template: str = "",
+    artifacts: _GenerationArtifacts | None = None,
+) -> _DocPackage:
+    from llm import call_llm
 
     recommended = _rank_projects(profile, j, limit=4)
     jd_keywords = _extract_jd_keywords(j.get("description", ""), profile)
     coverage = _keyword_coverage(profile, j)
+    artifacts = artifacts or _GenerationArtifacts(
+        fit_summary="",
+        company_hook="",
+        target_role_summary="",
+        selected_evidence=[],
+        application_answers=[_ApplicationAnswer(**item) for item in _default_application_answers(profile, j)],
+    )
     template_instruction = (
         "Use the provided resume template as the resume structure. Preserve section order and heading style where practical. "
         "Do not force the cover letter into the resume template."
@@ -640,13 +794,14 @@ def _draft_package(profile: dict, proof: str, j: dict, template: str = "") -> _D
         f"ATS KEYWORD COVERAGE:\n{json.dumps(coverage, ensure_ascii=False)}\n"
         "Use covered_terms in the resume where truthful and relevant. Do not claim missing_terms unless the candidate profile supports them.\n\n"
         f"RECOMMENDED PROJECT SHORTLIST:\n{json.dumps(recommended, ensure_ascii=False)}\n\n"
+        f"GENERATION PLAN:\n{artifacts.model_dump_json(indent=2)}\n\n"
         f"FULL CANDIDATE PROFILE:\n{json.dumps(_profile_payload(profile), ensure_ascii=False)}\n\n"
         f"PROOF OF WORK SUMMARY:\n{proof}\n\n"
         f"RESUME TEMPLATE INSTRUCTION: {template_instruction}\n"
         "OUTPUT CONTRACT:\n"
         "- resume_markdown: ONLY the resume. 460-620 words max. Standard ATS headings with SUMMARY first.\n"
         "- cover_letter_markdown: ONLY the cover letter. 150-220 words.\n"
-        "- founder_message: 3 lines, under 280 chars. Specific to THIS company.\n"
+        "- founder_message: 3 lines, under 280 chars. Specific to THIS company. Reuse the company_hook and fit_summary ideas.\n"
         "- linkedin_note: Under 300 chars. Role-specific.\n"
         "- cold_email: Subject + 4-6 sentences. Under 150 words.\n"
         "- selected_projects: titles of the 2-4 projects you chose.\n"
@@ -1154,12 +1309,23 @@ def _render(md_text: str, filename: str, kind: str = "resume") -> str:
 def run_package(lead: dict, template: str = "") -> dict:
     profile = get_profile()
     proof   = _build_proof(profile)
+    fingerprint = _generation_fingerprint(profile, lead)
+    source_meta = dict(lead.get("source_meta") or {})
+
+    cached_artifacts = None
+    cached_payload = source_meta.get("generation_artifacts") if isinstance(source_meta, dict) else None
+    if isinstance(cached_payload, dict) and cached_payload.get("fingerprint") == fingerprint:
+        try:
+            cached_artifacts = _GenerationArtifacts.model_validate(cached_payload.get("artifacts") or {})
+        except Exception:
+            cached_artifacts = None
 
     # Enrich lead with candidate name so the draft can use it
     lead_with_ctx = {**lead, "candidate_name": profile.get("n", "")}
 
     try:
-        package = _draft_package(profile, proof, lead_with_ctx, template=template)
+        artifacts = cached_artifacts or _build_generation_artifacts(profile, proof, lead_with_ctx, template=template)
+        package = _draft_package(profile, proof, lead_with_ctx, template=template, artifacts=artifacts)
         package = _normalize_package(package, profile, lead_with_ctx, template=template)
         keyword_coverage = _keyword_coverage(profile, lead_with_ctx, package.resume_markdown)
     except Exception as exc:
@@ -1201,6 +1367,12 @@ def run_package(lead: dict, template: str = "") -> dict:
         "linkedin_note": (package.linkedin_note or "").strip(),
         "cold_email": (package.cold_email or "").strip(),
         "keyword_coverage": keyword_coverage,
+        "generation_artifacts": {
+            "fingerprint": fingerprint,
+            "generated_at": lead.get("created_at", ""),
+            "artifacts": artifacts.model_dump(mode="json"),
+        },
+        "application_answers": [item.model_dump(mode="json") for item in artifacts.application_answers],
     }
 
 

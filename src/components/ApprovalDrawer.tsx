@@ -78,6 +78,17 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
     : null;
   const selectedProjects = j.selected_projects || [];
   const coverage = (j.keyword_coverage || j.source_meta?.keyword_coverage || {}) as KeywordCoverage;
+  const applicationAnswers = (j.application_answers || j.source_meta?.application_answers || []) as {
+    key: string;
+    label: string;
+    question: string;
+    answer: string;
+    short_answer?: string;
+    long_answer?: string;
+  }[];
+  const generationPlan = (j.generation_artifacts || j.source_meta?.generation_artifacts || {}) as {
+    artifacts?: { fit_summary?: string; company_hook?: string; target_role_summary?: string; selected_evidence?: string[] };
+  };
   const missingTerms: string[] = Array.isArray(coverage.missing_terms) ? coverage.missing_terms : [];
   const incorporatedTerms: string[] = Array.isArray(coverage.incorporated_terms) ? coverage.incorporated_terms : [];
   const coveredTerms: string[] = Array.isArray(coverage.covered_terms) ? coverage.covered_terms : [];
@@ -614,6 +625,32 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
                   {draftBlock("LinkedIn Note", j.outreach_dm)}
                   {draftBlock("Cold Email", j.outreach_email)}
                   {draftBlock("Proposal", j.proposal_draft)}
+                </div>
+              </div>
+            )}
+
+            {(applicationAnswers.length > 0 || generationPlan.artifacts?.fit_summary) && (
+              <div>
+                <div className="approval-section-label" style={{ marginBottom: 6 }}>Application Answers</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {generationPlan.artifacts?.fit_summary && (
+                    <div style={{ background: "var(--blue-soft)", border: "1px solid var(--blue)", borderRadius: "var(--radius-control)", padding: "10px 12px" }}>
+                      <div className="mono approval-mini-label" style={{ color: "var(--blue-ink)", marginBottom: 6 }}>Fit summary</div>
+                      <div className="approval-copy" style={{ lineHeight: 1.5 }}>{generationPlan.artifacts.fit_summary}</div>
+                    </div>
+                  )}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 8 }}>
+                    {applicationAnswers.map(item => (
+                      <div key={item.key} style={{ background: "var(--paper-3)", border: "1px solid var(--line)", borderRadius: "var(--radius-control)", padding: "10px 12px" }}>
+                        <div className="row" style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 6, gap: 8 }}>
+                          <span className="mono approval-mini-label" style={{ color: "var(--ink-3)", fontWeight: 700 }}>{item.label}</span>
+                          <button className="btn btn-ghost" style={{ fontSize: 11, padding: "3px 8px" }} onClick={() => copyText(item.answer)}>Copy</button>
+                        </div>
+                        <div className="job-card-note" style={{ marginBottom: 5 }}>{item.question}</div>
+                        <div className="approval-copy" style={{ whiteSpace: "pre-wrap", lineHeight: 1.5 }}>{item.answer}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}

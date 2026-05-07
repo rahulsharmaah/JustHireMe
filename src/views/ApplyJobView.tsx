@@ -26,6 +26,17 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
   const coverDocPath = liveLead && coverReady ? `/api/v1/leads/${liveLead.job_id}/pdf?kind=cover_letter` : null;
   const coverage = (liveLead?.keyword_coverage || liveLead?.source_meta?.keyword_coverage || {}) as KeywordCoverage;
   const contactLookup = (liveLead?.contact_lookup || liveLead?.source_meta?.contact_lookup || {}) as ContactLookup;
+  const applicationAnswers = (liveLead?.application_answers || liveLead?.source_meta?.application_answers || []) as {
+    key: string;
+    label: string;
+    question: string;
+    answer: string;
+    short_answer?: string;
+    long_answer?: string;
+  }[];
+  const generationPlan = (liveLead?.generation_artifacts || liveLead?.source_meta?.generation_artifacts || {}) as {
+    artifacts?: { fit_summary?: string; company_hook?: string; target_role_summary?: string; selected_evidence?: string[] };
+  };
   const primaryContact = contactLookup.primary_contact;
   const missingTerms: string[] = Array.isArray(coverage.missing_terms) ? coverage.missing_terms : [];
   const incorporatedTerms: string[] = Array.isArray(coverage.incorporated_terms) ? coverage.incorporated_terms : [];
@@ -363,6 +374,42 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
                     <div style={{ fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.55, whiteSpace: "pre-wrap" }}>{value}</div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {(applicationAnswers.length > 0 || generationPlan.artifacts?.fit_summary || generationPlan.artifacts?.selected_evidence?.length) && (
+              <div className="card" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+                <div className="row" style={{ justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                  <div>
+                    <div className="eyebrow">Application answers</div>
+                    <div style={{ fontSize: 12.5, color: "var(--ink-2)", marginTop: 4 }}>
+                      Reusable answers for the common “why this company / why this role” questions across job platforms.
+                    </div>
+                  </div>
+                  <span className="pill mono" style={{ background: "var(--blue-soft)", color: "var(--blue-ink)", border: "1px solid var(--blue)" }}>
+                    {applicationAnswers.length} saved answers
+                  </span>
+                </div>
+                {generationPlan.artifacts?.fit_summary && (
+                  <div style={{ background: "var(--paper-3)", border: "1px solid var(--line)", borderRadius: 8, padding: "10px 12px" }}>
+                    <div className="eyebrow">Fit summary</div>
+                    <div style={{ fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.55, marginTop: 6 }}>
+                      {generationPlan.artifacts.fit_summary}
+                    </div>
+                  </div>
+                )}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 10 }}>
+                  {applicationAnswers.map(item => (
+                    <div key={item.key} style={{ background: "var(--paper-3)", border: "1px solid var(--line)", borderRadius: 8, padding: "10px 12px" }}>
+                      <div className="row" style={{ justifyContent: "space-between", gap: 8, marginBottom: 7, alignItems: "center" }}>
+                        <span className="eyebrow">{item.label}</span>
+                        <button className="btn btn-ghost" style={{ fontSize: 11, padding: "3px 8px" }} onClick={() => copyText(item.answer)}>Copy</button>
+                      </div>
+                      <div style={{ fontSize: 11.5, color: "var(--ink-3)", marginBottom: 5 }}>{item.question}</div>
+                      <div style={{ fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.55, whiteSpace: "pre-wrap" }}>{item.answer}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

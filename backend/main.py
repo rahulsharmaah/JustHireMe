@@ -3,6 +3,7 @@ import csv
 import io
 import json
 import os
+from pathlib import Path
 import re
 import secrets
 import shutil
@@ -19,8 +20,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.security import HTTPBearer
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from knowledge.service import KnowledgeService
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from logger import get_logger
+from workers import QueuedTask, SQLiteQueueBackend, WorkerService
+from workers.queue import default_queue_path
 
 _log = get_logger(__name__)
 
@@ -128,6 +132,36 @@ class SettingsBody(BaseModel):
         return self
 
 
+class KnowledgeReviewBody(StrictBody):
+    path: str = Field(default="", max_length=400)
+    page_id: str = Field(default="", max_length=200)
+    action: Literal["promote", "archive", "reset"]
+
+
+class ApplicationAnswersBody(StrictBody):
+    answers: list[dict] = Field(default_factory=list)
+
+
+class WorkerTaskPayload(BaseModel):
+    id: str
+    queue: str
+    kind: str
+    payload: dict
+    status: str
+    attempts: int
+    max_attempts: int
+    priority: int
+    unique_key: str
+    available_at: str
+    created_at: str
+    updated_at: str
+    started_at: str | None = None
+    finished_at: str | None = None
+    leased_by: str | None = None
+    lease_expires_at: str | None = None
+    last_error: str | None = None
+
+
 def _agent_event_action(msg: dict) -> str:
     event = str(msg.get("event") or "agent").strip() or "agent"
     detail = str(msg.get("msg") or "").strip()
@@ -175,6 +209,10 @@ def _spawn_task(coro, label: str):
 
     task.add_done_callback(_done)
     return task
+
+
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+_knowledge = KnowledgeService(_REPO_ROOT)
 
 DEFAULT_JOB_TARGETS = [
     "hn-hiring",
@@ -387,12 +425,117 @@ _scan_stop = asyncio.Event()
 _scan_task: asyncio.Task | None = None
 _reevaluate_stop = asyncio.Event()
 _reevaluate_task: asyncio.Task | None = None
+_worker_queue: SQLiteQueueBackend | None = None
+_worker_service: WorkerService | None = None
 
 _REEVALUATION_STATUS_LOCKS = {"approved", "applied", "interviewing", "rejected", "accepted", "discarded"}
 
 
 def _should_preserve_job_status(status: str) -> bool:
     return status in _REEVALUATION_STATUS_LOCKS
+
+
+def _workers_enabled() -> bool:
+    return os.environ.get("JHM_WORKERS", "sqlite").strip().lower() not in {"0", "false", "off", "none"}
+
+
+def _queue_task(
+    kind: str,
+    payload: dict | None = None,
+    *,
+    unique_key: str = "",
+    priority: int = 100,
+    max_attempts: int = 1,
+):
+    if _worker_queue is None:
+        return None
+    return _worker_queue.enqueue(
+        kind,
+        payload or {},
+        unique_key=unique_key,
+        priority=priority,
+        max_attempts=max_attempts,
+    )
+
+
+def _has_active_worker_task(kind: str, unique_key: str | None = None) -> bool:
+    return bool(_worker_queue and _worker_queue.active(kind=kind, unique_key=unique_key))
+
+
+def _task_payload(task: QueuedTask) -> dict:
+    return {
+        "id": task.id,
+        "queue": task.queue,
+        "kind": task.kind,
+        "payload": task.payload,
+        "status": task.status,
+        "attempts": task.attempts,
+        "max_attempts": task.max_attempts,
+        "priority": task.priority,
+        "unique_key": task.unique_key,
+        "available_at": task.available_at,
+        "created_at": task.created_at,
+        "updated_at": task.updated_at,
+        "started_at": task.started_at,
+        "finished_at": task.finished_at,
+        "leased_by": task.leased_by,
+        "lease_expires_at": task.lease_expires_at,
+        "last_error": task.last_error,
+    }
+
+
+async def _handle_worker_task(task: QueuedTask):
+    job_id = str(task.payload.get("job_id") or "")
+    await cm.broadcast({
+        "type": "agent",
+        "event": "worker_start",
+        "job_id": job_id,
+        "msg": f"Worker started {task.kind}",
+    })
+    if task.kind == "lead.generate":
+        await _generate_one(job_id)
+    elif task.kind == "lead.pipeline":
+        await _run_pipeline_for_lead(job_id)
+    elif task.kind == "lead.fire":
+        await _actuate(job_id)
+    elif task.kind == "scan.run":
+        await _run_scan_task()
+    elif task.kind == "leads.reevaluate":
+        await _run_reevaluate_jobs_task()
+    else:
+        raise ValueError(f"Unknown worker task kind: {task.kind}")
+    await cm.broadcast({
+        "type": "agent",
+        "event": "worker_done",
+        "job_id": job_id,
+        "msg": f"Worker finished {task.kind}",
+    })
+
+
+def _start_worker_service():
+    global _worker_queue, _worker_service
+    if not _workers_enabled():
+        _log.info("worker service disabled")
+        return
+    try:
+        _worker_queue = SQLiteQueueBackend(default_queue_path())
+        _worker_service = WorkerService(
+            _worker_queue,
+            {
+                "lead.generate": _handle_worker_task,
+                "lead.pipeline": _handle_worker_task,
+                "lead.fire": _handle_worker_task,
+                "scan.run": _handle_worker_task,
+                "leads.reevaluate": _handle_worker_task,
+            },
+            concurrency=_int_cfg(os.environ, "JHM_WORKER_CONCURRENCY", 1, 1, 8),
+        )
+        _worker_service.start()
+        _log.info("SQLite worker service started.")
+    except Exception as exc:
+        _worker_queue = None
+        _worker_service = None
+        _log.warning("worker service unavailable; using in-process tasks: %s", exc)
 
 
 def _job_eval_document(lead: dict) -> str:
@@ -542,8 +685,11 @@ async def _ghost_tick():
 async def lifespan(app: FastAPI):
     _sched.add_job(_ghost_tick, "interval", hours=6, id="ghost")
     _sched.start()
+    _start_worker_service()
     _log.info("FastAPI live.")
     yield
+    if _worker_service is not None:
+        await _worker_service.stop()
     _sched.shutdown(wait=False)
     _log.info("FastAPI shutdown.")
 
@@ -682,6 +828,53 @@ async def get_lead(job_id: str):
     return _annotate_job_lead(lead) if (lead.get("kind") or "job") == "job" else lead
 
 
+@app.get("/api/v1/leads/{job_id}/answers")
+async def get_lead_answers(job_id: str):
+    from db.client import get_lead_by_id
+
+    lead = get_lead_by_id(job_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    return {
+        "job_id": job_id,
+        "answers": _lead_application_answers(lead),
+        "generation_artifacts": (lead.get("source_meta") or {}).get("generation_artifacts", {}),
+    }
+
+
+@app.put("/api/v1/leads/{job_id}/answers")
+async def update_lead_answers(job_id: str, body: ApplicationAnswersBody):
+    from db.client import get_lead_by_id, save_application_answers
+
+    lead = get_lead_by_id(job_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    cleaned: list[dict] = []
+    for item in body.answers:
+        if not isinstance(item, dict):
+            continue
+        key = str(item.get("key") or "").strip()
+        label = str(item.get("label") or key.replace("_", " ").title()).strip()
+        question = str(item.get("question") or label).strip()
+        answer = str(item.get("answer") or "").strip()
+        short_answer = str(item.get("short_answer") or answer).strip()
+        long_answer = str(item.get("long_answer") or answer).strip()
+        if not key or not answer:
+            continue
+        cleaned.append(
+            {
+                "key": key[:80],
+                "label": label[:120],
+                "question": question[:240],
+                "answer": answer[:2400],
+                "short_answer": short_answer[:1200],
+                "long_answer": long_answer[:3200],
+            }
+        )
+    await asyncio.to_thread(save_application_answers, job_id, cleaned)
+    return {"job_id": job_id, "answers": cleaned}
+
+
 @app.delete("/api/v1/leads/{job_id}")
 async def delete_lead_endpoint(job_id: str):
     from db.client import delete_lead
@@ -796,47 +989,110 @@ async def due_followups(limit: int = 25):
     return get_due_followups(limit)
 
 
+@app.get("/api/v1/tasks")
+async def worker_tasks(limit: int = 30, status: str = ""):
+    if _worker_queue is None:
+        return {
+            "enabled": False,
+            "concurrency": 0,
+            "active": [],
+            "recent": [],
+            "counts": {"queued": 0, "running": 0, "succeeded": 0, "failed": 0, "cancelled": 0},
+        }
+    clean_limit = max(1, min(int(limit), 100))
+    clean_status = status.strip().lower()
+    allowed = {"", "queued", "running", "succeeded", "failed", "cancelled"}
+    if clean_status not in allowed:
+        raise HTTPException(status_code=400, detail="Invalid task status filter")
+    active = _worker_queue.active()
+    recent = _worker_queue.list_recent(status=clean_status or None, limit=clean_limit)
+    all_recent = _worker_queue.list_recent(limit=200)
+    counts = {key: 0 for key in ["queued", "running", "succeeded", "failed", "cancelled"]}
+    for task in all_recent:
+        if task.status in counts:
+            counts[task.status] += 1
+    return {
+        "enabled": True,
+        "concurrency": _worker_service.concurrency if _worker_service else 0,
+        "active": [_task_payload(task) for task in active],
+        "recent": [_task_payload(task) for task in recent],
+        "counts": counts,
+    }
+
+
+@app.get("/api/v1/tasks/{task_id}", response_model=WorkerTaskPayload)
+async def worker_task_detail(task_id: str):
+    if _worker_queue is None:
+        raise HTTPException(status_code=404, detail="Worker queue not enabled")
+    task = _worker_queue.get(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return _task_payload(task)
+
+
 @app.post("/api/v1/leads/{job_id}/generate")
 async def generate_for_lead(job_id: str):
+    task = _queue_task(
+        "lead.generate",
+        {"job_id": job_id},
+        unique_key=f"lead.generate:{job_id}",
+        priority=20,
+    )
+    if task is not None:
+        await cm.broadcast({"type": "agent", "event": "gen_queued", "job_id": job_id, "msg": f"Generation queued for {job_id}"})
+        return {"status": "queued", "job_id": job_id, "task_id": task.id}
     _spawn_task(_generate_one(job_id), f"generate:{job_id}")
     return {"status": "generating", "job_id": job_id}
 
 
-@app.post("/api/v1/leads/{job_id}/pipeline/run")
-async def run_pipeline(job_id: str):
+async def _run_pipeline_for_lead(job_id: str):
     from db.client import get_lead_by_id, get_profile, get_settings
     from graph import PipelineState, eval_graph
 
     lead = await asyncio.to_thread(get_lead_by_id, job_id)
     if not lead:
-        raise HTTPException(status_code=404, detail="lead not found")
+        raise LookupError("lead not found")
     profile = await asyncio.to_thread(get_profile)
     cfg = await asyncio.to_thread(get_settings)
+    state: PipelineState = {
+        "job_id": job_id,
+        "lead": lead,
+        "profile": profile,
+        "cfg": cfg,
+        "score": 0,
+        "reason": "",
+        "match_points": [],
+        "gaps": [],
+        "asset_path": "",
+        "cover_letter_path": "",
+        "error": None,
+    }
+    result = await asyncio.to_thread(eval_graph.invoke, state)
+    await cm.broadcast({
+        "type": "agent",
+        "kind": "agent",
+        "src": "pipeline",
+        "event": "pipeline_done",
+        "msg": f"Pipeline done for {job_id}: score={result['score']}, error={result['error']}",
+    })
 
-    async def _run():
-        state: PipelineState = {
-            "job_id": job_id,
-            "lead": lead,
-            "profile": profile,
-            "cfg": cfg,
-            "score": 0,
-            "reason": "",
-            "match_points": [],
-            "gaps": [],
-            "asset_path": "",
-            "cover_letter_path": "",
-            "error": None,
-        }
-        result = await asyncio.to_thread(eval_graph.invoke, state)
-        await cm.broadcast({
-            "type": "agent",
-            "kind": "agent",
-            "src": "pipeline",
-            "event": "pipeline_done",
-            "msg": f"Pipeline done for {job_id}: score={result['score']}, error={result['error']}",
-        })
 
-    _spawn_task(_run(), f"pipeline:{job_id}")
+@app.post("/api/v1/leads/{job_id}/pipeline/run")
+async def run_pipeline(job_id: str):
+    from db.client import get_lead_by_id
+
+    lead = await asyncio.to_thread(get_lead_by_id, job_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail="lead not found")
+    task = _queue_task(
+        "lead.pipeline",
+        {"job_id": job_id},
+        unique_key=f"lead.pipeline:{job_id}",
+        priority=30,
+    )
+    if task is not None:
+        return {"status": "queued", "job_id": job_id, "task_id": task.id}
+    _spawn_task(_run_pipeline_for_lead(job_id), f"pipeline:{job_id}")
     return {"status": "started", "job_id": job_id}
 
 
@@ -900,6 +1156,56 @@ async def graph_stats():
         r = conn.execute(f"MATCH (n:{t}) RETURN count(n)")
         out[t.lower()] = r.get_next()[0] if r.has_next() else 0
     return out
+
+
+@app.get("/api/v1/knowledge")
+async def knowledge_summary():
+    return _knowledge.summary_payload()
+
+
+@app.get("/api/v1/knowledge/graph")
+async def knowledge_graph():
+    return _knowledge.graph_payload()
+
+
+@app.get("/api/v1/knowledge/status")
+async def knowledge_status():
+    return _knowledge.status_payload()
+
+
+@app.post("/api/v1/knowledge/refresh")
+async def knowledge_refresh():
+    try:
+        return await _knowledge.start_refresh()
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Knowledge vault not available")
+
+
+@app.get("/api/v1/knowledge/candidates")
+async def knowledge_candidates(status: str = "pending"):
+    if status not in {"pending", "promoted", "archived", "all"}:
+        raise HTTPException(status_code=400, detail="Invalid candidate status filter")
+    return _knowledge.candidates_payload(status_filter=status)
+
+
+@app.post("/api/v1/knowledge/candidates/review")
+async def knowledge_review(body: KnowledgeReviewBody):
+    try:
+        return _knowledge.review_candidate(path=body.path, page_id=body.page_id, action=body.action)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Knowledge page not found")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/api/v1/knowledge/page")
+async def knowledge_page(page_id: str = "", path: str = ""):
+    if not _knowledge.enabled():
+        raise HTTPException(status_code=404, detail="Knowledge vault not available")
+    detail = _knowledge.page_detail(page_id=page_id, path=path)
+    if not detail:
+        raise HTTPException(status_code=404, detail="Knowledge page not found")
+    return detail
 
 
 @app.get("/api/v1/profile")
@@ -994,17 +1300,31 @@ async def delete_project_endpoint(pid: str):
 @app.post("/api/v1/scan")
 async def scan():
     global _scan_task
+    if _has_active_worker_task("scan.run"):
+        raise HTTPException(status_code=409, detail="Scan already running")
+    if _has_active_worker_task("leads.reevaluate"):
+        raise HTTPException(status_code=409, detail="Re-evaluation already running")
     if _scan_task and not _scan_task.done():
         raise HTTPException(status_code=409, detail="Scan already running")
     if _reevaluate_task and not _reevaluate_task.done():
         raise HTTPException(status_code=409, detail="Re-evaluation already running")
     _scan_stop.clear()
+    task = _queue_task("scan.run", {}, unique_key="scan.run", priority=50)
+    if task is not None:
+        return {"status": "queued", "task_id": task.id}
     _scan_task = asyncio.create_task(_run_scan_task())
     return {"status": "scanning"}
 
 
 @app.post("/api/v1/scan/stop")
 async def stop_scan():
+    if _has_active_worker_task("scan.run"):
+        _scan_stop.set()
+        for task in _worker_queue.active(kind="scan.run") if _worker_queue else []:
+            if task.status == "queued":
+                _worker_queue.cancel(task.id, "Scan stopped by user")
+        await cm.broadcast({"type": "agent", "event": "eval_done", "msg": "Scan stopped by user."})
+        return {"status": "stopping"}
     if not _scan_task or _scan_task.done():
         return {"status": "idle"}
     _scan_stop.set()
@@ -1015,17 +1335,31 @@ async def stop_scan():
 @app.post("/api/v1/leads/reevaluate")
 async def reevaluate_jobs():
     global _reevaluate_task
+    if _has_active_worker_task("leads.reevaluate"):
+        raise HTTPException(status_code=409, detail="Re-evaluation already running")
+    if _has_active_worker_task("scan.run"):
+        raise HTTPException(status_code=409, detail="Scan already running")
     if _reevaluate_task and not _reevaluate_task.done():
         raise HTTPException(status_code=409, detail="Re-evaluation already running")
     if _scan_task and not _scan_task.done():
         raise HTTPException(status_code=409, detail="Scan already running")
     _reevaluate_stop.clear()
+    task = _queue_task("leads.reevaluate", {}, unique_key="leads.reevaluate", priority=60)
+    if task is not None:
+        return {"status": "queued", "task_id": task.id}
     _reevaluate_task = asyncio.create_task(_run_reevaluate_jobs_task())
     return {"status": "reevaluating"}
 
 
 @app.post("/api/v1/leads/reevaluate/stop")
 async def stop_reevaluate_jobs():
+    if _has_active_worker_task("leads.reevaluate"):
+        _reevaluate_stop.set()
+        for task in _worker_queue.active(kind="leads.reevaluate") if _worker_queue else []:
+            if task.status == "queued":
+                _worker_queue.cancel(task.id, "Re-evaluation stopped by user")
+        await cm.broadcast({"type": "agent", "event": "reeval_done", "msg": "Re-evaluation stopped by user."})
+        return {"status": "stopping"}
     if not _reevaluate_task or _reevaluate_task.done():
         return {"status": "idle"}
     _reevaluate_stop.set()
@@ -1698,6 +2032,14 @@ async def fire(job_id: str):
     status, detail = _fire_blocker(lead, asset)
     if detail:
         raise HTTPException(status_code=status, detail=detail)
+    task = _queue_task(
+        "lead.fire",
+        {"job_id": job_id},
+        unique_key=f"lead.fire:{job_id}",
+        priority=10,
+    )
+    if task is not None:
+        return {"status": "queued", "job_id": job_id, "task_id": task.id}
     _spawn_task(_actuate(job_id), f"fire:{job_id}")
     return {"status": "firing", "job_id": job_id}
 
@@ -1742,6 +2084,37 @@ def _apply_readiness(result: dict) -> dict:
     }
 
 
+def _lead_application_answers(lead: dict) -> list[dict]:
+    source_meta = lead.get("source_meta") if isinstance(lead, dict) else {}
+    source_meta = source_meta if isinstance(source_meta, dict) else {}
+    items = source_meta.get("application_answers") or []
+    return [item for item in items if isinstance(item, dict)]
+
+
+def _match_application_answers(lead: dict, labels: list[str]) -> list[dict]:
+    from agents.actuator import application_answer_map, normalize_question_label
+
+    answers = application_answer_map({"application_answers": _lead_application_answers(lead)})
+    matches: list[dict] = []
+    for label in labels:
+        key = normalize_question_label(label)
+        if not key:
+            continue
+        item = answers.get(key) or {}
+        if not item:
+            continue
+        matches.append(
+            {
+                "label": str(label),
+                "key": key,
+                "answer": str(item.get("answer") or item.get("short_answer") or ""),
+                "short_answer": str(item.get("short_answer") or item.get("answer") or ""),
+                "long_answer": str(item.get("long_answer") or item.get("answer") or ""),
+            }
+        )
+    return matches
+
+
 async def _apply_context(job_id: str) -> tuple[dict, str, dict, str]:
     from db.client import get_lead_for_fire, get_profile, get_settings
 
@@ -1755,7 +2128,7 @@ async def _apply_context(job_id: str) -> tuple[dict, str, dict, str]:
     candidate = (profile.get("candidate") or {}) if isinstance(profile, dict) else {}
     identity = {
         **lead,
-        "name":            cfg.get("full_name", "") or candidate.get("n", ""),
+        "name":            cfg.get("full_name", "") or candidate.get("n", "") or profile.get("n", ""),
         "email":           cfg.get("email", ""),
         "phone":           cfg.get("phone", ""),
         "linkedin_url":    cfg.get("linkedin_url", ""),
@@ -1763,6 +2136,7 @@ async def _apply_context(job_id: str) -> tuple[dict, str, dict, str]:
         "website":         cfg.get("website_url", ""),
         "city":            cfg.get("city", ""),
         "current_company": cfg.get("current_company", ""),
+        "application_answers": _lead_application_answers(lead),
     }
 
     cover_text = ""
@@ -1797,7 +2171,7 @@ async def read_lead_form(job_id: str, body: FormReadBody):
 
     cfg = get_settings()
     identity = {
-        "name":            cfg.get("full_name", "") or candidate.get("n", ""),
+        "name":            cfg.get("full_name", "") or candidate.get("n", "") or profile.get("n", ""),
         "email":           cfg.get("email", ""),
         "phone":           cfg.get("phone", ""),
         "linkedin_url":    cfg.get("linkedin_url", ""),
@@ -1805,6 +2179,7 @@ async def read_lead_form(job_id: str, body: FormReadBody):
         "website":         cfg.get("website_url", ""),
         "city":            cfg.get("city", ""),
         "current_company": cfg.get("current_company", ""),
+        "application_answers": _lead_application_answers(lead),
     }
 
     cover_letter = lead.get("cover_letter_asset", "")
@@ -1820,7 +2195,13 @@ async def read_lead_form(job_id: str, body: FormReadBody):
             cover_letter = ""
 
     result = await read_form(url, identity, cover_letter=cover_letter)
-    return result
+    return {
+        **result,
+        "suggested_answers": _match_application_answers(
+            lead,
+            [str(item) for item in result.get("unmatched_labels", []) or []],
+        ),
+    }
 
 
 @app.get("/api/v1/identity")
@@ -1857,9 +2238,14 @@ async def preview_apply(job_id: str):
     lead, _asset, identity, _cfg = await _apply_context(job_id)
     result = await read_form(lead.get("url", ""), identity, identity.get("cover_letter", ""))
     readiness = _apply_readiness(result)
+    suggested = _match_application_answers(
+        lead,
+        [str(x) for x in (result.get("unmatched_labels", []) or []) + readiness["missing_answers"]],
+    )
     payload = {
         **result,
         **readiness,
+        "suggested_answers": suggested,
         "stage": "preview",
         "job_id": job_id,
         "can_fill": not result.get("error"),
@@ -1924,6 +2310,8 @@ async def _generate_one(jid: str):
             package["cover_letter"],
             package.get("selected_projects", []),
             package.get("keyword_coverage", {}),
+            package.get("generation_artifacts", {}),
+            package.get("application_answers", []),
         )
         # Save AI-generated outreach messages alongside the package
         _outreach_fields = {}
@@ -1952,6 +2340,12 @@ async def _generate_one(jid: str):
             "outreach_reply": package.get("founder_message", lead.get("outreach_reply", "")),
             "outreach_dm": package.get("linkedin_note", lead.get("outreach_dm", "")),
             "outreach_email": package.get("cold_email", lead.get("outreach_email", "")),
+            "source_meta": {
+                **(lead.get("source_meta") or {}),
+                "keyword_coverage": package.get("keyword_coverage", {}),
+                "generation_artifacts": package.get("generation_artifacts", {}),
+                "application_answers": package.get("application_answers", []),
+            },
             "status": "approved",
         }
         contact_lookup = await asyncio.to_thread(_contact_lookup, enriched_lead)

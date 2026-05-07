@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "vaultPath": "knowledge/justhireme-obsidian-vault",
+  "refreshCommand": [
+    "npx",
+    "@swarmvaultai/cli",
+    "compile",
+    "--json"
+  ],
+  "sourceGroups": [
+    {
+      "id": "foundation-docs",
+      "label": "Foundation docs",
+      "kind": "docs",
+      "paths": [
+        "README.md",
+        "SPEC.md",
+        "ROADMAP.md",
+        "docs/ARCHITECTURE.md",
+        "ARCHITECTURE.html",
+        "ARCHITECTURE_INTERACTIVE.html"
+      ]
+    },
+    {
+      "id": "supporting-docs",
+      "label": "Supporting docs",
+      "kind": "docs",
+      "paths": [
+        "docs/source-adapters.md",
+        "docs/MCP.md",
+        "docs/TASK_QUEUE.md",
+        "docs/MAINTAINER_RELEASE_CHECKLIST.md",
+        "docs/windows-release.md"
+      ]
+    },
+    {
+      "id": "next-code-slices",
+      "label": "Next code areas",
+      "kind": "code",
+      "paths": [
+        "src/views",
+        "src/components",
+        "src/hooks",
+        "src/settings",
+        "backend",
+        "src-tauri/src"
+      ]
+    }
+  ],
+  "excludePaths": [
+    "node_modules",
+    "dist",
+    ".git",
+    "backend/.venv",
+    "knowledge/justhireme-obsidian-vault/state",
+    "knowledge/justhireme-obsidian-vault/wiki/outputs"
+  ]
+}

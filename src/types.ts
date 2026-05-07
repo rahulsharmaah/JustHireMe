@@ -56,6 +56,26 @@ export interface ContactLookup {
   }[];
 }
 
+export interface ApplicationAnswer {
+  key: string;
+  label: string;
+  question: string;
+  answer: string;
+  short_answer?: string;
+  long_answer?: string;
+}
+
+export interface GenerationArtifacts {
+  fingerprint?: string;
+  generated_at?: string;
+  artifacts?: {
+    fit_summary?: string;
+    company_hook?: string;
+    target_role_summary?: string;
+    selected_evidence?: string[];
+  };
+}
+
 export interface Lead {
   job_id: string; title: string; company: string;
   url: string; platform: string; status: string; asset: string;
@@ -63,6 +83,8 @@ export interface Lead {
   resume_version?: number;
   keyword_coverage?: KeywordCoverage;
   contact_lookup?: ContactLookup;
+  application_answers?: ApplicationAnswer[];
+  generation_artifacts?: GenerationArtifacts;
   score: number; reason: string; match_points: string[]; gaps?: string[];
   description?: string; kind?: string; budget?: string;
   signal_score?: number; signal_reason?: string; signal_tags?: string[];
@@ -81,9 +103,181 @@ export interface GraphStats {
   candidate: number; skill: number; project: number;
   experience: number; joblead: number;
 }
+
+export interface KnowledgePageRef {
+  id: string;
+  path: string;
+  title: string;
+  kind?: string;
+  status?: string;
+  sourceIds?: string[];
+  updatedAt?: string;
+  confidence?: number;
+}
+
+export interface KnowledgeGraphNode {
+  id: string;
+  type: string;
+  label: string;
+  pageId?: string;
+  communityId?: string;
+  degree?: number;
+  confidence?: number;
+  freshness?: string;
+  tags?: string[];
+  sourceIds?: string[];
+}
+
+export interface KnowledgeGraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  relation?: string;
+  confidence?: number;
+}
+
+export interface KnowledgeCommunity {
+  id: string;
+  label?: string;
+  nodeIds?: string[];
+}
+
+export interface KnowledgeSummary {
+  enabled: boolean;
+  vaultPath: string;
+  compiledAt: string | null;
+  sourceCount: number;
+  pageCount: number;
+  nodeCount: number;
+  edgeCount: number;
+  openQuestions: string[];
+  featuredPages: KnowledgePageRef[];
+  home: string;
+}
+
+export interface KnowledgeManifestSourceGroup {
+  id: string;
+  label: string;
+  kind: string;
+  paths: string[];
+}
+
+export interface KnowledgeManifest {
+  version: number;
+  vaultPath: string;
+  refreshCommand: string[];
+  sourceGroups: KnowledgeManifestSourceGroup[];
+  excludePaths: string[];
+}
+
+export interface KnowledgeGraphPayload {
+  enabled: boolean;
+  generatedAt: string | null;
+  nodes: KnowledgeGraphNode[];
+  edges: KnowledgeGraphEdge[];
+  pages: KnowledgePageRef[];
+  communities: KnowledgeCommunity[];
+}
+
+export interface KnowledgePageDetail {
+  enabled: boolean;
+  id: string;
+  path: string;
+  title: string;
+  kind: string;
+  status: string;
+  reviewStatus?: "pending" | "promoted" | "archived";
+  updatedAt: string;
+  sourceIds: string[];
+  content: string;
+  excerpt: string;
+}
+
+export interface KnowledgeStatus {
+  enabled: boolean;
+  refreshing: boolean;
+  lastRefreshAt: string | null;
+  lastRefreshStatus: string;
+  lastRefreshError: string;
+  lastRefreshSummary?: Record<string, any> | null;
+  manifest: KnowledgeManifest;
+  candidateCounts: {
+    pending: number;
+    promoted: number;
+    archived: number;
+  };
+  compiledAt: string | null;
+  sourceCount: number;
+  pageCount: number;
+  nodeCount: number;
+  edgeCount: number;
+  stale: boolean;
+  latestSourceAt: string | null;
+  changedSourceCount: number;
+  changedSources: {
+    groupId: string;
+    groupLabel: string;
+    path: string;
+    mtime: number;
+  }[];
+}
+
+export interface KnowledgeCandidate {
+  id: string;
+  path: string;
+  title: string;
+  kind: string;
+  status: string;
+  reviewStatus: "pending" | "promoted" | "archived";
+  sourceIds: string[];
+  confidence?: number | string;
+  updatedAt?: string;
+  excerpt: string;
+  category: string;
+}
+
+export interface KnowledgeCandidatePayload {
+  enabled: boolean;
+  items: KnowledgeCandidate[];
+  counts: {
+    pending: number;
+    promoted: number;
+    archived: number;
+  };
+}
 export interface LogLine {
   id: number; ts: string; msg: string; src: string;
   kind: "heartbeat" | "agent" | "system";
+}
+
+export type WorkerTaskStatus = "queued" | "running" | "succeeded" | "failed" | "cancelled";
+
+export interface WorkerTask {
+  id: string;
+  queue: string;
+  kind: string;
+  payload: Record<string, any>;
+  status: WorkerTaskStatus;
+  attempts: number;
+  max_attempts: number;
+  priority: number;
+  unique_key: string;
+  available_at: string;
+  created_at: string;
+  updated_at: string;
+  started_at?: string | null;
+  finished_at?: string | null;
+  leased_by?: string | null;
+  lease_expires_at?: string | null;
+  last_error?: string | null;
+}
+
+export interface WorkerTasksPayload {
+  enabled: boolean;
+  concurrency: number;
+  active: WorkerTask[];
+  recent: WorkerTask[];
+  counts: Record<WorkerTaskStatus, number>;
 }
 
 export type ApiFetch = (path: string, opts?: RequestInit) => Promise<Response>;
@@ -103,6 +297,13 @@ export interface FormReadResult {
   screenshot_b64: string;
   fields: FormField[];
   unmatched_labels: string[];
+  suggested_answers?: {
+    label: string;
+    key: string;
+    answer: string;
+    short_answer?: string;
+    long_answer?: string;
+  }[];
   error: string | null;
 }
 

@@ -1,7 +1,19 @@
 import Icon from "./Icon";
-import type { View } from "../types";
+import type { View, WorkerTasksPayload, WorkerTask } from "../types";
 
-export function Topbar({ view, sidebarCollapsed, onToggleSidebar }: { view: View; sidebarCollapsed: boolean; onToggleSidebar: () => void }) {
+export function Topbar({
+  view,
+  sidebarCollapsed,
+  onToggleSidebar,
+  tasks,
+  onRefreshTasks,
+}: {
+  view: View;
+  sidebarCollapsed: boolean;
+  onToggleSidebar: () => void;
+  tasks?: WorkerTasksPayload;
+  onRefreshTasks?: () => void;
+}) {
   const titles: Record<View, string> = {
     apply:     "Customize Package",
     dashboard: "Command Center",
@@ -23,12 +35,73 @@ export function Topbar({ view, sidebarCollapsed, onToggleSidebar }: { view: View
           {view.toUpperCase()}
         </span>
       </div>
-      {view === "profile" && (
-        <button className="btn" onClick={() => window.dispatchEvent(new CustomEvent("profile-export"))}>
-          <Icon name="download" size={13} /> Export Graph
-        </button>
-      )}
+      <div className="row gap-2">
+        {tasks && <WorkerQueueIndicator tasks={tasks} onRefresh={onRefreshTasks} />}
+        {view === "profile" && (
+          <button className="btn" onClick={() => window.dispatchEvent(new CustomEvent("profile-export"))}>
+            <Icon name="download" size={13} /> Export Graph
+          </button>
+        )}
+      </div>
     </header>
+  );
+}
+
+function taskLabel(task: WorkerTask) {
+  const jobId = task.payload?.job_id ? ` · ${String(task.payload.job_id).slice(0, 16)}` : "";
+  return `${task.kind.replace(/\./g, " ")}${jobId}`;
+}
+
+function WorkerQueueIndicator({ tasks, onRefresh }: { tasks: WorkerTasksPayload; onRefresh?: () => void }) {
+  const activeCount = tasks.active.length;
+  const failed = tasks.counts.failed || 0;
+  const tone = failed ? "var(--red)" : activeCount ? "var(--blue)" : "var(--green)";
+  const label = tasks.enabled
+    ? activeCount
+      ? `${activeCount} active`
+      : failed
+        ? `${failed} failed`
+        : "Queue idle"
+    : "Queue off";
+
+  return (
+    <details className="queue-popover">
+      <summary className="btn queue-summary" style={{ borderColor: tone, color: tone }}>
+        <Icon name={activeCount ? "pulse" : failed ? "x" : "check"} size={13} />
+        <span>{label}</span>
+      </summary>
+      <div className="queue-menu">
+        <div className="row gap-2" style={{ justifyContent: "space-between" }}>
+          <div>
+            <div className="type-metric-label">Worker Queue</div>
+            <div className="type-metric-sub">Concurrency {tasks.concurrency}</div>
+          </div>
+          <button className="btn btn-icon" onClick={onRefresh} title="Refresh queue">
+            <Icon name="pulse" size={13} />
+          </button>
+        </div>
+        <div className="queue-counts">
+          <span>Queued {tasks.counts.queued}</span>
+          <span>Running {tasks.counts.running}</span>
+          <span>Done {tasks.counts.succeeded}</span>
+          <span>Failed {tasks.counts.failed}</span>
+        </div>
+        <div className="queue-list">
+          {(tasks.active.length ? tasks.active : tasks.recent.slice(0, 5)).map(task => (
+            <div key={task.id} className="queue-row">
+              <span className={`queue-dot queue-${task.status}`} />
+              <div>
+                <div className="queue-title">{taskLabel(task)}</div>
+                <div className="type-metric-sub">{task.status} · attempt {task.attempts}/{task.max_attempts}</div>
+              </div>
+            </div>
+          ))}
+          {!tasks.active.length && !tasks.recent.length && (
+            <div className="type-metric-sub">No worker tasks yet.</div>
+          )}
+        </div>
+      </div>
+    </details>
   );
 }
 
