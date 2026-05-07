@@ -36,8 +36,8 @@ export function Sidebar({ view, setView, leadCounts, online, port, beat, onSetti
           return (
             <div key={n.id} className={"nav-item " + (active ? "active" : "")} onClick={() => setView(n.id as View)}>
               <div className="nav-icon" style={{
-                background: active ? `var(--${n.tone})` : "var(--paper-3)",
-                color: active ? `var(--${n.tone}-ink)` : "var(--ink-2)",
+                background: active ? `var(--${n.tone})` : "rgba(255,255,255,0.07)",
+                color: active ? "#fff" : "rgba(255,255,255,0.62)",
               }}>
                 <Icon name={n.icon} size={14} stroke={1.8} />
               </div>
@@ -45,8 +45,8 @@ export function Sidebar({ view, setView, leadCounts, online, port, beat, onSetti
               {count != null && (
                 <span className="mono tabular" style={{
                   fontSize: 10.5, fontWeight: 600,
-                  color: active ? `var(--${n.tone}-ink)` : "var(--ink-3)",
-                  background: active ? `var(--${n.tone})` : "var(--paper-3)",
+                  color: active ? "#fff" : "rgba(255,255,255,0.42)",
+                  background: active ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.06)",
                   padding: "2px 7px", borderRadius: 999,
                 }}>{count}</span>
               )}
@@ -66,14 +66,14 @@ export function Sidebar({ view, setView, leadCounts, online, port, beat, onSetti
           ["rejected",     "Rejected",     "red",     leadCounts.rejected],
         ].map(([k, label, tone, n]) => (
           <div key={k} className="row" style={{
-            padding: "7px 12px", fontSize: 12, color: "var(--ink-2)", justifyContent: "space-between",
+            padding: "7px 12px", fontSize: 12, color: "rgba(255,255,255,0.60)", justifyContent: "space-between",
             borderRadius: 8,
           }}>
             <div className="row gap-2">
               <span style={{ width: 8, height: 8, borderRadius: 3, background: `var(--${tone})`, border: `1px solid var(--${tone}-ink)`, opacity: 0.85 }} />
               <span>{label}</span>
             </div>
-            <span className="mono tabular" style={{ color: "var(--ink-3)", fontSize: 11 }}>{n || 0}</span>
+            <span className="mono tabular" style={{ color: "rgba(255,255,255,0.34)", fontSize: 11 }}>{n || 0}</span>
           </div>
         ))}
       </div>
@@ -91,7 +91,7 @@ export function Sidebar({ view, setView, leadCounts, online, port, beat, onSetti
               <span style={{
                 width: 7, height: 7, borderRadius: "50%",
                 background: online ? "var(--ok)" : "var(--bad)",
-                boxShadow: `0 0 0 3px ${online ? 'rgba(91,140,68,0.18)' : 'rgba(180,69,44,0.18)'}`,
+                boxShadow: `0 0 0 3px ${online ? 'rgba(46,211,163,0.18)' : 'rgba(240,82,104,0.18)'}`,
                 animation: online ? "blink 2s ease-in-out infinite" : "none",
               }} />
               <span style={{ fontSize: 11.5, fontWeight: 600 }}>{online ? `Online · :${port}` : "Offline"}</span>

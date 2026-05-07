@@ -4,9 +4,11 @@ import { invoke } from "@tauri-apps/api/core";
 import type { ConnSt, Lead, LogLine } from "../types";
 
 export function useWS() {
+  const devPort = Number(import.meta.env.VITE_JHM_PORT || 0) || null;
+  const devToken = import.meta.env.VITE_JHM_TOKEN || null;
   const [conn, setConn] = useState<ConnSt>("disconnected");
-  const [port, setPort] = useState<number | null>(null);
-  const [apiToken, setApiToken] = useState<string | null>(null);
+  const [port, setPort] = useState<number | null>(devPort);
+  const [apiToken, setApiToken] = useState<string | null>(devToken);
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [beat, setBeat] = useState(0);
   const wsRef = useRef<WebSocket | null>(null);
@@ -64,6 +66,11 @@ export function useWS() {
     (async () => {
       let token: string | null = null;
       let currentPort: number | null = null;
+      if (devPort && devToken) {
+        token = devToken;
+        currentPort = devPort;
+        connect(devPort, devToken);
+      }
       try { token = await invoke<string>("get_api_token"); setApiToken(token); } catch { /* not ready */ }
       try {
         const p = await invoke<number>("get_sidecar_port");
@@ -85,7 +92,7 @@ export function useWS() {
       unlisten = () => { prevUnlisten?.(); unlistenToken(); };
     })();
     return () => { unlisten?.(); wsRef.current?.close(); };
-  }, [connect]);
+  }, [connect, devPort, devToken]);
 
   return { conn, port, apiToken, logs, beat, addLog };
 }

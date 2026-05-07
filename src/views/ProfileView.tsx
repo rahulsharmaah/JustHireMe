@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Icon from "../components/Icon";
 import type { ApiFetch, View } from "../types";
+import { showToast } from "../lib/toast";
 
 const stackItems = (stack: any): string[] =>
   (Array.isArray(stack) ? stack : String(stack || "").split(","))
@@ -14,6 +15,7 @@ export function ProfileView({ api, setView }: { api: ApiFetch; setView: (v: View
   const [editData, setEditData] = useState<any>(null);
   const [editingCandidate, setEditingCandidate] = useState(false);
   const [candForm, setCandForm] = useState({ n: "", s: "" });
+  const [profileBusy, setProfileBusy] = useState(false);
   const [activeProfileTab, setActiveProfileTab] = useState<"skills" | "experience" | "projects">("skills");
   const [expandedProfileList, setExpandedProfileList] = useState(false);
 
@@ -45,6 +47,7 @@ export function ProfileView({ api, setView }: { api: ApiFetch; setView: (v: View
       a.download = `${profile.n || "identity-graph"}.json`.replace(/[^\w.-]+/g, "-");
       a.click();
       URL.revokeObjectURL(url);
+      showToast({ tone: "success", title: "Profile exported" });
     };
     window.addEventListener("profile-export", exportProfile);
     return () => window.removeEventListener("profile-export", exportProfile);
@@ -52,27 +55,55 @@ export function ProfileView({ api, setView }: { api: ApiFetch; setView: (v: View
 
   const deleteItem = async (type: string, id: string) => {
     if (!window.confirm("Delete this item?")) return;
+    setProfileBusy(true);
+    showToast({ id: "profile-action", tone: "loading", title: "Deleting item" });
     try {
       const res = await api(`/api/v1/profile/${type}/${id}`, { method: "DELETE" });
-      if (!res.ok) console.error("Delete failed:", res.status);
-    } catch (err) {
+      if (!res.ok) throw new Error(`Delete failed (${res.status})`);
+      showToast({ id: "profile-action", tone: "success", title: "Item deleted" });
+    } catch (err: any) {
       console.error("Delete error:", err);
+      showToast({ id: "profile-action", tone: "error", title: "Delete failed", message: err?.message || "Please try again." });
+    } finally {
+      setProfileBusy(false);
     }
     await fetchProfile();
   };
 
   const saveEdit = async (type: string, id: string) => {
-    await api(`/api/v1/profile/${type}/${id}`, {
-      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editData),
-    });
-    setEditId(null); fetchProfile();
+    setProfileBusy(true);
+    showToast({ id: "profile-action", tone: "loading", title: "Saving profile item" });
+    try {
+      const res = await api(`/api/v1/profile/${type}/${id}`, {
+        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editData),
+      });
+      if (!res.ok) throw new Error(`Save failed (${res.status})`);
+      setEditId(null);
+      showToast({ id: "profile-action", tone: "success", title: "Profile item saved" });
+      await fetchProfile();
+    } catch (err: any) {
+      showToast({ id: "profile-action", tone: "error", title: "Save failed", message: err?.message || "Please try again." });
+    } finally {
+      setProfileBusy(false);
+    }
   };
 
   const saveCandidate = async () => {
-    await api(`/api/v1/profile/candidate`, {
-      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(candForm),
-    });
-    setEditingCandidate(false); fetchProfile();
+    setProfileBusy(true);
+    showToast({ id: "profile-action", tone: "loading", title: "Saving identity" });
+    try {
+      const res = await api(`/api/v1/profile/candidate`, {
+        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(candForm),
+      });
+      if (!res.ok) throw new Error(`Save failed (${res.status})`);
+      setEditingCandidate(false);
+      showToast({ id: "profile-action", tone: "success", title: "Identity saved" });
+      await fetchProfile();
+    } catch (err: any) {
+      showToast({ id: "profile-action", tone: "error", title: "Identity save failed", message: err?.message || "Please try again." });
+    } finally {
+      setProfileBusy(false);
+    }
   };
 
   const skills = profile?.skills || [];
@@ -139,7 +170,7 @@ export function ProfileView({ api, setView }: { api: ApiFetch; setView: (v: View
               <input className="field-input" placeholder="Your full name" value={candForm.n} onChange={e => setCandForm({ ...candForm, n: e.target.value })} style={{ fontSize: 18, fontWeight: 600 }} />
               <textarea className="field-input" placeholder="Professional summary / target role - agents use this for scoring" rows={4} value={candForm.s} onChange={e => setCandForm({ ...candForm, s: e.target.value })} style={{ fontSize: 14, lineHeight: 1.6 }} />
               <div className="row gap-2">
-                <button className="btn btn-primary" style={{ padding: "10px 24px" }} onClick={saveCandidate}>Save Identity</button>
+                <button className="btn btn-primary" style={{ padding: "10px 24px" }} onClick={saveCandidate} disabled={profileBusy} aria-busy={profileBusy}>Save Identity</button>
                 <button className="btn btn-ghost" onClick={() => setEditingCandidate(false)}>Cancel</button>
               </div>
             </div>
@@ -271,7 +302,7 @@ export function ProfileView({ api, setView }: { api: ApiFetch; setView: (v: View
                             <input className="field-input" value={editData.period} placeholder="Period" onChange={v => setEditData({ ...editData, period: v.target.value })} />
                             <textarea className="field-input" value={editData.d} rows={4} placeholder="Description" onChange={v => setEditData({ ...editData, d: v.target.value })} />
                             <div className="row gap-2">
-                              <button className="btn btn-primary" onClick={() => saveEdit("experience", e.id)}>Save</button>
+                              <button className="btn btn-primary" onClick={() => saveEdit("experience", e.id)} disabled={profileBusy} aria-busy={profileBusy}>Save</button>
                               <button className="btn btn-ghost" onClick={() => setEditId(null)}>Cancel</button>
                             </div>
                           </div>
@@ -310,7 +341,7 @@ export function ProfileView({ api, setView }: { api: ApiFetch; setView: (v: View
                             <input className="field-input" value={editData.repo} placeholder="Repo URL" onChange={v => setEditData({ ...editData, repo: v.target.value })} />
                             <textarea className="field-input" value={editData.impact} rows={4} placeholder="Impact" onChange={v => setEditData({ ...editData, impact: v.target.value })} />
                             <div className="row gap-2">
-                              <button className="btn btn-primary" onClick={() => saveEdit("project", p.id)}>Save</button>
+                              <button className="btn btn-primary" onClick={() => saveEdit("project", p.id)} disabled={profileBusy} aria-busy={profileBusy}>Save</button>
                               <button className="btn btn-ghost" onClick={() => setEditId(null)}>Cancel</button>
                             </div>
                           </div>

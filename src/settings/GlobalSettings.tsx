@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import type { Cfg } from "./shared";
+import type { Cfg, SettingsIssue } from "./shared";
 import { ApiKeyInput, KEY_FIELD, ModelChips, ProviderPills, SectionLabel } from "./shared";
 import type { ApiFetch } from "../types";
+import { showToast } from "../lib/toast";
 
 type KeyStatus = "ok" | "invalid_key" | "unreachable" | "not_configured" | "unchecked";
 type ValidationResult = Record<string, { status: KeyStatus; latency_ms?: number }>;
 
-export function GlobalSettings({ cfg, set, onChange, prov, api }: { cfg: Cfg; set: (k: keyof Cfg) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void; onChange: (k: keyof Cfg, v: string) => void; prov: string; api: ApiFetch }) {
+export function GlobalSettings({ cfg, set, onChange, prov, api, issues = [] }: { cfg: Cfg; set: (k: keyof Cfg) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void; onChange: (k: keyof Cfg, v: string) => void; prov: string; api: ApiFetch; issues?: SettingsIssue[] }) {
   const [checking, setChecking] = useState(false);
   const [results, setResults] = useState<ValidationResult | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -23,12 +24,18 @@ export function GlobalSettings({ cfg, set, onChange, prov, api }: { cfg: Cfg; se
   const checkKeys = async () => {
     setChecking(true);
     setErr(null);
+    showToast({ id: "settings-validate", tone: "loading", title: "Checking provider keys" });
     try {
       const r = await api("/api/v1/settings/validate");
       if (!r.ok) throw new Error(`Server returned ${r.status}`);
-      setResults(await r.json());
+      const data = await r.json();
+      setResults(data);
+      const okCount = Object.values(data).filter((item: any) => item?.status === "ok").length;
+      showToast({ id: "settings-validate", tone: okCount > 0 ? "success" : "info", title: "Key check complete", message: `${okCount} provider${okCount === 1 ? "" : "s"} ready.` });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Key validation failed");
+      const message = e instanceof Error ? e.message : "Key validation failed";
+      setErr(message);
+      showToast({ id: "settings-validate", tone: "error", title: "Key validation failed", message });
     } finally {
       setChecking(false);
     }
@@ -55,6 +62,15 @@ export function GlobalSettings({ cfg, set, onChange, prov, api }: { cfg: Cfg; se
           <div>
             <SectionLabel label="Global Default" sub="fallback for any step not overridden" />
             <div style={{ padding: 16, borderRadius: 14, background: "var(--paper-2)", border: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: 12 }}>
+              {issues.length > 0 && (
+                <div className="settings-alert-stack">
+                  {issues.map(issue => (
+                    <div key={`${issue.field}-${issue.message}`} className={`settings-alert ${issue.level}`}>
+                      {issue.message}
+                    </div>
+                  ))}
+                </div>
+              )}
               <ProviderPills value={prov} onChange={v => onChange("llm_provider", v)} />
               {prov !== "ollama" && (
                 <ApiKeyInput value={cfg[KEY_FIELD[prov]] as string} onChange={v => onChange(KEY_FIELD[prov], v)} provider={prov} />
@@ -70,7 +86,7 @@ export function GlobalSettings({ cfg, set, onChange, prov, api }: { cfg: Cfg; se
                 </div>
               )}
               <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-                <button className="btn" onClick={checkKeys} disabled={checking} style={{ alignSelf: "flex-start", fontSize: 12 }}>
+                <button className="btn" onClick={checkKeys} disabled={checking} aria-busy={checking} style={{ alignSelf: "flex-start", fontSize: 12 }}>
                   {checking ? "Checking keys..." : "Check keys"}
                 </button>
                 {checking && (

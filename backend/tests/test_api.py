@@ -206,6 +206,55 @@ class TestLeadsEndpoints(unittest.TestCase):
         resp = post("/api/v1/leads/manual", json={"text": "x" * 25000})
         self.assertEqual(resp.status_code, 422)
 
+    def test_manual_lead_returns_existing_duplicate(self):
+        from db import client as db_client
+
+        duplicate = {
+            "job_id": "dup-001",
+            "title": "Python Engineer",
+            "company": "Acme",
+            "url": "https://example.com/jobs/1",
+            "platform": "manual",
+            "kind": "job",
+            "source_meta": {},
+        }
+        with mock.patch.object(db_client, "find_duplicate_lead", return_value=duplicate):
+            resp = post(
+                "/api/v1/leads/manual",
+                json={
+                    "url": "https://example.com/jobs/1",
+                    "text": "Python Engineer at Acme. We are hiring for a remote FastAPI and React role.",
+                },
+            )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json().get("job_id"), "dup-001")
+        self.assertTrue(resp.json().get("source_meta", {}).get("duplicate_detected"))
+
+    def test_manual_lead_marks_low_quality_as_discarded(self):
+        from db import client as db_client
+
+        with (
+            mock.patch.object(db_client, "find_duplicate_lead", return_value={}),
+            mock.patch.object(db_client, "save_lead"),
+            mock.patch.object(db_client, "update_lead_status") as update_status,
+            mock.patch.object(db_client, "get_lead_by_id", return_value={
+                "job_id": "low-quality-001",
+                "title": "Newsletter",
+                "company": "Example",
+                "url": "https://example.com/news",
+                "platform": "manual",
+                "kind": "job",
+                "status": "discarded",
+                "source_meta": {"lead_quality_accepted": False},
+            }),
+        ):
+            resp = post(
+                "/api/v1/leads/manual",
+                json={"url": "https://example.com/news", "text": "Newsletter course giveaway."},
+            )
+        self.assertEqual(resp.status_code, 200)
+        update_status.assert_called_once()
+
 
 class TestExportEndpoint(unittest.TestCase):
     def test_export_csv_status(self):

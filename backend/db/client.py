@@ -189,6 +189,50 @@ def url_exists(jid: str) -> bool:
     return r is not None
 
 
+def _normalize_url_for_match(value: str) -> str:
+    raw = str(value or "").strip().lower()
+    if not raw:
+        return ""
+    raw = raw.split("#", 1)[0].rstrip("/")
+    raw = raw.replace("https://www.", "https://").replace("http://www.", "http://")
+    if raw.startswith("http://"):
+        raw = "https://" + raw[len("http://"):]
+    return raw
+
+
+def _normalize_text_for_match(value: str) -> str:
+    return " ".join(str(value or "").strip().lower().split())
+
+
+def find_duplicate_lead(url: str = "", title: str = "", company: str = "") -> dict:
+    """Find an active duplicate by URL first, then by normalized company/title."""
+    norm_url = _normalize_url_for_match(url)
+    norm_title = _normalize_text_for_match(title)
+    norm_company = _normalize_text_for_match(company)
+    c = _sq.connect(sql)
+    rows = c.execute(
+        f"""
+        SELECT {_LEAD_SELECT_COLUMNS}
+        FROM leads
+        WHERE COALESCE(status, 'discovered') != 'discarded'
+        ORDER BY created_at DESC
+        """
+    ).fetchall()
+    c.close()
+    for row in rows:
+        lead = _lead_row_dict(row)
+        if norm_url and _normalize_url_for_match(lead.get("url", "")) == norm_url:
+            return lead
+        if (
+            norm_title
+            and norm_company
+            and _normalize_text_for_match(lead.get("title", "")) == norm_title
+            and _normalize_text_for_match(lead.get("company", "")) == norm_company
+        ):
+            return lead
+    return {}
+
+
 def save_lead(
     jid: str,
     t: str,
@@ -248,7 +292,7 @@ def save_lead(
         lead["learning_reason"] = learning_reason or ""
 
     c = _sq.connect(sql)
-    c.execute(
+    cur = c.execute(
         """
         INSERT OR IGNORE INTO leads(
             job_id,title,company,url,platform,description,kind,budget,
@@ -275,6 +319,11 @@ def save_lead(
             json.dumps(lead.get("source_meta") or {}, ensure_ascii=False),
         ),
     )
+    if getattr(cur, "rowcount", 0) > 0:
+        c.execute(
+            "INSERT INTO events(job_id,action) VALUES(?,?)",
+            (jid, f"created source={plat or 'manual'}"),
+        )
     c.commit()
     c.close()
 
@@ -882,7 +931,7 @@ def get_lead_by_id(jid: str) -> dict:
         (jid,)
     ).fetchone()
     evs = c.execute(
-        "SELECT action, ts FROM events WHERE job_id=? ORDER BY ts DESC LIMIT 20",
+        "SELECT action, ts FROM events WHERE job_id=? ORDER BY datetime(ts) DESC, id DESC LIMIT 20",
         (jid,)
     ).fetchall()
     c.close()

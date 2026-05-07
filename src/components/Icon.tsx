@@ -25,9 +25,9 @@ export default function Icon({ name, size = 16, stroke = 1.7, color = "currentCo
     case "logo":
       return (
         <svg width={size} height={size} viewBox="0 0 32 32" style={style}>
-          <rect x="1" y="1" width="30" height="30" rx="9" fill="#1F1A14" />
-          <path d="M10 21 L10 11 M10 11 L16 11 Q22 11 22 16 Q22 21 16 21 L13 21" stroke="#F4EFE6" strokeWidth="2.2" fill="none" strokeLinecap="round" />
-          <circle cx="22" cy="11" r="2" fill="#C96442" />
+          <rect x="1" y="1" width="30" height="30" rx="9" fill="#F7F8FC" opacity="0.12" />
+          <path d="M10 21 L10 11 M10 11 L16 11 Q22 11 22 16 Q22 21 16 21 L13 21" stroke="#F6F7F8" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+          <circle cx="22" cy="11" r="2" fill="#18C7BE" />
         </svg>
       );
     case "home":

@@ -5,6 +5,38 @@ import Icon from "./Icon";
 import type { ApiFetch, KeywordCoverage, Lead } from "../types";
 import { cleanLeadText, getTone, leadDisplayHeading } from "../lib/leadUtils";
 import { FormReader } from "./FormReader";
+import { showToast } from "../lib/toast";
+
+function formatTimelineAction(action: string) {
+  const raw = String(action || "").trim();
+  if (!raw) return { label: "Activity recorded", detail: "" };
+  if (raw.startsWith("created")) return { label: "Lead discovered", detail: raw.replace(/^created\s*/, "") };
+  if (raw.startsWith("score=")) {
+    const score = raw.match(/score=(\d+)/)?.[1];
+    const status = raw.match(/status=([^\s]+)/)?.[1]?.replace("preserved:", "");
+    return { label: "Lead scored", detail: [score ? `${score}/100 match` : "", status ? `Status ${status.replace(/_/g, " ")}` : ""].filter(Boolean).join(" - ") };
+  }
+  if (raw.startsWith("assets=") || raw.startsWith("asset=")) return { label: "Package generated", detail: raw.replace(/^assets?=/, "") };
+  if (raw.startsWith("contact_lookup=")) return { label: "Contact lookup", detail: raw.replace("contact_lookup=", "").replace(/_/g, " ") };
+  if (raw === "submitted application") return { label: "Application submitted", detail: "" };
+  if (raw.startsWith("status_changed=")) return { label: "Status changed", detail: raw.replace("status_changed=", "").replace(/_/g, " ") };
+  if (raw.startsWith("feedback=")) return { label: "Feedback saved", detail: raw.replace("feedback=", "").replace(/_/g, " ") };
+  if (raw.startsWith("followup_due=")) return { label: "Follow-up scheduled", detail: raw.replace("followup_due=", "") };
+  return { label: raw.includes(":") ? raw.split(":")[0] : "Activity recorded", detail: raw.includes(":") ? raw.split(":").slice(1).join(":").trim() : raw };
+}
+
+function formatTimelineTime(ts: string) {
+  if (!ts) return "";
+  const normalized = ts.includes("T") ? ts : `${ts.replace(" ", "T")}Z`;
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return ts;
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
 
 export function ApprovalDrawer({ j, api, onClose, onFired }: {
   j: Lead; api: ApiFetch; onClose: () => void; onFired: () => void;
@@ -17,6 +49,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
   const [activeDoc, setActiveDoc] = useState<DocKind>("resume");
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [pdfLoadErr, setPdfLoadErr] = useState<string | null>(null);
+  const [pdfRetry, setPdfRetry] = useState(0);
   const [generateErr, setGenerateErr] = useState<string | null>(null);
   const [pipelineRunning, setPipelineRunning] = useState(false);
   const [pipelineMsg, setPipelineMsg] = useState<string | null>(null);
@@ -50,6 +83,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
   const hasCoverage = missingTerms.length > 0 || incorporatedTerms.length > 0 || coveredTerms.length > 0;
   const qualityScore = Number(j.lead_quality_score || j.source_meta?.lead_quality_score || 0);
   const qualityReason = String(j.lead_quality_reason || j.source_meta?.lead_quality_reason || "");
+  const timeline = (j.events || []).slice().reverse();
   const canFire = experimentalAutoApply && resumeReady && coverReady && !firing;
   const display = leadDisplayHeading(j);
   const originalTitle = cleanLeadText(j.title);
@@ -110,7 +144,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
       alive = false;
       if (revoke) URL.revokeObjectURL(revoke);
     };
-  }, [activeDocPath, api]);
+  }, [activeDocPath, api, pdfRetry]);
 
   // Clear generating flag when the lead actually receives its generated documents.
   useEffect(() => {
@@ -121,6 +155,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
     if (!canFire) return;
     setFiring(true);
     setFireErr(null);
+    showToast({ id: `fire-${j.job_id}`, tone: "loading", title: "Submitting application", message: j.company });
     try {
       const r = await api(`/api/v1/fire/${j.job_id}`, { method: "POST" });
       if (!r.ok) {
@@ -128,9 +163,12 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
         throw new Error(detail || `Server returned ${r.status}`);
       }
       setDone(true); setTimeout(onFired, 1500);
+      showToast({ id: `fire-${j.job_id}`, tone: "success", title: "Application submitted", message: j.company });
     } catch (err) {
-      setFireErr(err instanceof Error ? err.message : "Fire failed");
+      const message = err instanceof Error ? err.message : "Fire failed";
+      setFireErr(message);
       setFiring(false);
+      showToast({ id: `fire-${j.job_id}`, tone: "error", title: "Application failed", message });
     }
   };
 
@@ -140,13 +178,17 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
     setPdfBlobUrl(null);
     setPdfLoadErr(null);
     setActiveDoc("resume");
+    showToast({ id: `generate-${j.job_id}`, tone: "loading", title: "Generating package", message: `${display.role} at ${display.company}` });
     try {
       const r = await api(`/api/v1/leads/${j.job_id}/generate`, { method: "POST" });
       if (!r.ok) throw new Error(`Server returned ${r.status}`);
       await loadVersions();
+      showToast({ id: `generate-${j.job_id}`, tone: "success", title: "Generation started", message: "Documents will refresh when ready." });
     } catch (err) {
-      setGenerateErr(String(err));
+      const message = err instanceof Error ? err.message : String(err);
+      setGenerateErr(message);
       setGenerating(false);
+      showToast({ id: `generate-${j.job_id}`, tone: "error", title: "Generation failed", message });
     }
   };
 
@@ -154,22 +196,37 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
     if (pipelineRunning) return;
     setPipelineRunning(true);
     setPipelineMsg(null);
+    showToast({ id: `pipeline-${j.job_id}`, tone: "loading", title: "Pipeline started", message: display.role });
     try {
       const r = await api(`/api/v1/leads/${j.job_id}/pipeline/run`, { method: "POST" });
       if (!r.ok) throw new Error(`Server returned ${r.status}`);
       setPipelineMsg("Pipeline running...");
+      showToast({ id: `pipeline-${j.job_id}`, tone: "success", title: "Pipeline queued", message: "Watch Activity for completion." });
       window.setTimeout(() => setPipelineRunning(false), 3000);
     } catch (err) {
-      setPipelineMsg(err instanceof Error ? err.message : "Pipeline failed to start");
+      const message = err instanceof Error ? err.message : "Pipeline failed to start";
+      setPipelineMsg(message);
       setPipelineRunning(false);
+      showToast({ id: `pipeline-${j.job_id}`, tone: "error", title: "Pipeline failed", message });
     }
   };
 
   const openPdf = () => { if (pdfBlobUrl) openUrl(pdfBlobUrl); };
 
+  const copyText = async (value: string) => {
+    try {
+      if (!navigator.clipboard) throw new Error("Clipboard is unavailable");
+      await navigator.clipboard.writeText(value);
+      showToast({ tone: "success", title: "Copied" });
+    } catch (err) {
+      showToast({ tone: "error", title: "Copy failed", message: err instanceof Error ? err.message : "Clipboard access was blocked." });
+    }
+  };
+
   const submitFeedback = async (feedback: string) => {
     setFeedbackBusy(feedback);
     setFeedbackErr(null);
+    showToast({ id: `feedback-${j.job_id}`, tone: "loading", title: "Saving feedback" });
     try {
       const r = await api(`/api/v1/leads/${j.job_id}/feedback`, {
         method: "PUT",
@@ -180,8 +237,11 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
         const detail = await r.json().then(d => d.detail).catch(() => "");
         throw new Error(detail || `Server returned ${r.status}`);
       }
+      showToast({ id: `feedback-${j.job_id}`, tone: "success", title: "Feedback saved" });
     } catch (err) {
-      setFeedbackErr(err instanceof Error ? err.message : "Feedback failed");
+      const message = err instanceof Error ? err.message : "Feedback failed";
+      setFeedbackErr(message);
+      showToast({ id: `feedback-${j.job_id}`, tone: "error", title: "Feedback failed", message });
     } finally {
       setFeedbackBusy(null);
     }
@@ -190,6 +250,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
   const scheduleFollowup = async (days: number) => {
     setFollowupBusy(days);
     setFeedbackErr(null);
+    showToast({ id: `followup-${j.job_id}`, tone: "loading", title: "Scheduling follow-up" });
     try {
       const r = await api(`/api/v1/leads/${j.job_id}/followup`, {
         method: "PUT",
@@ -200,8 +261,11 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
         const detail = await r.json().then(d => d.detail).catch(() => "");
         throw new Error(detail || `Server returned ${r.status}`);
       }
+      showToast({ id: `followup-${j.job_id}`, tone: "success", title: "Follow-up scheduled", message: `${days} days from now.` });
     } catch (err) {
-      setFeedbackErr(err instanceof Error ? err.message : "Follow-up save failed");
+      const message = err instanceof Error ? err.message : "Follow-up save failed";
+      setFeedbackErr(message);
+      showToast({ id: `followup-${j.job_id}`, tone: "error", title: "Follow-up failed", message });
     } finally {
       setFollowupBusy(null);
     }
@@ -218,7 +282,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
     <div key={label} style={{ background: "var(--paper-3)", border: "1px solid var(--line)", borderRadius: 10, padding: "10px 12px" }}>
       <div className="row" style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
         <span className="mono" style={{ fontSize: 10, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
-        <button className="btn btn-ghost" style={{ fontSize: 11, padding: "3px 8px" }} onClick={() => navigator.clipboard?.writeText(value)}>Copy</button>
+        <button className="btn btn-ghost" style={{ fontSize: 11, padding: "3px 8px" }} onClick={() => copyText(value)}>Copy</button>
       </div>
       <div style={{ fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.55, whiteSpace: "pre-wrap" }}>{value}</div>
     </div>
@@ -279,11 +343,11 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
                     <Icon name="download" size={12} color="var(--teal)" /> Open PDF
                   </button>
                 )}
-                <button onClick={generatePdf} disabled={generating} style={{
+                <button onClick={generatePdf} disabled={generating} aria-busy={generating} style={{
                   padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700,
                   border: "1px solid var(--purple)", background: "var(--purple-soft)", color: "var(--purple-ink)", cursor: generating ? "wait" : "pointer",
                 }}>{generating ? "Generating..." : resumeReady || coverReady ? "Regenerate Package" : "Generate Package"}</button>
-                <button onClick={runPipeline} disabled={pipelineRunning} style={{
+                <button onClick={runPipeline} disabled={pipelineRunning} aria-busy={pipelineRunning} style={{
                   padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700,
                   border: "1px solid var(--blue)", background: "var(--blue-soft)", color: "var(--blue-ink)", cursor: pipelineRunning ? "wait" : "pointer",
                 }}>{pipelineRunning ? "Pipeline running..." : "Run full pipeline"}</button>
@@ -355,7 +419,12 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
                 )}
               </div>
             )}
-            {generateErr && <div style={{ color: "var(--bad)", fontSize: 12, padding: "8px 10px", background: "var(--bad-soft)", border: "1px solid var(--bad)", borderRadius: 8 }}>{generateErr}</div>}
+            {generateErr && (
+              <div style={{ color: "var(--bad)", fontSize: 12, padding: "8px 10px", background: "var(--bad-soft)", border: "1px solid var(--bad)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                <span>{generateErr}</span>
+                <button className="btn btn-ghost" onClick={generatePdf} disabled={generating} aria-busy={generating} style={{ fontSize: 11, padding: "3px 8px" }}>Retry</button>
+              </div>
+            )}
             <div style={{ flex: 1, minHeight: 0, background: "var(--card)", border: "1px solid var(--line)", borderRadius: 12, overflow: "hidden" }}>
               {activeReady && pdfBlobUrl && (
                 <iframe
@@ -375,7 +444,12 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
               {!generating && activeReady && !pdfBlobUrl && (
                 <div style={{ height: "100%", minHeight: 420, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, color: "var(--ink-3)", fontSize: 12, padding: 24, textAlign: "center" }}>
                   {pdfLoadErr
-                    ? <div style={{ color: "var(--bad)" }}>Failed to load PDF: {pdfLoadErr}</div>
+                    ? (
+                      <>
+                        <div style={{ color: "var(--bad)" }}>Failed to load PDF: {pdfLoadErr}</div>
+                        <button className="btn" onClick={() => setPdfRetry(v => v + 1)} style={{ fontSize: 12 }}>Retry PDF</button>
+                      </>
+                    )
                     : <div>Loading {activeDoc === "resume" ? "resume" : "cover letter"}...</div>
                   }
                 </div>
@@ -389,7 +463,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
                   <div style={{ maxWidth: 380, lineHeight: 1.5 }}>
                     Generate the application package to create separate PDFs using the job description, company context, and best-matching projects.
                   </div>
-                  <button onClick={generatePdf} disabled={generating} style={{ padding: "8px 18px", borderRadius: 8, fontSize: 12, fontWeight: 700, border: "1px solid var(--purple)", background: "var(--purple-soft)", color: "var(--purple-ink)", cursor: generating ? "wait" : "pointer" }}>
+                  <button onClick={generatePdf} disabled={generating} aria-busy={generating} style={{ padding: "8px 18px", borderRadius: 8, fontSize: 12, fontWeight: 700, border: "1px solid var(--purple)", background: "var(--purple-soft)", color: "var(--purple-ink)", cursor: generating ? "wait" : "pointer" }}>
                     Generate Package
                   </button>
                 </div>
@@ -400,6 +474,31 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
           {/* Right: Score + actions */}
           <div className="approval-detail-pane" style={{ display: "flex", flexDirection: "column", minHeight: 0, background: "var(--paper)" }}>
             <div style={{ padding: 22, display: "flex", flexDirection: "column", gap: 14, overflowY: "auto", minHeight: 0, flex: 1 }}>
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 6 }}>Timeline</div>
+              {timeline.length > 0 ? (
+                <div className="lead-timeline">
+                  {timeline.map((event, idx) => {
+                    const item = formatTimelineAction(event.action);
+                    return (
+                      <div key={`${event.ts}-${event.action}-${idx}`} className="lead-timeline-item">
+                        <span className="lead-timeline-dot" />
+                        <div className="lead-timeline-copy">
+                          <div className="lead-timeline-title">
+                            <span>{item.label}</span>
+                            <time>{formatTimelineTime(event.ts)}</time>
+                          </div>
+                          {item.detail && <div className="lead-timeline-detail">{item.detail}</div>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="lead-timeline-empty">Timeline appears after discovery, scoring, generation, feedback, and follow-up activity.</div>
+              )}
+            </div>
+
             <div>
               <div className="eyebrow" style={{ marginBottom: 6 }}>Job Description</div>
               <div style={{ fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.6, background: "var(--paper-3)", borderRadius: 8, padding: "10px 12px", border: "1px solid var(--line)", whiteSpace: "pre-wrap" }}>
@@ -481,7 +580,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
                     <div style={{ background: "var(--purple-soft)", border: "1px solid var(--purple)", borderRadius: 10, padding: "10px 12px" }}>
                       <div className="row" style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                         <span className="mono" style={{ fontSize: 10, color: "var(--purple-ink)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>3-Line Founder Message</span>
-                        <button className="btn btn-ghost" style={{ fontSize: 11, padding: "3px 8px" }} onClick={() => navigator.clipboard?.writeText(j.outreach_reply!)}>Copy</button>
+                        <button className="btn btn-ghost" style={{ fontSize: 11, padding: "3px 8px" }} onClick={() => copyText(j.outreach_reply!)}>Copy</button>
                       </div>
                       <div style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.65, whiteSpace: "pre-wrap", fontWeight: 500 }}>{j.outreach_reply}</div>
                     </div>
@@ -506,7 +605,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
                 ].map(([id, label]) => {
                   const active = j.feedback === id;
                   return (
-                    <button key={id} onClick={() => submitFeedback(id)} disabled={feedbackBusy === id} style={{
+                    <button key={id} onClick={() => submitFeedback(id)} disabled={feedbackBusy === id} aria-busy={feedbackBusy === id} style={{
                       padding: "5px 10px", borderRadius: 8, fontSize: 11.5, fontWeight: 700, cursor: feedbackBusy === id ? "wait" : "pointer",
                       border: `1px solid ${active ? "var(--blue)" : "var(--line)"}`,
                       background: active ? "var(--blue-soft)" : "var(--paper-3)",
@@ -522,7 +621,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
               <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Follow-up</div>
               <div className="row gap-2" style={{ flexWrap: "wrap" }}>
                 {[2, 5, 10].map(days => (
-                  <button key={days} onClick={() => scheduleFollowup(days)} disabled={followupBusy === days} style={{
+                  <button key={days} onClick={() => scheduleFollowup(days)} disabled={followupBusy === days} aria-busy={followupBusy === days} style={{
                     padding: "5px 10px", borderRadius: 8, fontSize: 11.5, fontWeight: 700, cursor: followupBusy === days ? "wait" : "pointer",
                     border: "1px solid var(--green)", background: "var(--green-soft)", color: "var(--green-ink)",
                   }}>{followupBusy === days ? "Saving..." : `${days} days`}</button>
@@ -612,7 +711,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
               {done
                 ? <div style={{ fontSize: 15, color: "var(--ok)", fontWeight: 700 }}>Experimental automation running</div>
                 : <>
-                    <button className="btn btn-accent" onClick={fire} disabled={!canFire} style={{ fontSize: 15, padding: "12px 24px", width: "100%", cursor: canFire ? "pointer" : "not-allowed", opacity: canFire ? 1 : 0.58, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                    <button className="btn btn-accent" onClick={fire} disabled={!canFire} aria-busy={firing} style={{ fontSize: 15, padding: "12px 24px", width: "100%", cursor: canFire ? "pointer" : "not-allowed", opacity: canFire ? 1 : 0.58, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                       <Icon name="fire" size={15} color="#fff" /> {firing ? "Starting..." : "Experimental Auto Apply"}
                     </button>
                     {fireErr ? (

@@ -110,6 +110,73 @@ export const KEY_FIELD: Record<string, keyof Cfg> = {
   nvidia: "nvidia_api_key", openai: "openai_api_key", deepseek: "deepseek_api_key",
 };
 
+export type SettingsSectionId = "models" | "steps" | "discovery" | "automation";
+
+export interface SettingsIssue {
+  section: SettingsSectionId;
+  field: keyof Cfg;
+  level: "error" | "warning";
+  message: string;
+}
+
+export const providerLabel = (provider: string) =>
+  PROVIDERS.find(p => p.id === provider)?.label || provider || "Provider";
+
+export const isConfiguredSecret = (value: string | undefined) => {
+  const raw = String(value || "").trim();
+  return !!raw;
+};
+
+export const hasProviderCredential = (cfg: Cfg, provider: string, stepKey?: keyof Cfg) => {
+  if (!provider || provider === "ollama") return true;
+  if (stepKey && isConfiguredSecret(cfg[stepKey] as string)) return true;
+  const globalKey = KEY_FIELD[provider];
+  return !!globalKey && isConfiguredSecret(cfg[globalKey] as string);
+};
+
+export const hasProviderModel = (cfg: Cfg, provider: string, stepModelKey?: keyof Cfg) => {
+  if (stepModelKey && String(cfg[stepModelKey] || "").trim()) return true;
+  if (provider === "openai") return !!String(cfg.openai_model || "").trim();
+  if (provider === "nvidia") return !!String(cfg.nvidia_model || "").trim();
+  return true;
+};
+
+export const getSettingsIssues = (cfg: Cfg): SettingsIssue[] => {
+  const issues: SettingsIssue[] = [];
+  const globalProvider = cfg.llm_provider || "ollama";
+
+  if (globalProvider === "ollama") {
+    if (!String(cfg.ollama_url || "").trim()) {
+      issues.push({ section: "models", field: "ollama_url", level: "error", message: "Ollama needs a base URL before settings can be saved." });
+    }
+  } else if (!hasProviderCredential(cfg, globalProvider)) {
+    issues.push({ section: "models", field: KEY_FIELD[globalProvider] || "llm_provider", level: "error", message: `${providerLabel(globalProvider)} needs an API key before settings can be saved.` });
+  }
+
+  if (!hasProviderModel(cfg, globalProvider)) {
+    issues.push({ section: "models", field: globalProvider === "nvidia" ? "nvidia_model" : "openai_model", level: "warning", message: `${providerLabel(globalProvider)} has no model selected.` });
+  }
+
+  for (const step of STEPS) {
+    const provKey = `${step.id}_provider` as keyof Cfg;
+    const apiKey = `${step.id}_api_key` as keyof Cfg;
+    const modelKey = `${step.id}_model` as keyof Cfg;
+    const stepProvider = String(cfg[provKey] || "").trim();
+    if (!stepProvider) continue;
+    if (stepProvider === "ollama" && !String(cfg.ollama_url || "").trim()) {
+      issues.push({ section: "steps", field: provKey, level: "error", message: `${step.label} is set to Ollama, but the Ollama URL is missing.` });
+    }
+    if (stepProvider !== "ollama" && !hasProviderCredential(cfg, stepProvider, apiKey)) {
+      issues.push({ section: "steps", field: apiKey, level: "error", message: `${step.label} uses ${providerLabel(stepProvider)}, but no usable API key is configured.` });
+    }
+    if (!String(cfg[modelKey] || "").trim()) {
+      issues.push({ section: "steps", field: modelKey, level: "warning", message: `${step.label} has a provider override but no model selected.` });
+    }
+  }
+
+  return issues;
+};
+
 /* helpers */
 export function LabelledField({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -197,7 +264,7 @@ export function ApiKeyInput({ value, onChange, provider, isStep, disabled = fals
   );
 }
 
-export function StepCard({ step, cfg, onChange }: { step: typeof STEPS[0]; cfg: Cfg; onChange: (k: keyof Cfg, v: string) => void }) {
+export function StepCard({ step, cfg, onChange, issues = [] }: { step: typeof STEPS[0]; cfg: Cfg; onChange: (k: keyof Cfg, v: string) => void; issues?: SettingsIssue[] }) {
   const provKey  = `${step.id}_provider` as keyof Cfg;
   const apiKey   = `${step.id}_api_key`  as keyof Cfg;
   const modelKey = `${step.id}_model`    as keyof Cfg;
@@ -208,6 +275,8 @@ export function StepCard({ step, cfg, onChange }: { step: typeof STEPS[0]; cfg: 
   const keySourceLabel = stepProv === cfg.llm_provider
     ? `Use global ${stepProv} API key`
     : `Use saved ${stepProv} API key`;
+  const missingCredential = isCustom && stepProv !== "ollama" && !hasProviderCredential(cfg, stepProv, apiKey);
+  const missingModel = isCustom && !String(cfg[modelKey] || "").trim();
   const enable  = () => { setForceStepKey(false); onChange(provKey, cfg.llm_provider || "ollama"); };
   const disable = () => { setForceStepKey(false); onChange(provKey, ""); onChange(apiKey, ""); onChange(modelKey, ""); };
 
@@ -229,11 +298,20 @@ export function StepCard({ step, cfg, onChange }: { step: typeof STEPS[0]; cfg: 
           <div style={{ fontSize: 11.5, color: "var(--ink-3)", paddingLeft: 33, lineHeight: 1.4 }}>{step.desc}</div>
         </div>
         <button onClick={isCustom ? disable : enable} style={{ padding: "4px 12px", borderRadius: 999, cursor: "pointer", fontSize: 11, fontWeight: 600, fontFamily: "var(--font-mono)", letterSpacing: "0.08em", textTransform: "uppercase", flexShrink: 0, background: isCustom ? "var(--ink)" : "var(--paper-3)", color: isCustom ? "var(--paper)" : "var(--ink-3)", border: `1.5px solid ${isCustom ? "var(--ink)" : "var(--line)"}`, transition: "all .15s ease" }}>
-          {isCustom ? "custom" : "global"}
+          {isCustom ? "reset" : "override"}
         </button>
       </div>
       {isCustom && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {issues.length > 0 && (
+            <div className="settings-alert-stack">
+              {issues.map(issue => (
+                <div key={`${issue.field}-${issue.message}`} className={`settings-alert ${issue.level}`}>
+                  {issue.message}
+                </div>
+              ))}
+            </div>
+          )}
           <div>
             <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 7 }}>Provider</div>
             <ProviderPills value={stepProv} onChange={v => { setForceStepKey(false); onChange(provKey, v); onChange(apiKey, ""); }} small />
@@ -264,11 +342,17 @@ export function StepCard({ step, cfg, onChange }: { step: typeof STEPS[0]; cfg: 
                 disabled={usesGlobalKey}
                 placeholder={usesGlobalKey ? "Using global key; choose any model below" : `Optional ${stepProv} key for this step`}
               />
+              {missingCredential && (
+                <div className="settings-inline-warning">Add a step key, or configure a saved {providerLabel(stepProv)} key in Model provider.</div>
+              )}
             </div>
           )}
           <div>
             <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 7 }}>Model</div>
             <ModelChips provider={stepProv} value={cfg[modelKey] as string} onChange={v => onChange(modelKey, v)} />
+            {missingModel && (
+              <div className="settings-inline-warning">Pick a model for this override or reset the step to global.</div>
+            )}
           </div>
         </div>
       )}

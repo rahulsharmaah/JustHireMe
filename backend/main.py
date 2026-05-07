@@ -33,7 +33,7 @@ def _free_port() -> int:
 
 _UP   = time.monotonic()
 _sched = AsyncIOScheduler()
-_API_TOKEN: str = secrets.token_hex(32)
+_API_TOKEN: str = os.environ.get("JHM_TOKEN") or secrets.token_hex(32)
 _LOCAL_ORIGIN_RE = r"^(tauri://localhost|https?://(localhost|127\.0\.0\.1|tauri\.localhost|\[::1\])(?::\d+)?)$"
 _bearer = HTTPBearer(auto_error=False)
 
@@ -551,6 +551,8 @@ app.add_middleware(
 
 @app.middleware("http")
 async def require_http_token(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return await call_next(request)
     if request.url.path != "/health":
         creds = await _bearer(request)
         if creds is None or creds.credentials != _API_TOKEN:
@@ -718,12 +720,26 @@ async def create_manual_lead(body: ManualLeadBody):
     if not body.text.strip() and not body.url.strip():
         raise HTTPException(status_code=400, detail="Paste lead text or a URL")
     from agents.lead_intel import manual_lead_from_text
-    from db.client import get_lead_by_id, rank_lead_by_feedback, save_lead
+    from agents.quality_gate import attach_quality_metadata, evaluate_lead_quality
+    from db.client import find_duplicate_lead, get_lead_by_id, rank_lead_by_feedback, save_lead, update_lead_status
 
     lead = rank_lead_by_feedback(manual_lead_from_text(body.text, body.url, "job"))
     if lead.get("kind") != "job":
         raise HTTPException(status_code=422, detail="Only job leads are accepted right now")
     lead = _annotate_job_lead(lead)
+    duplicate = find_duplicate_lead(lead.get("url", ""), lead.get("title", ""), lead.get("company", ""))
+    if duplicate:
+        meta = duplicate.get("source_meta") if isinstance(duplicate.get("source_meta"), dict) else {}
+        duplicate["source_meta"] = {
+            **meta,
+            "duplicate_detected": True,
+            "duplicate_reason": "Same URL or company/title already exists in active leads",
+        }
+        await cm.broadcast({"type": "LEAD_UPDATED", "data": duplicate})
+        return duplicate
+
+    quality = evaluate_lead_quality(lead, min_quality=45, target_level="any", max_age_days=30)
+    lead = attach_quality_metadata(lead, quality)
     save_lead(
         lead["job_id"],
         lead["title"],
@@ -751,6 +767,11 @@ async def create_manual_lead(body: ManualLeadBody):
         learning_reason=lead.get("learning_reason", ""),
         source_meta=lead["source_meta"],
     )
+    if not quality.get("accepted"):
+        try:
+            update_lead_status(lead["job_id"], "discarded")
+        except Exception:
+            pass
     saved = get_lead_by_id(lead["job_id"]) or lead
     await cm.broadcast({"type": "LEAD_UPDATED", "data": saved})
     return saved
@@ -1841,7 +1862,7 @@ async def ws_endpoint(ws: WebSocket):
 
 if __name__ == "__main__":
     import uvicorn
-    port = _free_port()
+    port = int(os.environ.get("JHM_PORT") or _free_port())
     sys.stdout.write(f"JHM_TOKEN={_API_TOKEN}\n")
     sys.stdout.write(f"PORT:{port}\n")
     sys.stdout.flush()

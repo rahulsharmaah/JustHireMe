@@ -22,6 +22,8 @@ import { ProfileView } from "./views/ProfileView";
 import { IngestionView } from "./views/IngestionView";
 import { ApprovalDrawer } from "./components/ApprovalDrawer";
 import { OnboardingWizard } from "./components/OnboardingWizard";
+import { ToastHost } from "./components/ToastHost";
+import { showToast } from "./lib/toast";
 
 export default function App() {
   const { conn, port, apiToken, logs, beat, addLog: wsAddLog } = useWS();
@@ -92,43 +94,59 @@ export default function App() {
   const onScan = useCallback(async () => {
     if (!port || !api || scanning) return;
     setScanning(true); setScanErr(null);
+    showToast({ id: "scan", tone: "loading", title: "Scan started", message: "Looking for fresh job leads." });
     try {
       const r = await api(`/api/v1/scan`, { method: "POST" });
       if (!r.ok) {
         const detail = await r.json().then(d => d.detail).catch(() => "");
         throw new Error(detail || "Backend unreachable");
       }
+      showToast({ id: "scan", tone: "success", title: "Scan is running", message: "New leads will appear as they are found." });
     } catch (e: any) {
       setScanErr(e.message || "Scan failed"); setScanning(false);
+      showToast({ id: "scan", tone: "error", title: "Scan failed", message: e.message || "Backend unreachable" });
     }
   }, [port, api, scanning]);
 
   const onStopScan = useCallback(async () => {
     if (!port || !api) return;
-    try { await api(`/api/v1/scan/stop`, { method: "POST" }); }
-    catch { /* ignore */ }
+    try {
+      await api(`/api/v1/scan/stop`, { method: "POST" });
+      showToast({ tone: "success", title: "Scan stop requested" });
+    }
+    catch {
+      showToast({ tone: "error", title: "Could not stop scan" });
+    }
   }, [port, api]);
 
   const onReevaluateJobs = useCallback(async () => {
     if (!port || !api || reevaluating || scanning) return;
     setReevaluating(true); setScanErr(null);
+    showToast({ id: "reevaluate", tone: "loading", title: "Re-evaluation started", message: "Refreshing fit scores for saved leads." });
     try {
       const r = await api(`/api/v1/leads/reevaluate`, { method: "POST" });
       if (!r.ok) {
         const detail = await r.json().then(d => d.detail).catch(() => "");
         throw new Error(detail || "Re-evaluation failed");
       }
+      showToast({ id: "reevaluate", tone: "success", title: "Re-evaluation is running" });
     } catch (e: any) {
       const msg = e.message || "Re-evaluation failed";
       setScanErr(msg); setReevaluating(false);
       wsAddLog(msg, "system", "reeval");
+      showToast({ id: "reevaluate", tone: "error", title: "Re-evaluation failed", message: msg });
     }
   }, [port, api, reevaluating, scanning, wsAddLog]);
 
   const onStopReevaluate = useCallback(async () => {
     if (!port || !api) return;
-    try { await api(`/api/v1/leads/reevaluate/stop`, { method: "POST" }); }
-    catch { /* ignore */ }
+    try {
+      await api(`/api/v1/leads/reevaluate/stop`, { method: "POST" });
+      showToast({ tone: "success", title: "Re-evaluation stop requested" });
+    }
+    catch {
+      showToast({ tone: "error", title: "Could not stop re-evaluation" });
+    }
   }, [port, api]);
 
   const onCleanupLeads = useCallback(async () => {
@@ -136,6 +154,7 @@ export default function App() {
     const ok = window.confirm("Discard obvious bad rows like HN discussion comments and non-job content? This keeps the rows in Discarded with a cleanup reason.");
     if (!ok) return;
     setCleaning(true); setScanErr(null);
+    showToast({ id: "cleanup", tone: "loading", title: "Cleanup started", message: "Finding obvious bad rows." });
     try {
       const r = await api(`/api/v1/leads/cleanup`, { method: "POST" });
       if (!r.ok) {
@@ -145,10 +164,12 @@ export default function App() {
       const result = await r.json();
       wsAddLog(`Cleanup discarded ${result.discarded ?? 0} bad rows after scanning ${result.scanned ?? 0}`, "system", "cleanup");
       window.dispatchEvent(new CustomEvent("leads-refresh"));
+      showToast({ id: "cleanup", tone: "success", title: "Cleanup complete", message: `Discarded ${result.discarded ?? 0} rows.` });
     } catch (e: any) {
       const msg = e.message || "Cleanup failed";
       setScanErr(msg);
       wsAddLog(msg, "system", "cleanup");
+      showToast({ id: "cleanup", tone: "error", title: "Cleanup failed", message: msg });
     } finally {
       setCleaning(false);
     }
@@ -156,8 +177,14 @@ export default function App() {
 
   const deleteLead = useCallback(async (jobId: string) => {
     if (!port || !api) return;
-    await api(`/api/v1/leads/${jobId}`, { method: "DELETE" });
-    setLeads(prev => prev.filter(l => l.job_id !== jobId));
+    try {
+      const r = await api(`/api/v1/leads/${jobId}`, { method: "DELETE" });
+      if (!r.ok) throw new Error("Delete failed");
+      setLeads(prev => prev.filter(l => l.job_id !== jobId));
+      showToast({ tone: "success", title: "Lead deleted" });
+    } catch (e: any) {
+      showToast({ tone: "error", title: "Could not delete lead", message: e.message || "Please try again." });
+    }
   }, [port, api, setLeads]);
 
   const leadCounts = {
@@ -209,6 +236,7 @@ export default function App() {
           />
         )}
       </AnimatePresence>
+      <ToastHost />
     </div>
   );
 }

@@ -14,8 +14,8 @@ function PentagonGraph({ stats }: { stats: any[] }) {
     <svg viewBox="0 0 260 260" style={{ width: "100%", maxWidth: 260, height: "auto" }}>
       <defs>
         <radialGradient id="penta-fill" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#C96442" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#C96442" stopOpacity="0.12" />
+          <stop offset="0%" stopColor="#6C5CFF" stopOpacity="0.34" />
+          <stop offset="100%" stopColor="#18C7BE" stopOpacity="0.12" />
         </radialGradient>
       </defs>
       {[0.25, 0.5, 0.75, 1].map(s => (

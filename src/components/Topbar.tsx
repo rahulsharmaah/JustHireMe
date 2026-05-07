@@ -34,23 +34,21 @@ export function Topbar({ view }: { view: View }) {
 ══════════════════════════════════════ */
 
 export const StatCard = ({ tone, label, value, sub, icon }: any) => (
-  <div style={{
-    background: `var(--${tone}-soft)`,
-    border: `1px solid var(--${tone})`,
-    borderRadius: 16, padding: 18,
-    display: "flex", flexDirection: "column", gap: 12,
-    minHeight: 132,
+  <div className="stat-card" style={{
+    background: `linear-gradient(180deg, rgba(255,255,255,0.78), var(--${tone}-soft))`,
+    borderColor: `var(--${tone})`,
   }}>
     <div style={{
-      width: 32, height: 32, borderRadius: 9,
-      background: `var(--${tone})`, color: `var(--${tone}-ink)`,
+      width: 30, height: 30, borderRadius: 9,
+      background: `var(--${tone})`, color: "#fff",
       display: "grid", placeItems: "center",
+      boxShadow: `0 10px 22px var(--${tone}-soft)`,
     }}>
       <Icon name={icon} size={15} />
     </div>
     <div className="col" style={{ gap: 4 }}>
-      <div className="display tabular" style={{ fontSize: 40, color: `var(--${tone}-ink)`, lineHeight: 1 }}>{value}</div>
-      <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>{label}</div>
+      <div className="display tabular" style={{ fontSize: 34, color: `var(--${tone}-ink)`, lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 13, fontWeight: 760, color: "var(--ink)" }}>{label}</div>
       <div className="mono" style={{ fontSize: 10.5, color: "var(--ink-3)", letterSpacing: "0.08em", textTransform: "uppercase" }}>{sub}</div>
     </div>
   </div>

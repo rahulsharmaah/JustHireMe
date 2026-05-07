@@ -3,11 +3,13 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import Icon from "../components/Icon";
 import type { ApiFetch, ContactLookup, KeywordCoverage, Lead } from "../types";
 import { roleFromLead } from "../lib/leadUtils";
+import { showToast } from "../lib/toast";
 
 export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoFocus }: { port: number | null; api: ApiFetch | null; leads: Lead[]; openDrawer: (l: Lead) => void; initialInput?: string; autoFocus?: boolean }) {
   const [input, setInput] = useState("");
   const initialApplied = useRef(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const completionToastShown = useRef(false);
   const [lead, setLead] = useState<Lead | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -104,7 +106,13 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
   }, [coverDocPath, api]);
 
   useEffect(() => {
-    if (busy && resumeReady && coverReady) setBusy(false);
+    if (busy && resumeReady && coverReady) {
+      setBusy(false);
+      if (!completionToastShown.current) {
+        completionToastShown.current = true;
+        showToast({ id: "apply-package", tone: "success", title: "Package generated", message: "Resume and cover letter are ready." });
+      }
+    }
   }, [busy, resumeReady, coverReady]);
 
   const submit = async () => {
@@ -113,6 +121,8 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
     setErr(null);
     setResumeBlobUrl(null);
     setCoverBlobUrl(null);
+    completionToastShown.current = false;
+    showToast({ id: "apply-package", tone: "loading", title: "Generating package", message: "Analysing the role and tailoring documents." });
     try {
       const trimmed = input.trim();
       const url = trimmed.match(/https?:\/\/\S+/)?.[0] || "";
@@ -129,13 +139,24 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
       setLead(created);
       const gen = await api(`/api/v1/leads/${created.job_id}/generate`, { method: "POST" });
       if (!gen.ok) throw new Error(`Generation returned ${gen.status}`);
+      showToast({ id: "apply-package", tone: "loading", title: "Tailoring in progress", message: "Waiting for resume and cover letter assets." });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Application package failed");
+      const message = e instanceof Error ? e.message : "Application package failed";
+      setErr(message);
       setBusy(false);
+      showToast({ id: "apply-package", tone: "error", title: "Package failed", message });
     }
   };
 
-  const copyText = (value: string) => navigator.clipboard?.writeText(value);
+  const copyText = async (value: string) => {
+    try {
+      if (!navigator.clipboard) throw new Error("Clipboard is unavailable");
+      await navigator.clipboard?.writeText(value);
+      showToast({ tone: "success", title: "Copied" });
+    } catch {
+      showToast({ tone: "error", title: "Copy failed", message: "Clipboard access was blocked." });
+    }
+  };
   const stepTone = (done: boolean, active: boolean) => done ? "green" : active ? "purple" : "blue";
   const stepPill = (label: string, done: boolean, active: boolean) => {
     const tone = stepTone(done, active);
@@ -147,29 +168,45 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
   };
 
   return (
-    <div style={{ height: "100%", overflow: "auto", padding: 24 }}>
-      <div style={{ maxWidth: 1180, margin: "0 auto", display: "grid", gridTemplateColumns: liveLead ? "420px minmax(0, 1fr)" : "minmax(0, 880px)", gap: 18, alignItems: "start", justifyContent: "center" }}>
-        <section className="card" style={{ padding: 22, display: "flex", flexDirection: "column", gap: 16 }}>
-          <div>
-            <div className="eyebrow">Customize for this job</div>
-            <h2 style={{ fontSize: 24, fontWeight: 700, marginTop: 5, marginBottom: 6 }}>Paste a job URL.</h2>
-            <div style={{ fontSize: 13, color: "var(--ink-3)", lineHeight: 1.55 }}>Analyse fit, generate the resume and cover letter, then copy outreach drafts from one page.</div>
+    <div className="apply-page">
+      <div className={liveLead ? "apply-shell apply-shell-result" : "apply-shell"}>
+        <section className="card apply-composer">
+          <div className="apply-composer-head">
+            <div className="apply-composer-kicker">
+              <span className="dot" />
+              <span>Customize for this job</span>
+            </div>
+            <h2>Paste a job URL.</h2>
+            <div className="apply-composer-subtitle">Analyse fit, generate the resume and cover letter, then copy outreach drafts from one page.</div>
           </div>
           <textarea
             ref={inputRef}
-            className="field-input"
+            className="field-input apply-input"
             value={input}
             onChange={e => setInput(e.target.value)}
             placeholder="Paste job URL or full job description"
             rows={liveLead ? 8 : 12}
-            style={{ fontSize: 14, lineHeight: 1.55, resize: "vertical" }}
           />
-          <button className="btn btn-accent" onClick={submit} disabled={!port || !api || busy || !input.trim()} style={{ justifyContent: "center", padding: "12px 16px", fontSize: 14 }}>
+          <button className="btn btn-accent apply-primary-action" onClick={submit} disabled={!port || !api || busy || !input.trim()} aria-busy={busy}>
             <Icon name="spark" size={15} color="#fff" /> {busy ? "Analysing and generating..." : "Analyse & Generate"}
           </button>
           {err && <div style={{ color: "var(--bad)", background: "var(--bad-soft)", border: "1px solid var(--bad)", borderRadius: 8, padding: "9px 11px", fontSize: 12 }}>{err}</div>}
+          <div className="apply-run-strip">
+            <div className="apply-run-step">
+              <span className="apply-run-index">01</span>
+              <span>Capture</span>
+            </div>
+            <div className="apply-run-step">
+              <span className="apply-run-index">02</span>
+              <span>Tailor</span>
+            </div>
+            <div className="apply-run-step">
+              <span className="apply-run-index">03</span>
+              <span>Review</span>
+            </div>
+          </div>
           {liveLead && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+            <div className="apply-progress-stack">
               {stepPill("Job captured", true, false)}
               {stepPill("Resume generated", resumeReady, generating && !resumeReady)}
               {stepPill("Cover letter generated", coverReady, generating && resumeReady && !coverReady)}

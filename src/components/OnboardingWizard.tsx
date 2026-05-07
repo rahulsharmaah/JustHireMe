@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import Icon from "./Icon";
 import type { ApiFetch } from "../types";
 import { DEMO_JOB_DRAFT } from "../lib/leadUtils";
+import { showToast } from "../lib/toast";
 
 export function OnboardingWizard({ api, onFinish, onOpenSettings }: { api: ApiFetch; onFinish: (draft: string) => void; onOpenSettings: () => void }) {
   const [step, setStep] = useState(0);
@@ -33,6 +34,7 @@ export function OnboardingWizard({ api, onFinish, onOpenSettings }: { api: ApiFe
     }
     setBusy(true);
     setErr(null);
+    showToast({ id: "onboarding-resume", tone: "loading", title: "Importing resume" });
     const fd = new FormData();
     if (file) fd.append("file", file);
     else fd.append("raw", rawResume.trim());
@@ -40,8 +42,11 @@ export function OnboardingWizard({ api, onFinish, onOpenSettings }: { api: ApiFe
       const r = await api(`/api/v1/ingest`, { method: "POST", body: fd });
       if (!r.ok) throw new Error(`Resume import returned ${r.status}`);
       setStep(1);
+      showToast({ id: "onboarding-resume", tone: "success", title: "Resume imported" });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Resume import failed");
+      const message = e instanceof Error ? e.message : "Resume import failed";
+      setErr(message);
+      showToast({ id: "onboarding-resume", tone: "error", title: "Resume import failed", message });
     } finally {
       setBusy(false);
     }
@@ -50,6 +55,7 @@ export function OnboardingWizard({ api, onFinish, onOpenSettings }: { api: ApiFe
   const savePreferences = async () => {
     setBusy(true);
     setErr(null);
+    showToast({ id: "onboarding-prefs", tone: "loading", title: "Saving preferences" });
     const payload: Record<string, any> = {
       job_market_focus: market,
       llm_provider: provider,
@@ -67,8 +73,11 @@ export function OnboardingWizard({ api, onFinish, onOpenSettings }: { api: ApiFe
       });
       if (!r.ok) throw new Error(`Preferences returned ${r.status}`);
       setStep(2);
+      showToast({ id: "onboarding-prefs", tone: "success", title: "Preferences saved" });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Preferences failed to save");
+      const message = e instanceof Error ? e.message : "Preferences failed to save";
+      setErr(message);
+      showToast({ id: "onboarding-prefs", tone: "error", title: "Preferences failed", message });
     } finally {
       setBusy(false);
     }
@@ -100,14 +109,14 @@ export function OnboardingWizard({ api, onFinish, onOpenSettings }: { api: ApiFe
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(244,239,230,0.94)", display: "grid", placeItems: "center", padding: 22 }}
+      style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(9,11,17,0.34)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", display: "grid", placeItems: "center", padding: 22 }}
     >
       <motion.section
         initial={{ y: 16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 10, opacity: 0 }}
         className="card"
-        style={{ width: "min(960px, 100%)", maxHeight: "min(760px, 94vh)", overflow: "auto", padding: 24, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 22 }}
+        style={{ width: "min(960px, 100%)", maxHeight: "min(760px, 94vh)", overflow: "auto", padding: 24, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 22, background: "rgba(255,255,255,0.95)", boxShadow: "0 28px 90px rgba(9,11,17,0.28), inset 0 1px 0 rgba(255,255,255,0.8)" }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div>

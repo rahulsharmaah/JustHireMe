@@ -26,54 +26,39 @@ export function DashboardView({
     .slice(0, 6);
 
   return (
-    <div className="scroll" style={{ padding: 24, flex: 1, height: "100%", minHeight: 0 }}>
-      <div className="card" style={{ padding: "26px 28px", marginBottom: 18, background: "linear-gradient(135deg, var(--orange-soft) 0%, var(--pink-soft) 60%, var(--purple-soft) 100%)" }}>
-        <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-end", gap: 24, flexWrap: "wrap" }}>
-          <div className="col gap-3" style={{ maxWidth: 560 }}>
-            <span className="eyebrow">Agent Online</span>
-            <h1 style={{ fontSize: 52 }}>The hunt is <span className="italic-serif" style={{ color: "var(--ink-2)" }}>on.</span></h1>
-            <div style={{ fontSize: 14.5, color: "var(--ink-2)", lineHeight: 1.55, maxWidth: 480 }}>
-              Scanned <b>{leads.length} job leads</b>, evaluated <b>{counts.evaluated}</b> with scores, tailored <b>{counts.tailoring + counts.approved} resumes</b>.
+    <div className="dashboard-page scroll">
+      <div className="card dashboard-command">
+        <div className="row" style={{ justifyContent: "space-between", alignItems: "stretch", gap: 22, flexWrap: "wrap" }}>
+          <div className="dashboard-command-copy">
+            <span className="eyebrow dashboard-kicker">Agent workspace</span>
+            <h1>Today's run</h1>
+            <div className="dashboard-summary">
+              <span><b>{leads.length}</b> leads</span>
+              <span><b>{counts.evaluated}</b> evaluated</span>
+              <span><b>{counts.tailoring + counts.approved}</b> tailored</span>
             </div>
-            <div className="row gap-2" style={{ marginTop: 6 }}>
-              <button onClick={onScan} disabled={scanning || reevaluating || cleaning} style={{
-                padding: "10px 22px", borderRadius: 12, fontSize: 12, fontWeight: 700,
-                letterSpacing: "0.12em", textTransform: "uppercase", cursor: scanning ? "wait" : reevaluating || cleaning ? "not-allowed" : "pointer",
-                background: scanning || reevaluating || cleaning ? "var(--ink-4)" : "var(--ink)",
-                color: "var(--paper)", border: "1px solid var(--ink-3)",
-                opacity: (reevaluating || cleaning) && !scanning ? 0.72 : 1,
-                transition: "all .2s ease", display: "flex", alignItems: "center", gap: 8,
-              }}>
-                {scanning ? <><span className="dot pulse-soft" /> SCAN IN PROGRESS...</> : <><Icon name="spark" size={13} /> INITIATE AUTONOMOUS SCAN</>}
+            <div className="dashboard-actions">
+              <button className="btn btn-accent" onClick={onScan} disabled={scanning || reevaluating || cleaning} aria-busy={scanning}>
+                {scanning ? <><span className="dot pulse-soft" /> Scanning...</> : <><Icon name="spark" size={13} /> Start scan</>}
               </button>
               {scanning && (
-                <button onClick={onStopScan} style={{
-                  padding: "10px 18px", borderRadius: 12, fontSize: 12, fontWeight: 700,
-                  letterSpacing: "0.12em", textTransform: "uppercase", cursor: "pointer",
-                  background: "var(--bad-soft)", color: "var(--bad)", border: "1px solid var(--bad)",
-                  transition: "all .2s ease", display: "flex", alignItems: "center", gap: 7,
-                }}>
-                  <Icon name="x" size={13} color="var(--bad)" /> STOP SCAN
+                <button className="btn danger-soft" onClick={onStopScan}>
+                  <Icon name="x" size={13} color="var(--bad)" /> Stop scan
                 </button>
               )}
               {reevaluating ? (
-                <button onClick={onStopReevaluate} style={{
-                  padding: "10px 18px", borderRadius: 12, fontSize: 12, fontWeight: 700,
-                  letterSpacing: "0.12em", textTransform: "uppercase", cursor: "pointer",
-                  background: "var(--bad-soft)", color: "var(--bad)", border: "1px solid var(--bad)",
-                  transition: "all .2s ease", display: "flex", alignItems: "center", gap: 7,
-                }}>
-                  <Icon name="x" size={13} color="var(--bad)" /> STOP RE-EVAL
+                <button className="btn danger-soft" onClick={onStopReevaluate}>
+                  <Icon name="x" size={13} color="var(--bad)" /> Stop re-eval
                 </button>
               ) : (
-                <button onClick={onReevaluate} disabled={scanning || leads.length === 0} className="btn" style={{
+                <button onClick={onReevaluate} disabled={scanning || leads.length === 0} className="btn" aria-busy={reevaluating} style={{
                   opacity: scanning || leads.length === 0 ? 0.58 : 1,
                   cursor: scanning || leads.length === 0 ? "not-allowed" : "pointer",
                 }}>
                   <Icon name="pulse" size={13} /> Re-evaluate jobs
                 </button>
               )}
-              <button onClick={onCleanup} disabled={scanning || reevaluating || cleaning || leads.length === 0} className="btn" style={{
+              <button onClick={onCleanup} disabled={scanning || reevaluating || cleaning || leads.length === 0} className="btn" aria-busy={cleaning} style={{
                 opacity: scanning || reevaluating || cleaning || leads.length === 0 ? 0.58 : 1,
                 cursor: cleaning ? "wait" : scanning || reevaluating || leads.length === 0 ? "not-allowed" : "pointer",
               }}>
@@ -85,20 +70,20 @@ export function DashboardView({
             </div>
             {scanErr && <div style={{ marginTop: 6, fontSize: 12, color: "var(--bad)", fontWeight: 500 }}>⚠ {scanErr}</div>}
           </div>
-          <div className="col gap-2" style={{ width: 300 }}>
+          <div className="dashboard-review-rail">
             <div className="eyebrow" style={{ marginBottom: 2 }}>Top matches awaiting review</div>
             {topMatches.length === 0 ? (
               <div className="card-flat" style={{ padding: 14, fontSize: 12, color: "var(--ink-3)" }}>Run a scan to find matches.</div>
             ) : topMatches.map(l => (
               <div key={l.job_id} onClick={() => openDrawer(l)} className="lift" style={{
-                background: "var(--card)", border: "1px solid var(--line)", borderRadius: 12,
+                background: "rgba(255,255,255,0.72)", border: "1px solid var(--line)", borderRadius: 12,
                 padding: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 10,
               }}>
                 <div style={{
                   width: 32, height: 32, borderRadius: 10,
                   background: `var(--${getTone(l.status)})`, color: `var(--${getTone(l.status)}-ink)`,
                   display: "grid", placeItems: "center",
-                  fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 500,
+                  fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 760,
                   border: `1px solid var(--${getTone(l.status)}-ink)`,
                 }}>{getMark(l.company)}</div>
                 <div className="col" style={{ flex: 1, minWidth: 0, gap: 1 }}>
