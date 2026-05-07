@@ -6,6 +6,7 @@ import type { AppToast } from "../lib/toast";
 type LiveToast = Required<Pick<AppToast, "id" | "tone" | "title">> & Omit<AppToast, "id" | "tone" | "title">;
 
 const DEFAULT_DURATION = 3800;
+const LOADING_DURATION = 45000;
 
 export function ToastHost() {
   const [toasts, setToasts] = useState<LiveToast[]>([]);
@@ -35,7 +36,22 @@ export function ToastHost() {
 
       setToasts(prev => [toast, ...prev.filter(t => t.id !== id)].slice(0, 4));
 
-      if (toast.tone !== "loading") {
+      if (toast.tone === "loading") {
+        timers.current.set(id, window.setTimeout(() => {
+          setToasts(prev => prev.map(t => (
+            t.id === id
+              ? {
+                  ...t,
+                  tone: "info",
+                  title: `${t.title} is still running`,
+                  message: t.message || "You can keep working while this finishes.",
+                  duration: 6000,
+                }
+              : t
+          )));
+          timers.current.set(id, window.setTimeout(() => dismiss(id), 6000));
+        }, toast.duration ?? LOADING_DURATION));
+      } else {
         const duration = toast.duration ?? DEFAULT_DURATION;
         timers.current.set(id, window.setTimeout(() => dismiss(id), duration));
       }

@@ -50,6 +50,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
   const [pdfLoadErr, setPdfLoadErr] = useState<string | null>(null);
   const [pdfRetry, setPdfRetry] = useState(0);
   const [generateErr, setGenerateErr] = useState<string | null>(null);
+  const [generateTaskId, setGenerateTaskId] = useState<string | null>(null);
   const [pipelineRunning, setPipelineRunning] = useState(false);
   const [pipelineMsg, setPipelineMsg] = useState<string | null>(null);
   const [feedbackBusy, setFeedbackBusy] = useState<string | null>(null);
@@ -163,8 +164,45 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
 
   // Clear generating flag when the lead actually receives its generated documents.
   useEffect(() => {
-    if (generating && resumeReady && coverReady) setGenerating(false);
+    if (generating && resumeReady && coverReady) {
+      setGenerating(false);
+      setGenerateTaskId(null);
+    }
   }, [resumeReady, coverReady, generating]);
+
+  useEffect(() => {
+    if (!generateTaskId || (resumeReady && coverReady)) return;
+    let alive = true;
+    const timer = window.setInterval(async () => {
+      try {
+        const r = await api(`/api/v1/tasks/${generateTaskId}`);
+        if (!r.ok) throw new Error(`Task lookup returned ${r.status}`);
+        const data = await r.json();
+        if (!alive) return;
+        if (data.status === "failed" || data.status === "cancelled") {
+          const message = data.last_error || "Document generation failed.";
+          setGenerateErr(message);
+          setGenerating(false);
+          setGenerateTaskId(null);
+          showToast({ id: `generate-${j.job_id}`, tone: "error", title: "Generation failed", message });
+        } else if (data.status === "succeeded") {
+          setGenerateTaskId(null);
+          window.dispatchEvent(new CustomEvent("leads-refresh"));
+          await loadVersions();
+        }
+      } catch (err) {
+        if (!alive) return;
+        const message = err instanceof Error ? err.message : "Task status check failed";
+        setGenerateErr(message);
+        setGenerating(false);
+        setGenerateTaskId(null);
+      }
+    }, 1500);
+    return () => {
+      alive = false;
+      window.clearInterval(timer);
+    };
+  }, [api, coverReady, generateTaskId, j.job_id, loadVersions, resumeReady]);
 
   const runApplyStage = async (stage: "preview" | "fill" | "submit") => {
     if (applyBusy) return;
@@ -219,6 +257,8 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
     try {
       const r = await api(`/api/v1/leads/${j.job_id}/generate`, { method: "POST" });
       if (!r.ok) throw new Error(`Server returned ${r.status}`);
+      const payload = await r.json().catch(() => null);
+      if (payload?.task_id) setGenerateTaskId(String(payload.task_id));
       await loadVersions();
       showToast({ id: `generate-${j.job_id}`, tone: "success", title: "Generation started", message: "Documents will refresh when ready." });
     } catch (err) {

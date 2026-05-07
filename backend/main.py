@@ -492,20 +492,29 @@ async def _handle_worker_task(task: QueuedTask):
         "job_id": job_id,
         "msg": f"Worker started {task.kind}",
     })
-    if task.kind == "lead.generate":
-        await _generate_one(job_id)
-    elif task.kind == "lead.pipeline":
-        await _run_pipeline_for_lead(job_id)
-    elif task.kind == "lead.fire":
-        await _actuate(job_id)
-    elif task.kind == "scan.run":
-        await _run_scan_task()
-    elif task.kind == "leads.reevaluate":
-        await _run_reevaluate_jobs_task()
-    elif task.kind == "knowledge.refresh":
-        await _knowledge.run_refresh_now()
-    else:
-        raise ValueError(f"Unknown worker task kind: {task.kind}")
+    try:
+        if task.kind == "lead.generate":
+            await _generate_one(job_id)
+        elif task.kind == "lead.pipeline":
+            await _run_pipeline_for_lead(job_id)
+        elif task.kind == "lead.fire":
+            await _actuate(job_id)
+        elif task.kind == "scan.run":
+            await _run_scan_task()
+        elif task.kind == "leads.reevaluate":
+            await _run_reevaluate_jobs_task()
+        elif task.kind == "knowledge.refresh":
+            await _knowledge.run_refresh_now()
+        else:
+            raise ValueError(f"Unknown worker task kind: {task.kind}")
+    except Exception as exc:
+        await cm.broadcast({
+            "type": "agent",
+            "event": "worker_failed",
+            "job_id": job_id,
+            "msg": f"Worker failed {task.kind}: {exc}",
+        })
+        raise
     await cm.broadcast({
         "type": "agent",
         "event": "worker_done",
@@ -2336,7 +2345,7 @@ async def _generate_one(jid: str):
     lead = get_lead_by_id(jid)
     if not lead:
         await cm.broadcast({"type": "agent", "event": "gen_error", "msg": f"Lead {jid} not found"})
-        return
+        raise ValueError(f"Lead {jid} not found")
     template = get_setting("resume_template", "")
     await cm.broadcast({"type": "agent", "event": "gen_start",
                         "msg": f"Generating for {lead.get('title','?')} @ {lead.get('company','?')}"})
@@ -2399,6 +2408,7 @@ async def _generate_one(jid: str):
     except Exception as exc:
         await cm.broadcast({"type": "agent", "event": "gen_error",
                             "msg": f"Generation failed for {lead.get('title','?')}: {exc}"})
+        raise
 
 
 async def _actuate(jid: str):

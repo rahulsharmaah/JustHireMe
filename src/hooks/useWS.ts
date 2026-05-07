@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { listen } from "@tauri-apps/api/event";
-import { invoke } from "@tauri-apps/api/core";
 import type { ConnSt, Lead, LogLine } from "../types";
+import { showToast } from "../lib/toast";
 
 export function useWS() {
   const devPort = Number(import.meta.env.VITE_JHM_PORT || 0) || null;
@@ -38,6 +37,17 @@ export function useWS() {
           addLog(d.msg ?? d.event, "agent", d.event ?? "agent");
           if (typeof d.event === "string" && d.event.startsWith("worker_")) {
             window.dispatchEvent(new CustomEvent("worker-task-refresh"));
+            const message = String(d.msg || "");
+            if (d.event === "worker_done" && message.includes("lead.generate")) {
+              window.dispatchEvent(new CustomEvent("leads-refresh"));
+              showToast({ id: "apply-package", tone: "success", title: "Package generated", message: "Resume and cover letter assets are ready." });
+              if (d.job_id) showToast({ id: `generate-${d.job_id}`, tone: "success", title: "Generation complete" });
+            }
+            if (d.event === "worker_failed" && message.includes("lead.generate")) {
+              window.dispatchEvent(new CustomEvent("leads-refresh"));
+              showToast({ id: "apply-package", tone: "error", title: "Package failed", message: d.msg || "Document generation failed." });
+              if (d.job_id) showToast({ id: `generate-${d.job_id}`, tone: "error", title: "Generation failed", message: d.msg || "Document generation failed." });
+            }
           }
           if (d.event === "eval_done") window.dispatchEvent(new CustomEvent("scan-done"));
           if (d.event === "reeval_done") {
@@ -66,7 +76,14 @@ export function useWS() {
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
-    const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+    const tauriInternals = typeof window !== "undefined"
+      ? (window as Window & { __TAURI_INTERNALS__?: { invoke?: unknown; transformCallback?: unknown } }).__TAURI_INTERNALS__
+      : undefined;
+    const isTauri = Boolean(
+      tauriInternals
+      && typeof tauriInternals.invoke === "function"
+      && typeof tauriInternals.transformCallback === "function",
+    );
     (async () => {
       let token: string | null = null;
       let currentPort: number | null = null;
@@ -76,6 +93,10 @@ export function useWS() {
         connect(devPort, devToken);
       }
       if (!isTauri) return;
+      const [{ invoke }, { listen }] = await Promise.all([
+        import("@tauri-apps/api/core"),
+        import("@tauri-apps/api/event"),
+      ]);
       try { token = await invoke<string>("get_api_token"); setApiToken(token); } catch { /* not ready */ }
       try {
         const p = await invoke<number>("get_sidecar_port");
