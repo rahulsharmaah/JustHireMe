@@ -871,6 +871,277 @@
   }
 }
 
+/* ══════════════════════════════════════════════════
+   FLAT SURFACE OVERRIDES
+══════════════════════════════════════════════════ */
+
+:root {
+  --paper: #e7edf7;
+  --paper-2: #dde5f1;
+  --paper-3: #d3dcea;
+  --paper-4: #c5d0e1;
+  --card: rgba(244,247,252,0.82);
+  --line: rgba(62,78,110,0.14);
+  --line-2: rgba(62,78,110,0.09);
+  --line-lo: rgba(62,78,110,0.06);
+  --accent: #4f6ef7;
+  --accent-soft: rgba(79,110,247,0.12);
+  --accent-ink: #2740a3;
+  --ok: var(--accent);
+  --ok-soft: var(--accent-soft);
+  --warn: var(--accent);
+  --bad: var(--accent);
+  --bad-soft: var(--accent-soft);
+  --blue: var(--accent);
+  --blue-soft: var(--accent-soft);
+  --blue-ink: var(--accent-ink);
+  --purple: var(--accent);
+  --purple-soft: var(--accent-soft);
+  --purple-ink: var(--accent-ink);
+  --green: var(--accent);
+  --green-soft: var(--accent-soft);
+  --green-ink: var(--accent-ink);
+  --yellow: var(--accent);
+  --yellow-soft: var(--accent-soft);
+  --yellow-ink: var(--accent-ink);
+  --orange: var(--accent);
+  --orange-soft: var(--accent-soft);
+  --orange-ink: var(--accent-ink);
+  --teal: var(--accent);
+  --teal-soft: var(--accent-soft);
+  --teal-ink: var(--accent-ink);
+  --pink: var(--accent);
+  --pink-soft: var(--accent-soft);
+  --pink-ink: var(--accent-ink);
+  --coral-soft: var(--accent-soft);
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+}
+
+body,
+.pipeline-page,
+.lead-page,
+.ingestion-page,
+.graph-page,
+.profile-page {
+  background:
+    linear-gradient(180deg, rgba(236,241,249,0.88), rgba(227,234,244,0.82)),
+    radial-gradient(circle at 12% 0%, rgba(79,110,247,0.14), transparent 28%),
+    radial-gradient(circle at 88% 10%, rgba(79,110,247,0.10), transparent 32%),
+    var(--paper) !important;
+}
+
+.sidebar {
+  background:
+    linear-gradient(180deg, rgba(15,23,42,0.92) 0%, rgba(15,23,42,0.84) 100%) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.topbar {
+  background: rgba(242,246,252,0.74);
+  border-bottom-color: rgba(99,117,161,0.16);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.card,
+.card-flat,
+.toast,
+.settings-modal,
+.pipeline-job-card,
+.graph-node-card,
+.stat-card,
+.ingestion-active-card,
+.profile-identity-card,
+.profile-signal-card,
+.profile-map-card,
+.profile-tab-card,
+.profile-project-card,
+.profile-quality-card,
+.profile-list-tile,
+.activity-stream-card,
+.lead-source-card,
+.lead-playbook-card,
+.ingestion-page .card,
+[data-slot="card"] {
+  background: rgba(241,245,251,0.76) !important;
+  border-color: rgba(99,117,161,0.18) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(18px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(140%) !important;
+}
+
+.nav-item.active,
+.settings-nav button.active,
+.sidebar .card-flat,
+.sidebar .profile-add-context,
+.btn,
+.btn:hover:not(:disabled),
+.btn:active:not(:disabled),
+.btn-primary,
+.btn-accent,
+.pipeline-job-card:hover,
+.graph-node-card:hover,
+.lift:hover,
+.profile-map-node,
+.profile-map-node.active,
+.profile-tabs button.active,
+.profile-add-context,
+[data-slot="button"] {
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.btn,
+[data-slot="button"] {
+  background: rgba(242,246,252,0.72);
+  border-color: rgba(99,117,161,0.18);
+  color: var(--ink);
+  transition:
+    background .14s ease,
+    border-color .14s ease,
+    color .14s ease,
+    opacity .14s ease,
+    backdrop-filter .14s ease;
+  backdrop-filter: blur(16px) saturate(135%);
+  -webkit-backdrop-filter: blur(16px) saturate(135%);
+}
+
+.btn {
+  background: rgba(242,246,252,0.72);
+}
+
+.btn:hover:not(:disabled),
+.btn-ghost:hover:not(:disabled) {
+  background: rgba(248,250,254,0.84);
+  border-color: rgba(79,110,247,0.22);
+}
+
+.btn-primary,
+.btn-accent,
+.profile-add-context {
+  background: rgba(79,110,247,0.84);
+  border-color: rgba(79,110,247,0.28);
+  color: #fff;
+  filter: none !important;
+}
+
+.btn-primary:hover:not(:disabled),
+.btn-accent:hover:not(:disabled),
+.profile-add-context:hover {
+  background: rgba(79,110,247,0.92);
+  border-color: rgba(79,110,247,0.34);
+}
+
+.toast {
+  background: rgba(242,246,252,0.82);
+}
+
+.toast-success,
+.toast-error,
+.toast-loading,
+.toast-info {
+  border-color: rgba(79,110,247,0.22) !important;
+}
+
+.toast-success .toast-icon,
+.toast-error .toast-icon,
+.toast-loading .toast-icon,
+.toast-info .toast-icon {
+  color: var(--accent-ink) !important;
+  background: var(--accent-soft) !important;
+}
+
+.settings-backdrop,
+.drawer-backdrop {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.lift,
+.pipeline-job-card,
+.graph-node-card,
+.profile-map-node,
+.profile-tabs button,
+.nav-item {
+  transition:
+    background .14s ease,
+    border-color .14s ease,
+    color .14s ease,
+    opacity .14s ease;
+}
+
+.ingestion-accent-teal,
+.ingestion-accent-blue,
+.ingestion-accent-yellow,
+.ingestion-accent-purple,
+.ingestion-accent-green,
+.ingestion-accent-orange,
+.ingestion-accent-pink,
+.profile-list-tile-blue,
+.profile-list-tile-yellow,
+.profile-list-tile-purple,
+.profile-list-tile-green,
+.profile-list-tile-orange,
+.profile-list-tile-teal {
+  background: linear-gradient(135deg, rgba(79,110,247,0.10), rgba(255,255,255,0.74)) !important;
+  color: var(--accent-ink) !important;
+}
+
+.profile-connector-blue,
+.profile-connector-orange,
+.profile-connector-purple {
+  stroke: rgba(79,110,247,0.45) !important;
+}
+
+.profile-map-node-skills,
+.profile-map-node-experience,
+.profile-map-node-projects {
+  background: rgba(79,110,247,0.08) !important;
+  border-color: rgba(79,110,247,0.22) !important;
+}
+
+[data-slot="input"],
+[data-slot="textarea"],
+[data-slot="select-trigger"],
+[data-slot="select-content"] {
+  background: rgba(242,246,252,0.70) !important;
+  border-color: rgba(99,117,161,0.18) !important;
+  color: var(--ink) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(16px) saturate(135%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(135%) !important;
+}
+
+[data-slot="input"]::placeholder,
+[data-slot="textarea"]::placeholder {
+  color: var(--ink-3) !important;
+}
+
+[data-slot="select-item"][data-highlighted],
+[data-slot="select-item"]:focus-visible {
+  background: rgba(79,110,247,0.12) !important;
+  color: var(--accent-ink) !important;
+}
+
+[data-slot="switch"] {
+  border-color: rgba(99,117,161,0.18) !important;
+  background: rgba(235,241,249,0.74) !important;
+  backdrop-filter: blur(14px) saturate(135%);
+  -webkit-backdrop-filter: blur(14px) saturate(135%);
+}
+
+[data-slot="switch"][data-state="checked"] {
+  background: rgba(79,110,247,0.82) !important;
+}
+
+[data-slot="switch-thumb"] {
+  background: rgba(255,255,255,0.94) !important;
+}
+
 /* Pipeline */
 .pipeline-page {
   flex: 1;
