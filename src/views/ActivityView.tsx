@@ -37,9 +37,9 @@ export function ActivityView({ logs }: { logs: LogLine[] }) {
               const tone = ln.kind === "heartbeat" ? "blue" : ln.kind === "agent" ? "green" : "yellow";
               return (
                 <div key={ln.id} className="row gap-3" style={{ marginBottom: 5, alignItems: "baseline" }}>
-                  <span className="mono tabular" style={{ color: "#7F8B96", fontSize: 10.5, minWidth: 50 }}>{ln.ts}</span>
-                  <span className="mono" style={{ fontSize: 9.5, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", padding: "1px 6px", borderRadius: 4, background: `var(--${tone})`, color: `var(--${tone}-ink)`, minWidth: 42, textAlign: "center" }}>{ln.kind}</span>
-                  <span style={{ color: "#A8B2BC", fontSize: 11 }}>{ln.src}</span>
+                  <span className="mono tabular activity-log-time">{ln.ts}</span>
+                  <span className="mono activity-log-kind" style={{ background: `var(--${tone})`, color: `var(--${tone}-ink)` }}>{ln.kind}</span>
+                  <span className="activity-log-source">{ln.src}</span>
                   <span style={{ flex: 1 }}>{ln.msg}</span>
                 </div>
               );

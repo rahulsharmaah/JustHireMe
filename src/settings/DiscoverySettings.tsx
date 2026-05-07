@@ -20,7 +20,7 @@ export function DiscoverySettings({ cfg, set, onChange }: { cfg: Cfg; set: (k: k
               <LabelledField label="LinkedIn session cookie" hint="li_at value">
                 <FieldInput type="password" placeholder="li_at=•••" value={cfg.linkedin_cookie} onChange={set("linkedin_cookie")} />
               </LabelledField>
-              <div style={{ padding: 13, borderRadius: 13, background: "var(--paper-2)", border: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ padding: 13, borderRadius: "var(--radius-card)", background: "var(--paper-2)", border: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: 10 }}>
                 <SectionLabel label="Recruiter Lookup" sub="Hunter.io emails, optional Proxycurl LinkedIn" />
                 <BigToggle
                   active={cfg.contact_lookup_enabled !== "false"}
@@ -41,7 +41,7 @@ export function DiscoverySettings({ cfg, set, onChange }: { cfg: Cfg; set: (k: k
                 </div>
               </div>
 
-              <div style={{ padding: 13, borderRadius: 13, background: "var(--paper-2)", border: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ padding: 13, borderRadius: "var(--radius-card)", background: "var(--paper-2)", border: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: 10 }}>
                 <SectionLabel label="X Signals" sub="recent posts for job leads" />
                 <LabelledField label="X API Bearer Token" hint="Developer Console token">
                   <FieldInput type="password" placeholder="Bearer token" value={cfg.x_bearer_token} onChange={set("x_bearer_token")} />
@@ -84,7 +84,7 @@ export function DiscoverySettings({ cfg, set, onChange }: { cfg: Cfg; set: (k: k
                   tone="orange"
                 />
               </div>
-              <div style={{ padding: 13, borderRadius: 13, background: "var(--paper-2)", border: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ padding: 13, borderRadius: "var(--radius-card)", background: "var(--paper-2)", border: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: 10 }}>
                 <SectionLabel label="Free Source Stack" sub="Optional job-only ATS, GitHub, HN, and Reddit sources" />
                 <BigToggle
                   active={cfg.free_sources_enabled !== "false"}

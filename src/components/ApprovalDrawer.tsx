@@ -305,12 +305,12 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
   ].filter(([, value]) => value);
 
   const draftBlock = (label: string, value?: string) => value ? (
-    <div key={label} style={{ background: "var(--paper-3)", border: "1px solid var(--line)", borderRadius: 10, padding: "10px 12px" }}>
+    <div key={label} style={{ background: "var(--paper-3)", border: "1px solid var(--line)", borderRadius: "var(--radius-control)", padding: "10px 12px" }}>
       <div className="row" style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-        <span className="mono" style={{ fontSize: 10, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
+        <span className="mono approval-mini-label" style={{ color: "var(--ink-3)" }}>{label}</span>
         <button className="btn btn-ghost" style={{ fontSize: 11, padding: "3px 8px" }} onClick={() => copyText(value)}>Copy</button>
       </div>
-      <div style={{ fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.55, whiteSpace: "pre-wrap" }}>{value}</div>
+      <div className="approval-copy" style={{ whiteSpace: "pre-wrap" }}>{value}</div>
     </div>
   ) : null;
 
@@ -320,7 +320,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
         initial={{ opacity: 0, y: 24, scale: 0.985 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18, scale: 0.985 }}
         transition={{ type: "spring", damping: 28, stiffness: 260 }}
         onClick={e => e.stopPropagation()}
-        style={{ width: "min(1240px, calc(100vw - 32px))", height: "min(900px, calc(100vh - 32px))", maxHeight: "calc(100vh - 32px)", display: "flex", flexDirection: "column", background: "var(--paper)", zIndex: 101, overflow: "hidden", borderRadius: 18 }}>
+        style={{ width: "min(1240px, calc(100vw - 32px))", height: "min(900px, calc(100vh - 32px))", maxHeight: "calc(100vh - 32px)", display: "flex", flexDirection: "column", background: "var(--paper)", zIndex: 101, overflow: "hidden", borderRadius: "var(--radius-card)" }}>
 
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", padding: "18px 22px 16px", borderBottom: "1px solid var(--line)", flexShrink: 0, gap: 16, background: "var(--paper)", flexWrap: "wrap" }}>
           <div style={{ minWidth: 0 }}>
@@ -333,10 +333,10 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
               {j.feedback && <span className="pill mono" style={{ background: "var(--blue-soft)", color: "var(--blue-ink)", border: "1px solid var(--blue)" }}>{j.feedback.replace(/_/g, " ")}</span>}
               {j.score > 0 && <span className="pill mono" style={{ background: j.score >= 85 ? "var(--green-soft)" : j.score >= 60 ? "var(--yellow-soft)" : "var(--bad-soft)", color: j.score >= 85 ? "var(--green-ink)" : j.score >= 60 ? "var(--yellow-ink)" : "var(--bad)" }}>{j.score}/100 match</span>}
             </div>
-            <h2 style={{ fontSize: 26, fontWeight: 600, overflowWrap: "anywhere" }}>
+            <h2 className="approval-title" style={{ overflowWrap: "anywhere" }}>
               {display.role} <span style={{ color: "var(--ink-3)", fontWeight: 700 }}>||</span> {display.company}
             </h2>
-            <p style={{ color: "var(--ink-3)", fontSize: 13, marginTop: 2 }}>{j.platform}</p>
+            <p className="approval-platform" style={{ marginTop: 2 }}>{j.platform}</p>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
             <button
@@ -357,36 +357,36 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
             <div className="row" style={{ justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               <div>
                 <div className="eyebrow">Application Package</div>
-                <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 3 }}>Resume and cover letter are generated separately for this role.</div>
+                <div className="approval-copy-compact" style={{ marginTop: 3 }}>Resume and cover letter are generated separately for this role.</div>
               </div>
               <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
                 {pdfBlobUrl && (
                   <button onClick={openPdf} title="Open PDF in system viewer" style={{
                     display: "flex", alignItems: "center", gap: 5,
-                    padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700,
+                    padding: "5px 12px", borderRadius: "var(--radius-tight)", fontSize: 11, fontWeight: 700,
                     border: "1px solid var(--teal)", background: "var(--teal-soft)", color: "var(--teal)", cursor: "pointer",
                   }}>
                     <Icon name="download" size={12} color="var(--teal)" /> Open PDF
                   </button>
                 )}
                 <button onClick={generatePdf} disabled={generating} aria-busy={generating} style={{
-                  padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700,
+                  padding: "5px 12px", borderRadius: "var(--radius-tight)", fontSize: 11, fontWeight: 700,
                   border: "1px solid var(--purple)", background: "var(--purple-soft)", color: "var(--purple-ink)", cursor: generating ? "wait" : "pointer",
                 }}>{generating ? "Generating..." : resumeReady || coverReady ? "Regenerate Package" : "Generate Package"}</button>
                 <button onClick={runPipeline} disabled={pipelineRunning} aria-busy={pipelineRunning} style={{
-                  padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700,
+                  padding: "5px 12px", borderRadius: "var(--radius-tight)", fontSize: 11, fontWeight: 700,
                   border: "1px solid var(--blue)", background: "var(--blue-soft)", color: "var(--blue-ink)", cursor: pipelineRunning ? "wait" : "pointer",
                 }}>{pipelineRunning ? "Pipeline running..." : "Run full pipeline"}</button>
               </div>
             </div>
-            {pipelineMsg && <div style={{ color: pipelineMsg.includes("failed") || pipelineMsg.includes("Server") ? "var(--bad)" : "var(--blue-ink)", fontSize: 12 }}>{pipelineMsg}</div>}
-            <div className="row gap-2" style={{ background: "var(--paper-3)", padding: 5, borderRadius: 10, flexShrink: 0 }}>
+            {pipelineMsg && <div className="approval-copy-compact" style={{ color: pipelineMsg.includes("failed") || pipelineMsg.includes("Server") ? "var(--bad)" : "var(--blue-ink)" }}>{pipelineMsg}</div>}
+            <div className="row gap-2" style={{ background: "var(--paper-3)", padding: 5, borderRadius: "var(--radius-control)", flexShrink: 0 }}>
               {[
                 ["resume", "Resume", resumeReady],
                 ["cover", "Cover Letter", coverReady],
               ].map(([kind, label, ready]) => (
                 <button key={kind as string} onClick={() => setActiveDoc(kind as DocKind)} style={{
-                  flex: 1, padding: "8px 10px", borderRadius: 7, border: "none", cursor: "pointer",
+                  flex: 1, padding: "8px 10px", borderRadius: "var(--radius-tight)", border: "none", cursor: "pointer",
                   background: activeDoc === kind ? "var(--card)" : "transparent",
                   color: activeDoc === kind ? "var(--ink)" : "var(--ink-3)",
                   fontSize: 12, fontWeight: 700, boxShadow: activeDoc === kind ? "var(--shadow-xs)" : "none",
@@ -424,12 +424,12 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
               </div>
             )}
             {hasCoverage && (
-              <div style={{ background: "var(--blue-soft)", border: "1px solid var(--blue)", borderRadius: 10, padding: "10px 12px" }}>
+              <div style={{ background: "var(--blue-soft)", border: "1px solid var(--blue)", borderRadius: "var(--radius-control)", padding: "10px 12px" }}>
                 <div className="row" style={{ justifyContent: "space-between", gap: 10, alignItems: "center", marginBottom: 7 }}>
                   <span className="eyebrow" style={{ color: "var(--blue-ink)" }}>Coverage</span>
-                  {coveragePct !== null && <span className="mono" style={{ fontSize: 11, fontWeight: 800, color: "var(--blue-ink)" }}>{coveragePct}% JD keywords</span>}
+                  {coveragePct !== null && <span className="mono approval-score-value" style={{ color: "var(--blue-ink)" }}>{coveragePct}% JD keywords</span>}
                 </div>
-                <div style={{ fontSize: 12.3, color: "var(--ink-2)", lineHeight: 1.5 }}>
+                <div className="approval-copy">
                   {missingTerms.length > 0
                     ? <>You're missing these terms from the JD: <b>{missingTerms.slice(0, 6).join(", ")}</b>. We've incorporated the supported matches where applicable.</>
                     : <>Strong keyword coverage. We've incorporated supported JD terms where they fit the profile.</>
@@ -446,12 +446,12 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
               </div>
             )}
             {generateErr && (
-              <div style={{ color: "var(--bad)", fontSize: 12, padding: "8px 10px", background: "var(--bad-soft)", border: "1px solid var(--bad)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+              <div className="approval-copy-compact" style={{ color: "var(--bad)", padding: "8px 10px", background: "var(--bad-soft)", border: "1px solid var(--bad)", borderRadius: "var(--radius-tight)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                 <span>{generateErr}</span>
                 <button className="btn btn-ghost" onClick={generatePdf} disabled={generating} aria-busy={generating} style={{ fontSize: 11, padding: "3px 8px" }}>Retry</button>
               </div>
             )}
-            <div style={{ flex: 1, minHeight: 0, background: "var(--card)", border: "1px solid var(--line)", borderRadius: 12, overflow: "hidden" }}>
+            <div style={{ flex: 1, minHeight: 0, background: "var(--card)", border: "1px solid var(--line)", borderRadius: "var(--radius-card)", overflow: "hidden" }}>
               {activeReady && pdfBlobUrl && (
                 <iframe
                   key={pdfBlobUrl}
@@ -462,13 +462,13 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
                 />
               )}
               {generating && !pdfBlobUrl && (
-                <div style={{ height: "100%", minHeight: 420, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, color: "var(--ink-3)", fontSize: 12, padding: 24, textAlign: "center" }}>
-                  <div className="mono pulse">Tailoring resume and cover letter for {j.company}...</div>
+              <div className="approval-copy-compact" style={{ height: "100%", minHeight: 420, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, color: "var(--ink-3)", padding: 24, textAlign: "center" }}>
+                <div className="mono pulse">Tailoring resume and cover letter for {j.company}...</div>
                   <div style={{ maxWidth: 360, lineHeight: 1.5 }}>The generator is choosing the strongest profile projects for this job description.</div>
                 </div>
               )}
               {!generating && activeReady && !pdfBlobUrl && (
-                <div style={{ height: "100%", minHeight: 420, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, color: "var(--ink-3)", fontSize: 12, padding: 24, textAlign: "center" }}>
+                <div className="approval-copy-compact" style={{ height: "100%", minHeight: 420, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, color: "var(--ink-3)", padding: 24, textAlign: "center" }}>
                   {pdfLoadErr
                     ? (
                       <>
@@ -481,7 +481,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
                 </div>
               )}
               {!generating && !activeReady && (
-                <div style={{ height: "100%", minHeight: 420, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, color: "var(--ink-3)", fontSize: 12, padding: 24, textAlign: "center" }}>
+                <div className="approval-copy-compact" style={{ height: "100%", minHeight: 420, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, color: "var(--ink-3)", padding: 24, textAlign: "center" }}>
                   <Icon name="file" size={26} color="var(--ink-4)" />
                   <div style={{ fontWeight: 700, color: "var(--ink-2)" }}>
                     No tailored {activeDoc === "resume" ? "resume" : "cover letter"} yet.
@@ -489,7 +489,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
                   <div style={{ maxWidth: 380, lineHeight: 1.5 }}>
                     Generate the application package to create separate PDFs using the job description, company context, and best-matching projects.
                   </div>
-                  <button onClick={generatePdf} disabled={generating} aria-busy={generating} style={{ padding: "8px 18px", borderRadius: 8, fontSize: 12, fontWeight: 700, border: "1px solid var(--purple)", background: "var(--purple-soft)", color: "var(--purple-ink)", cursor: generating ? "wait" : "pointer" }}>
+                  <button onClick={generatePdf} disabled={generating} aria-busy={generating} style={{ padding: "8px 18px", borderRadius: "var(--radius-tight)", fontSize: 12, fontWeight: 700, border: "1px solid var(--purple)", background: "var(--purple-soft)", color: "var(--purple-ink)", cursor: generating ? "wait" : "pointer" }}>
                     Generate Package
                   </button>
                 </div>
@@ -527,19 +527,19 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
 
             <div>
               <div className="eyebrow" style={{ marginBottom: 6 }}>Job Description</div>
-              <div style={{ fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.6, background: "var(--paper-3)", borderRadius: 8, padding: "10px 12px", border: "1px solid var(--line)", whiteSpace: "pre-wrap" }}>
+              <div className="approval-copy" style={{ background: "var(--paper-3)", borderRadius: "var(--radius-tight)", padding: "10px 12px", border: "1px solid var(--line)", whiteSpace: "pre-wrap" }}>
                 {jobDescription}
               </div>
             </div>
 
             {extractedDetails.length > 0 && (
               <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Extracted Details</div>
+                <div className="approval-section-label" style={{ marginBottom: 6 }}>Extracted Details</div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 8 }}>
                   {extractedDetails.map(([label, value]) => (
-                    <div key={label} style={{ background: "var(--paper-3)", border: "1px solid var(--line)", borderRadius: 9, padding: "9px 10px", minWidth: 0 }}>
-                      <div className="mono" style={{ fontSize: 9.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{label}</div>
-                      <div style={{ fontSize: 12.5, color: "var(--ink-2)", overflowWrap: "anywhere" }}>{value}</div>
+                    <div key={label} style={{ background: "var(--paper-3)", border: "1px solid var(--line)", borderRadius: "var(--radius-tight)", padding: "9px 10px", minWidth: 0 }}>
+                      <div className="mono approval-mini-label" style={{ color: "var(--ink-3)", marginBottom: 4 }}>{label}</div>
+                      <div className="approval-copy" style={{ overflowWrap: "anywhere" }}>{value}</div>
                     </div>
                   ))}
                 </div>
@@ -550,24 +550,24 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
 
             {(j.signal_score || j.signal_reason || (j.signal_tags?.length ?? 0) > 0) && (
               <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Lead Signal</div>
-                <div style={{ background: "var(--orange-soft)", border: "1px solid var(--orange)", borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
+                <div className="approval-section-label" style={{ marginBottom: 6 }}>Lead Signal</div>
+                <div style={{ background: "var(--orange-soft)", border: "1px solid var(--orange)", borderRadius: "var(--radius-control)", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
                   <div className="row" style={{ justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 12.5, color: "var(--orange-ink)", fontWeight: 700 }}>Signal score</span>
-                    <span className="mono" style={{ fontSize: 13, fontWeight: 800, color: "var(--orange-ink)" }}>{j.signal_score || 0}/100</span>
+                    <span className="type-metric-label" style={{ color: "var(--orange-ink)" }}>Signal score</span>
+                    <span className="mono approval-score-value" style={{ color: "var(--orange-ink)" }}>{j.signal_score || 0}/100</span>
                   </div>
                   {!!j.learning_delta && (
-                    <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 8, padding: "8px 10px" }}>
+                    <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: "var(--radius-tight)", padding: "8px 10px" }}>
                       <div className="row" style={{ justifyContent: "space-between", gap: 10, alignItems: "center" }}>
-                        <span className="mono" style={{ fontSize: 10, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Feedback learning</span>
-                        <span className="mono" style={{ fontSize: 12, fontWeight: 800, color: j.learning_delta > 0 ? "var(--green-ink)" : "var(--bad)" }}>
+                        <span className="mono approval-mini-label" style={{ color: "var(--ink-3)" }}>Feedback learning</span>
+                        <span className="mono approval-score-value" style={{ color: j.learning_delta > 0 ? "var(--green-ink)" : "var(--bad)" }}>
                           {(j.base_signal_score ?? 0) || ((j.signal_score || 0) - j.learning_delta)} {j.learning_delta > 0 ? "+" : ""}{j.learning_delta}
                         </span>
                       </div>
-                      {j.learning_reason && <div style={{ marginTop: 5, fontSize: 12.2, color: "var(--ink-2)", lineHeight: 1.45 }}>{j.learning_reason}</div>}
+                      {j.learning_reason && <div className="approval-copy" style={{ marginTop: 5, lineHeight: 1.45 }}>{j.learning_reason}</div>}
                     </div>
                   )}
-                  {j.signal_reason && <div style={{ fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.55 }}>{j.signal_reason}</div>}
+                  {j.signal_reason && <div className="approval-copy">{j.signal_reason}</div>}
                   {(j.signal_tags?.length ?? 0) > 0 && (
                     <div className="row gap-2" style={{ flexWrap: "wrap" }}>
                       {j.signal_tags!.slice(0, 8).map(tag => (
@@ -581,14 +581,14 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
 
             {((j.fit_bullets?.length ?? 0) > 0 || j.proof_snippet) && (
               <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Proof Pack</div>
+                <div className="approval-section-label" style={{ marginBottom: 6 }}>Proof Pack</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {(j.fit_bullets?.length ?? 0) > 0 && (
-                    <div style={{ background: "var(--green-soft)", border: "1px solid var(--green)", borderRadius: 10, padding: "10px 12px" }}>
-                      <div className="mono" style={{ fontSize: 10, color: "var(--green-ink)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Why I fit</div>
+                    <div style={{ background: "var(--green-soft)", border: "1px solid var(--green)", borderRadius: "var(--radius-control)", padding: "10px 12px" }}>
+                      <div className="mono approval-mini-label" style={{ color: "var(--green-ink)", marginBottom: 6 }}>Why I fit</div>
                       <div className="col gap-1">
                         {j.fit_bullets!.map((bullet, idx) => (
-                          <div key={idx} style={{ fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.45 }}>{bullet}</div>
+                          <div key={idx} className="approval-copy" style={{ lineHeight: 1.45 }}>{bullet}</div>
                         ))}
                       </div>
                     </div>
@@ -600,15 +600,15 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
 
             {(j.outreach_reply || j.outreach_dm || j.outreach_email || j.proposal_draft) && (
               <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Outreach Messages</div>
+                <div className="approval-section-label" style={{ marginBottom: 6 }}>Outreach Messages</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {j.outreach_reply && (
-                    <div style={{ background: "var(--purple-soft)", border: "1px solid var(--purple)", borderRadius: 10, padding: "10px 12px" }}>
+                    <div style={{ background: "var(--purple-soft)", border: "1px solid var(--purple)", borderRadius: "var(--radius-control)", padding: "10px 12px" }}>
                       <div className="row" style={{ justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                        <span className="mono" style={{ fontSize: 10, color: "var(--purple-ink)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>3-Line Founder Message</span>
+                        <span className="mono approval-mini-label" style={{ color: "var(--purple-ink)", fontWeight: 700 }}>3-Line Founder Message</span>
                         <button className="btn btn-ghost" style={{ fontSize: 11, padding: "3px 8px" }} onClick={() => copyText(j.outreach_reply!)}>Copy</button>
                       </div>
-                      <div style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.65, whiteSpace: "pre-wrap", fontWeight: 500 }}>{j.outreach_reply}</div>
+                      <div className="profile-body-copy" style={{ color: "var(--ink)", whiteSpace: "pre-wrap", fontWeight: 500 }}>{j.outreach_reply}</div>
                     </div>
                   )}
                   {draftBlock("LinkedIn Note", j.outreach_dm)}
@@ -619,7 +619,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
             )}
 
             <div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Lead Feedback</div>
+              <div className="approval-section-label" style={{ marginBottom: 6 }}>Lead Feedback</div>
               <div className="row gap-2" style={{ flexWrap: "wrap" }}>
                 {[
                   ["relevant", "Relevant"],
@@ -632,7 +632,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
                   const active = j.feedback === id;
                   return (
                     <button key={id} onClick={() => submitFeedback(id)} disabled={feedbackBusy === id} aria-busy={feedbackBusy === id} style={{
-                      padding: "5px 10px", borderRadius: 8, fontSize: 11.5, fontWeight: 700, cursor: feedbackBusy === id ? "wait" : "pointer",
+                      padding: "5px 10px", borderRadius: "var(--radius-tight)", fontSize: 11.5, fontWeight: 700, cursor: feedbackBusy === id ? "wait" : "pointer",
                       border: `1px solid ${active ? "var(--blue)" : "var(--line)"}`,
                       background: active ? "var(--blue-soft)" : "var(--paper-3)",
                       color: active ? "var(--blue-ink)" : "var(--ink-2)",
@@ -640,26 +640,26 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
                   );
                 })}
               </div>
-              {feedbackErr && <div style={{ marginTop: 6, color: "var(--bad)", fontSize: 11.5 }}>{feedbackErr}</div>}
+              {feedbackErr && <div className="job-card-note" style={{ marginTop: 6, color: "var(--bad)" }}>{feedbackErr}</div>}
             </div>
 
             <div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Follow-up</div>
+              <div className="approval-section-label" style={{ marginBottom: 6 }}>Follow-up</div>
               <div className="row gap-2" style={{ flexWrap: "wrap" }}>
                 {[2, 5, 10].map(days => (
                   <button key={days} onClick={() => scheduleFollowup(days)} disabled={followupBusy === days} aria-busy={followupBusy === days} style={{
-                    padding: "5px 10px", borderRadius: 8, fontSize: 11.5, fontWeight: 700, cursor: followupBusy === days ? "wait" : "pointer",
+                    padding: "5px 10px", borderRadius: "var(--radius-tight)", fontSize: 11.5, fontWeight: 700, cursor: followupBusy === days ? "wait" : "pointer",
                     border: "1px solid var(--green)", background: "var(--green-soft)", color: "var(--green-ink)",
                   }}>{followupBusy === days ? "Saving..." : `${days} days`}</button>
                 ))}
               </div>
-              {j.followup_due_at && <div className="mono" style={{ fontSize: 10.5, color: "var(--ink-3)", marginTop: 6 }}>Due {j.followup_due_at}</div>}
+              {j.followup_due_at && <div className="mono type-meta" style={{ marginTop: 6 }}>Due {j.followup_due_at}</div>}
               {(j.followup_sequence?.length ?? 0) > 0 && (
-                <div style={{ marginTop: 8, background: "var(--paper-3)", border: "1px solid var(--line)", borderRadius: 10, padding: "9px 11px" }}>
-                  <div className="mono" style={{ fontSize: 10, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Suggested sequence</div>
+                <div style={{ marginTop: 8, background: "var(--paper-3)", border: "1px solid var(--line)", borderRadius: "var(--radius-control)", padding: "9px 11px" }}>
+                  <div className="mono approval-mini-label" style={{ color: "var(--ink-3)", marginBottom: 6 }}>Suggested sequence</div>
                   <div className="col gap-1">
                     {j.followup_sequence!.map((step, idx) => (
-                      <div key={idx} style={{ fontSize: 12.2, color: "var(--ink-2)", lineHeight: 1.45 }}>{step}</div>
+                      <div key={idx} className="approval-copy" style={{ lineHeight: 1.45 }}>{step}</div>
                     ))}
                   </div>
                 </div>
@@ -669,30 +669,29 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
             {/* Score bar */}
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Match Score</span>
-                <span style={{
-                  fontSize: 13, fontWeight: 700,
+                <span className="approval-section-label">Match Score</span>
+                <span className="approval-score-value" style={{
                   color:       j.score >= 85 ? "var(--green-ink)" : j.score >= 60 ? "var(--yellow-ink)" : "var(--bad)",
                   background:  j.score >= 85 ? "var(--green-soft)" : j.score >= 60 ? "var(--yellow-soft)" : "var(--bad-soft)",
-                  padding: "2px 10px", borderRadius: 999,
+                  padding: "2px 10px", borderRadius: "var(--radius-pill)",
                 }}>{j.score ?? 0}/100</span>
               </div>
-              <div style={{ height: 6, background: "var(--paper-3)", borderRadius: 999, marginBottom: 16 }}>
-                <div style={{ height: "100%", borderRadius: 999, width: `${Math.min(100, j.score ?? 0)}%`, background: j.score >= 85 ? "var(--green)" : j.score >= 60 ? "var(--yellow)" : "var(--bad)", transition: "width 0.4s ease" }} />
+              <div style={{ height: 6, background: "var(--paper-3)", borderRadius: "var(--radius-pill)", marginBottom: 16 }}>
+                <div style={{ height: "100%", borderRadius: "var(--radius-pill)", width: `${Math.min(100, j.score ?? 0)}%`, background: j.score >= 85 ? "var(--green)" : j.score >= 60 ? "var(--yellow)" : "var(--bad)", transition: "width 0.4s ease" }} />
               </div>
             </div>
 
             {j.reason && (
               <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Evaluator Reasoning</div>
-                <div style={{ fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.6, background: "var(--paper)", borderRadius: 10, padding: "10px 12px", border: "1px solid var(--line)" }}>{j.reason}</div>
+                <div className="approval-section-label" style={{ marginBottom: 4 }}>Evaluator Reasoning</div>
+                <div className="approval-copy" style={{ background: "var(--paper)", borderRadius: "var(--radius-control)", padding: "10px 12px", border: "1px solid var(--line)" }}>{j.reason}</div>
               </div>
             )}
 
             {qualityReason && (
               <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Why This Lead Was Shown</div>
-                <div style={{ fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.6, background: "var(--blue-soft)", borderRadius: 10, padding: "10px 12px", border: "1px solid var(--blue)" }}>
+                <div className="approval-section-label" style={{ marginBottom: 4 }}>Why This Lead Was Shown</div>
+                <div className="approval-copy" style={{ background: "var(--blue-soft)", borderRadius: "var(--radius-control)", padding: "10px 12px", border: "1px solid var(--blue)" }}>
                   {qualityScore ? `Quality ${qualityScore}: ` : ""}{qualityReason}
                 </div>
               </div>
@@ -700,10 +699,10 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
 
             {j.match_points?.length > 0 && (
               <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Match Points</div>
+                <div className="approval-section-label" style={{ marginBottom: 6 }}>Match Points</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   {j.match_points.map((pt, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12, color: "var(--ink-2)" }}>
+                    <div key={i} className="approval-copy-compact" style={{ display: "flex", alignItems: "flex-start", gap: 8, color: "var(--ink-2)" }}>
                       <span style={{ color: "var(--ok)", fontWeight: 700, flexShrink: 0 }}>?</span>
                       <span style={{ lineHeight: 1.5 }}>{pt}</span>
                     </div>
@@ -714,10 +713,10 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
 
             {j.gaps && j.gaps.length > 0 && (
               <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Skill Gaps</div>
+                <div className="approval-section-label" style={{ marginBottom: 6 }}>Skill Gaps</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   {j.gaps.map((g, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12, color: "var(--ink-2)" }}>
+                    <div key={i} className="approval-copy-compact" style={{ display: "flex", alignItems: "flex-start", gap: 8, color: "var(--ink-2)" }}>
                       <span style={{ color: "var(--bad)", fontWeight: 700, flexShrink: 0 }}>?</span>
                       <span style={{ lineHeight: 1.5 }}>{g}</span>
                     </div>
@@ -749,7 +748,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
                       </button>
                     </div>
                     {applyPreview ? (
-                      <div style={{ marginTop: 10, textAlign: "left", border: "1px solid var(--line)", borderRadius: 8, padding: 10, background: "var(--paper-2)", fontSize: 11.5, lineHeight: 1.45 }}>
+                      <div style={{ marginTop: 10, textAlign: "left", border: "1px solid var(--line)", borderRadius: "var(--radius-tight)", padding: 10, background: "var(--paper-2)", fontSize: 11.5, lineHeight: 1.45 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 6 }}>
                           <strong>{applyPreview.platform_label || "Application form"}</strong>
                           <span className="pill mono">{applyPreview.can_submit ? "ready" : "review"}</span>
@@ -767,17 +766,17 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
                       </div>
                     ) : null}
                     {applyResult ? (
-                      <div style={{ marginTop: 8, fontSize: 11.5, color: "var(--ink-3)", lineHeight: 1.45 }}>
+                      <div className="approval-copy-compact" style={{ marginTop: 8 }}>
                         Fill result: {(applyResult.fields_filled || []).join(", ") || "no fields reported"}; resume {applyResult.resume_uploaded ? "uploaded" : "not uploaded"}.
                       </div>
                     ) : null}
                     {applyErr ? (
-                      <div style={{ marginTop: 8, fontSize: 11.5, color: "var(--bad)", lineHeight: 1.45 }}>
+                      <div className="approval-copy-compact" style={{ marginTop: 8, color: "var(--bad)" }}>
                         {applyErr}
                       </div>
                     ) : null}
                     {!experimentalAutoApply ? (
-                      <div style={{ marginTop: 8, fontSize: 11.5, color: "var(--ink-3)", lineHeight: 1.45 }}>
+                      <div className="approval-copy-compact" style={{ marginTop: 8 }}>
                         Preview and fill are available after package generation. Enable Experimental Auto Apply only when you are ready to allow the final submit click.
                       </div>
                     ) : !resumeReady || !coverReady ? (

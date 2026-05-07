@@ -184,7 +184,7 @@ export function ProfileView({ api, setView }: { api: ApiFetch; setView: (v: View
     <div className="scroll profile-page">
       <div className="profile-shell profile-shell-compact">
         {profileErr && (
-          <div style={{ marginBottom: 16, padding: "12px 14px", borderRadius: 8, background: "var(--bad-soft)", border: "1px solid var(--bad)", color: "var(--bad)", fontSize: 13 }}>
+          <div className="profile-inline-meta" style={{ marginBottom: 16, padding: "12px 14px", borderRadius: 8, background: "var(--bad-soft)", border: "1px solid var(--bad)", color: "var(--bad)" }}>
             Could not refresh the Identity Graph. Your existing profile was not overwritten.
           </div>
         )}
@@ -379,7 +379,7 @@ export function ProfileView({ api, setView }: { api: ApiFetch; setView: (v: View
                             <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
                               <div className="col">
                                 <div className="profile-card-title">{e.role}</div>
-                                <div className="row gap-2" style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 3 }}>
+                                <div className="row gap-2 profile-inline-meta" style={{ marginTop: 3 }}>
                                   <span>{e.co}</span><span style={{ color: "var(--ink-4)" }}>-</span><span className="mono" style={{ fontSize: 11 }}>{e.period}</span>
                                 </div>
                               </div>
@@ -389,7 +389,7 @@ export function ProfileView({ api, setView }: { api: ApiFetch; setView: (v: View
                                 <button className="btn-icon profile-mini-action profile-danger" onClick={() => deleteItem("experience", e.id)}><Icon name="trash" size={14} /></button>
                               </div>
                             </div>
-                            {e.d && <div style={{ fontSize: 13.5, color: "var(--ink-2)", lineHeight: 1.6, marginTop: 10, whiteSpace: "pre-wrap" }}>{e.d}</div>}
+                            {e.d && <div className="profile-body-copy" style={{ marginTop: 10, whiteSpace: "pre-wrap" }}>{e.d}</div>}
                           </div>
                         )}
                       </div>
@@ -428,8 +428,8 @@ export function ProfileView({ api, setView }: { api: ApiFetch; setView: (v: View
                                 <span key={i} className="pill" style={{ fontSize: 11, padding: "4px 10px", background: "var(--pink-soft)", color: "var(--pink-ink)", border: "1px solid var(--pink)" }}>{s.trim()}</span>
                               ))}
                             </div>
-                            {p.impact && <div style={{ fontSize: 13.5, color: "var(--ink-2)", lineHeight: 1.6 }}>{p.impact}</div>}
-                            {p.repo && <div className="row gap-2" style={{ marginTop: 10 }}><Icon name="link" size={12} color="var(--ink-3)" /><a href={p.repo} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "var(--ink-3)" }}>{p.repo}</a></div>}
+                            {p.impact && <div className="profile-body-copy">{p.impact}</div>}
+                            {p.repo && <div className="row gap-2 profile-link-row" style={{ marginTop: 10 }}><Icon name="link" size={12} color="var(--ink-3)" /><a href={p.repo} target="_blank" rel="noreferrer" style={{ color: "inherit" }}>{p.repo}</a></div>}
                           </div>
                         )}
                       </div>

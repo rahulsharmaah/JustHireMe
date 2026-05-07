@@ -81,11 +81,11 @@ export function DashboardView({
               <div className="card-flat" style={{ padding: 14, fontSize: 12, color: "var(--ink-3)" }}>Run a scan to find matches.</div>
             ) : topMatches.map(l => (
               <div key={l.job_id} onClick={() => openDrawer(l)} className="lift" style={{
-                background: "rgba(255,255,255,0.72)", border: "1px solid var(--line)", borderRadius: 12,
+                background: "rgba(255,255,255,0.72)", border: "1px solid var(--line)", borderRadius: "var(--radius-card)",
                 padding: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 10,
               }}>
                 <div style={{
-                  width: 32, height: 32, borderRadius: 10,
+                  width: 32, height: 32, borderRadius: "var(--radius-control)",
                   background: `var(--${getTone(l.status)})`, color: `var(--${getTone(l.status)}-ink)`,
                   display: "grid", placeItems: "center",
                   fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 760,
@@ -96,7 +96,7 @@ export function DashboardView({
                   <div className="mono" style={{ fontSize: 10, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{l.company}</div>
                 </div>
                 <span style={{
-                  fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 999,
+                  fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-pill)",
                   background: l.score >= 85 ? "var(--green)" : l.score >= 50 ? "var(--yellow)" : "var(--bad-soft)",
                   color: l.score >= 85 ? "var(--green-ink)" : l.score >= 50 ? "var(--yellow-ink)" : "var(--bad)",
                 }}>{l.score}%</span>
@@ -127,7 +127,7 @@ export function DashboardView({
               const signal = leadSignal(lead);
               const nextAction = todayActionLabel(lead);
               return (
-                <div key={lead.job_id} onClick={() => openDrawer(lead)} className="lift" style={{ padding: 12, borderRadius: 12, border: "1px solid var(--line)", background: "var(--card)", cursor: "pointer", display: "grid", gridTemplateColumns: "1fr auto", gap: 10 }}>
+                <div key={lead.job_id} onClick={() => openDrawer(lead)} className="lift" style={{ padding: 12, borderRadius: "var(--radius-card)", border: "1px solid var(--line)", background: "var(--card)", cursor: "pointer", display: "grid", gridTemplateColumns: "1fr auto", gap: 10 }}>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lead.title}</div>
                     <div style={{ fontSize: 11.5, color: "var(--ink-3)", marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lead.learning_reason || lead.signal_reason || lead.reason || nextAction}</div>
@@ -154,7 +154,7 @@ export function DashboardView({
             {dailyHot.length === 0 ? (
               <div style={{ fontSize: 12, color: "var(--ink-3)", lineHeight: 1.45 }}>No scored leads yet.</div>
             ) : dailyHot.slice(0, 5).map(lead => (
-              <div key={lead.job_id} onClick={() => openDrawer(lead)} className="lift" style={{ padding: 10, borderRadius: 10, border: "1px solid var(--line)", background: "var(--card)", cursor: "pointer", display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
+              <div key={lead.job_id} onClick={() => openDrawer(lead)} className="lift" style={{ padding: 10, borderRadius: "var(--radius-control)", border: "1px solid var(--line)", background: "var(--card)", cursor: "pointer", display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lead.title}</div>
                   <div className="mono" style={{ fontSize: 10, color: "var(--ink-3)", marginTop: 3 }}>{lead.company}</div>
@@ -173,7 +173,7 @@ export function DashboardView({
             {dueFollowups.length === 0 ? (
               <div style={{ fontSize: 12, color: "var(--ink-3)", lineHeight: 1.45 }}>No follow-ups due right now.</div>
             ) : dueFollowups.slice(0, 5).map(lead => (
-              <div key={lead.job_id} onClick={() => openDrawer(lead)} className="lift" style={{ padding: 10, borderRadius: 10, border: "1px solid var(--line)", background: "var(--card)", cursor: "pointer" }}>
+              <div key={lead.job_id} onClick={() => openDrawer(lead)} className="lift" style={{ padding: 10, borderRadius: "var(--radius-control)", border: "1px solid var(--line)", background: "var(--card)", cursor: "pointer" }}>
                 <div style={{ fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lead.title}</div>
                 <div className="mono" style={{ fontSize: 10, color: "var(--ink-3)", marginTop: 3 }}>{lead.company}</div>
               </div>
@@ -191,9 +191,9 @@ export function DashboardView({
           {logs.slice(0, 6).map((ln, i) => {
             const tone = ln.kind === "heartbeat" ? "blue" : ln.kind === "agent" ? "green" : "yellow";
             return (
-              <div key={ln.id} className="row gap-3" style={{ padding: "7px 10px", borderRadius: 8, background: i === 0 ? "var(--card)" : "transparent" }}>
+              <div key={ln.id} className="row gap-3" style={{ padding: "7px 10px", borderRadius: "var(--radius-tight)", background: i === 0 ? "var(--card)" : "transparent" }}>
                 <span className="mono tabular" style={{ fontSize: 10, color: "var(--ink-3)", minWidth: 50 }}>{ln.ts}</span>
-                <span className="mono" style={{ fontSize: 9.5, fontWeight: 600, padding: "1px 6px", borderRadius: 3, background: `var(--${tone})`, color: `var(--${tone}-ink)`, textTransform: "uppercase", letterSpacing: "0.08em" }}>{ln.kind}</span>
+                <span className="mono" style={{ fontSize: 9.5, fontWeight: 600, padding: "1px 6px", borderRadius: "var(--radius-tight)", background: `var(--${tone})`, color: `var(--${tone}-ink)`, textTransform: "uppercase", letterSpacing: "0.08em" }}>{ln.kind}</span>
                 <span style={{ fontSize: 12, flex: 1, color: "var(--ink-2)" }}>{ln.msg}</span>
               </div>
             );

@@ -62,7 +62,7 @@ export function GlobalSettings({ cfg, set, onChange, prov, api, issues = [] }: {
 {/* 1. Global default */}
           <div>
             <SectionLabel label="Global Default" sub="fallback for any step not overridden" />
-            <div style={{ padding: 16, borderRadius: 14, background: "var(--paper-2)", border: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ padding: 16, borderRadius: "var(--radius-card)", background: "var(--paper-2)", border: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: 12 }}>
               {issues.length > 0 && (
                 <div className="settings-alert-stack">
                   {issues.map(issue => (
@@ -96,9 +96,9 @@ export function GlobalSettings({ cfg, set, onChange, prov, api, issues = [] }: {
                 {results && (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 8 }}>
                     {Object.entries(results).map(([provider, result]) => (
-                      <div key={provider} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "8px 10px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)" }}>
+                      <div key={provider} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "8px 10px", borderRadius: "var(--radius-tight)", border: "1px solid var(--line)", background: "var(--card)" }}>
                         <span style={{ fontSize: 12, fontWeight: 700 }}>{provider}</span>
-                        <span className="mono" style={{ fontSize: 10.5, padding: "2px 7px", borderRadius: 999, ...badgeStyle(result.status) }}>
+                        <span className="mono" style={{ fontSize: 10.5, padding: "2px 7px", borderRadius: "var(--radius-pill)", ...badgeStyle(result.status) }}>
                           {label(result.status)}{["ok", "unreachable"].includes(result.status) && result.latency_ms ? ` · ${result.latency_ms}ms` : ""}
                         </span>
                       </div>

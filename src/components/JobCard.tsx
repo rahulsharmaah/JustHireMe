@@ -45,9 +45,9 @@ export function JobCard({ lead, onOpen, onDelete, showScore = false, showGenerat
           border: `1px solid var(--${getTone(lead.status)}-ink)`,
         }}>{getMark(lead.company)}</div>
         <div className="col" style={{ flex: 1, minWidth: 0, gap: 2 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.25, color: "var(--ink)" }}>{lead.title}</div>
+          <div className="job-card-title">{lead.title}</div>
           <div className="row gap-2" style={{ alignItems: "center" }}>
-            <span className="mono" style={{ fontSize: 10.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{lead.company}</span>
+            <span className="type-meta mono">{lead.company}</span>
             <span style={{ color: "var(--ink-4)", fontSize: 10 }}>·</span>
             <span className="pill mono" style={{ fontSize: 8.5, padding: "1px 6px" }}>{lead.platform}</span>
             <span className="pill mono" style={{ fontSize: 8.5, padding: "1px 6px", background: `var(--${levelTone}-soft)`, color: `var(--${levelTone}-ink)`, border: `1px solid var(--${levelTone})` }}>{seniorityLabel(level)}</span>
@@ -91,31 +91,30 @@ export function JobCard({ lead, onOpen, onDelete, showScore = false, showGenerat
       {/* Description */}
       {desc ? (
         <div style={{
-          fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.55,
           display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical",
           overflow: "hidden",
           background: "var(--paper-3)", borderRadius: 8, padding: "8px 10px",
           border: "1px solid var(--line)",
-        }}>{desc}</div>
+        }} className="job-card-body">{desc}</div>
       ) : (
-        <div style={{ fontSize: 11.5, color: "var(--ink-4)", fontStyle: "italic" }}>No description extracted.</div>
+        <div className="job-card-empty">No description extracted.</div>
       )}
 
       {/* Evaluator reason (for Evaluated tab) */}
       {showScore && lead.reason && (
-        <div style={{ fontSize: 11.5, color: "var(--ink-3)", lineHeight: 1.5, borderLeft: "2px solid var(--line)", paddingLeft: 8 }}>
+        <div className="job-card-note" style={{ borderLeft: "2px solid var(--line)", paddingLeft: 8 }}>
           {lead.reason.slice(0, 160)}{lead.reason.length > 160 ? "…" : ""}
         </div>
       )}
 
       {lead.signal_reason && (
-        <div style={{ fontSize: 11.5, color: "var(--ink-3)", lineHeight: 1.5, borderLeft: "2px solid var(--orange)", paddingLeft: 8 }}>
+        <div className="job-card-note" style={{ borderLeft: "2px solid var(--orange)", paddingLeft: 8 }}>
           {lead.signal_reason.slice(0, 150)}{lead.signal_reason.length > 150 ? "..." : ""}
         </div>
       )}
 
       {qualityReason && (
-        <div style={{ fontSize: 11.5, color: "var(--ink-3)", lineHeight: 1.5, borderLeft: "2px solid var(--blue)", paddingLeft: 8 }}>
+        <div className="job-card-note" style={{ borderLeft: "2px solid var(--blue)", paddingLeft: 8 }}>
           Shown by quality gate{qualityScore ? ` (${qualityScore})` : ""}: {qualityReason.slice(0, 150)}{qualityReason.length > 150 ? "..." : ""}
         </div>
       )}
@@ -125,7 +124,8 @@ export function JobCard({ lead, onOpen, onDelete, showScore = false, showGenerat
         <button
           onClick={e => { e.stopPropagation(); openUrl(lead.url); }}
           title={lead.url}
-          style={{ fontSize: 11, color: "var(--teal)", background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, maxWidth: "60%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          className="job-card-link"
+          style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, maxWidth: "60%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
         >
           <Icon name="external-link" size={11} color="var(--teal)" />
           {lead.url.replace(/^https?:\/\//, "").slice(0, 50)}

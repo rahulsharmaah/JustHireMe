@@ -25,6 +25,8 @@ import { OnboardingWizard } from "./components/OnboardingWizard";
 import { ToastHost } from "./components/ToastHost";
 import { showToast } from "./lib/toast";
 
+const SIDEBAR_COLLAPSED_KEY = "justhireme.sidebar.collapsed";
+
 export default function App() {
   const { conn, port, apiToken, logs, beat, addLog: wsAddLog } = useWS();
   const api = useMemo<ApiFetch | null>(() => {
@@ -44,6 +46,7 @@ export default function App() {
   const liveSel = sel ? (leads.find(l => l.job_id === sel.job_id) ?? sel) : null;
   const [showSettings, setShowSettings] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => localStorage.getItem(ONBOARDING_KEY) !== "done");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true");
   const [applyDraft, setApplyDraft] = useState("");
   const [applyAutoFocus, setApplyAutoFocus] = useState(false);
   const [scanning, setScanning]   = useState(false);
@@ -90,6 +93,10 @@ export default function App() {
     window.addEventListener("cleanup-done", h);
     return () => window.removeEventListener("cleanup-done", h);
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, sidebarCollapsed ? "true" : "false");
+  }, [sidebarCollapsed]);
 
   const onScan = useCallback(async () => {
     if (!port || !api || scanning) return;
@@ -199,10 +206,10 @@ export default function App() {
     rejected:     leads.filter(l=>l.status==="rejected").length,
   };
   return (
-    <div style={{ display: "flex", height: "100vh", width: "100vw", overflow: "hidden", alignItems: "stretch" }}>
-      <Sidebar view={view} setView={setView} leadCounts={leadCounts} online={conn === "connected"} port={port} beat={beat} onSettings={() => setShowSettings(true)} onSetup={openSetupGuide} />
+    <div className={`app-shell ${sidebarCollapsed ? "sidebar-is-collapsed" : ""}`} style={{ height: "100vh", width: "100vw", overflow: "hidden", alignItems: "stretch" }}>
+      <Sidebar view={view} setView={setView} leadCounts={leadCounts} online={conn === "connected"} port={port} beat={beat} onSettings={() => setShowSettings(true)} onSetup={openSetupGuide} collapsed={sidebarCollapsed} onToggleCollapsed={() => setSidebarCollapsed(prev => !prev)} />
       <div className="app-main">
-        <Topbar view={view} />
+        <Topbar view={view} sidebarCollapsed={sidebarCollapsed} onToggleSidebar={() => setSidebarCollapsed(prev => !prev)} />
         <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", background: "var(--paper)" }}>
           {view === "apply"     && <ErrorBoundary label="Apply"><ApplyJobView port={port} api={api} leads={leads} openDrawer={setSel} initialInput={applyDraft} autoFocus={applyAutoFocus} /></ErrorBoundary>}
           {view === "dashboard" && <ErrorBoundary label="Dashboard"><DashboardView leads={leads} dueFollowups={dueFollowups} logs={logs} setView={setView} openDrawer={setSel} scanning={scanning} reevaluating={reevaluating} cleaning={cleaning} onScan={onScan} onStopScan={onStopScan} onReevaluate={onReevaluateJobs} onStopReevaluate={onStopReevaluate} onCleanup={onCleanupLeads} scanErr={scanErr} /></ErrorBoundary>}
