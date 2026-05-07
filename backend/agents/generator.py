@@ -618,6 +618,24 @@ def _default_application_answers(profile: dict, lead: dict, selected_projects: l
     ]
 
 
+def _fallback_generation_artifacts(profile: dict, lead: dict) -> _GenerationArtifacts:
+    selected_titles = [
+        p.get("title", "")
+        for p in _rank_projects(profile, lead, limit=3)
+        if p.get("title")
+    ]
+    return _GenerationArtifacts(
+        fit_summary="Generated locally from verified profile evidence.",
+        company_hook=f"{lead.get('company') or 'The company'} is hiring for {lead.get('title') or 'this role'}.",
+        target_role_summary=f"Position the candidate around {lead.get('title') or 'the role'} using verified profile evidence.",
+        selected_evidence=[str(item) for item in (lead.get("match_points", []) or [])[:4]],
+        application_answers=[
+            _ApplicationAnswer(**item)
+            for item in _default_application_answers(profile, lead, selected_titles)
+        ],
+    )
+
+
 def _build_generation_artifacts(profile: dict, proof: str, j: dict, template: str = "") -> _GenerationArtifacts:
     from llm import call_llm
 
@@ -1311,6 +1329,12 @@ def run_package(lead: dict, template: str = "") -> dict:
     proof   = _build_proof(profile)
     fingerprint = _generation_fingerprint(profile, lead)
     source_meta = dict(lead.get("source_meta") or {})
+    provider = ""
+    try:
+        from llm import resolve_config
+        provider, _, _ = resolve_config("generator")
+    except Exception:
+        provider = ""
 
     cached_artifacts = None
     cached_payload = source_meta.get("generation_artifacts") if isinstance(source_meta, dict) else None
@@ -1324,13 +1348,37 @@ def run_package(lead: dict, template: str = "") -> dict:
     lead_with_ctx = {**lead, "candidate_name": profile.get("n", "")}
 
     try:
-        artifacts = cached_artifacts or _build_generation_artifacts(profile, proof, lead_with_ctx, template=template)
-        package = _draft_package(profile, proof, lead_with_ctx, template=template, artifacts=artifacts)
-        package = _normalize_package(package, profile, lead_with_ctx, template=template)
+        if provider == "ollama":
+            _log.info(
+                "Using deterministic local package for %s because generator provider is Ollama",
+                lead.get("job_id", "?"),
+            )
+            artifacts = cached_artifacts or _fallback_generation_artifacts(profile, lead_with_ctx)
+            package = _normalize_package(
+                _fallback_package(profile, lead_with_ctx, template=template),
+                profile,
+                lead_with_ctx,
+                template=template,
+            )
+        else:
+            artifacts = cached_artifacts or _build_generation_artifacts(profile, proof, lead_with_ctx, template=template)
+            package = _draft_package(profile, proof, lead_with_ctx, template=template, artifacts=artifacts)
+            package = _normalize_package(package, profile, lead_with_ctx, template=template)
         keyword_coverage = _keyword_coverage(profile, lead_with_ctx, package.resume_markdown)
     except Exception as exc:
-        _log.error("LLM draft failed for %s: %s", lead.get("job_id", "?"), exc)
-        raise RuntimeError(f"Draft generation failed: {exc}") from exc
+        _log.warning(
+            "LLM draft failed for %s; using deterministic local package: %s",
+            lead.get("job_id", "?"),
+            exc,
+        )
+        artifacts = _fallback_generation_artifacts(profile, lead_with_ctx)
+        package = _normalize_package(
+            _fallback_package(profile, lead_with_ctx, template=template),
+            profile,
+            lead_with_ctx,
+            template=template,
+        )
+        keyword_coverage = _keyword_coverage(profile, lead_with_ctx, package.resume_markdown)
 
     try:
         job_id = lead["job_id"]

@@ -168,7 +168,10 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
       setGenerating(false);
       setGenerateTaskId(null);
     }
-  }, [resumeReady, coverReady, generating]);
+    if (resumeReady && coverReady && generateErr) {
+      setGenerateErr(null);
+    }
+  }, [resumeReady, coverReady, generating, generateErr]);
 
   useEffect(() => {
     if (!generateTaskId || (resumeReady && coverReady)) return;
@@ -187,6 +190,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
           showToast({ id: `generate-${j.job_id}`, tone: "error", title: "Generation failed", message });
         } else if (data.status === "succeeded") {
           setGenerateTaskId(null);
+          setGenerateErr(null);
           window.dispatchEvent(new CustomEvent("leads-refresh"));
           await loadVersions();
         }
