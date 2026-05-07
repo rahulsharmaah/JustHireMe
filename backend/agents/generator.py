@@ -1195,6 +1195,7 @@ def run_package(lead: dict, template: str = "") -> dict:
     return {
         "resume": resume_path,
         "cover_letter": cover_letter_path,
+        "version": new_version,
         "selected_projects": package.selected_projects,
         "founder_message": (package.founder_message or "").strip(),
         "linkedin_note": (package.linkedin_note or "").strip(),

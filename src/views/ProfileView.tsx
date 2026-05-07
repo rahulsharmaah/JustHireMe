@@ -8,6 +8,44 @@ const stackItems = (stack: any): string[] =>
     .map((s: string) => s.trim())
     .filter(Boolean);
 
+type ProfileRecommendation = { id: string; label: string; detail: string; action: string };
+
+const hasMetric = (value: unknown) => /\b(\d+%|\$[\d,.]+|[\d,.]+x|\b\d+\+?\s*(users|customers|jobs|leads|requests|seconds|hours|days|revenue|teams|projects))\b/i.test(String(value || ""));
+
+function profileRecommendations(profile: any): { score: number; recommendations: ProfileRecommendation[] } {
+  const skills = profile?.skills || [];
+  const exp = profile?.exp || [];
+  const projects = profile?.projects || [];
+  const summary = String(profile?.s || "").trim();
+  const name = String(profile?.n || "").trim();
+  const recommendations: ProfileRecommendation[] = [];
+
+  if (!name) {
+    recommendations.push({ id: "name", label: "Add your name", detail: "Generated documents need a stable identity header.", action: "Edit identity" });
+  }
+  if (summary.length < 120) {
+    recommendations.push({ id: "summary", label: "Strengthen target summary", detail: "Add target role, core stack, years/scope, and the kind of companies you want.", action: "Edit identity" });
+  }
+  if (skills.length < 8) {
+    recommendations.push({ id: "skills", label: "Add more skills", detail: "Matching works better with 8-15 specific tools, languages, frameworks, and domains.", action: "Add context" });
+  }
+  if (projects.length < 2) {
+    recommendations.push({ id: "projects", label: "Add project proof", detail: "Include at least two projects with stack, repo/demo links, and business impact.", action: "Add context" });
+  }
+  if (projects.length > 0 && projects.filter((p: any) => hasMetric(p.impact)).length === 0) {
+    recommendations.push({ id: "metrics", label: "Add measurable impact", detail: "Numbers in project impact make the generator produce stronger proof bullets.", action: "Edit projects" });
+  }
+  if (exp.length === 0) {
+    recommendations.push({ id: "experience", label: "Add experience history", detail: "Roles, internships, freelance work, or shipped collaborations help scoring explain fit.", action: "Add context" });
+  }
+  if (projects.length > 0 && projects.filter((p: any) => String(p.repo || "").trim()).length === 0) {
+    recommendations.push({ id: "links", label: "Attach proof links", detail: "Repo, portfolio, case study, or demo links give outreach drafts more credibility.", action: "Edit projects" });
+  }
+
+  const score = Math.max(0, Math.min(100, 100 - recommendations.length * 14));
+  return { score, recommendations: recommendations.slice(0, 5) };
+}
+
 export function ProfileView({ api, setView }: { api: ApiFetch; setView: (v: View) => void }) {
   const [profile, setProfile] = useState<any>(null);
   const [profileErr, setProfileErr] = useState<string | null>(null);
@@ -110,6 +148,7 @@ export function ProfileView({ api, setView }: { api: ApiFetch; setView: (v: View
   const exp = profile?.exp || [];
   const projects = profile?.projects || [];
   const evidenceCount = skills.length + exp.length + projects.length;
+  const quality = useMemo(() => profileRecommendations(profile), [profile]);
   const topStacks = Array.from(new Set<string>(projects.flatMap((p: any) => stackItems(p.stack)))).slice(0, 10);
   const visibleStacks = topStacks.slice(0, 6);
   const summary = String(profile?.s || "").replace(/\s+/g, " ").trim();
@@ -203,6 +242,35 @@ export function ProfileView({ api, setView }: { api: ApiFetch; setView: (v: View
               <button className="profile-add-context" onClick={() => setView("ingestion")}>
                 <Icon name="plus" size={14} /> Add Context
               </button>
+            </div>
+
+            <div className="card profile-quality-card">
+              <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+                <div>
+                  <span className="eyebrow">Quality Assistant</span>
+                  <div className="profile-quality-score tabular">{quality.score}</div>
+                </div>
+                <Icon name="check" size={18} color="var(--green-ink)" />
+              </div>
+              <div className="profile-quality-meter" aria-hidden="true">
+                <span style={{ width: `${quality.score}%` }} />
+              </div>
+              {quality.recommendations.length === 0 ? (
+                <div className="profile-quality-empty">Profile context is strong enough for matching and generation.</div>
+              ) : (
+                <div className="profile-quality-list">
+                  {quality.recommendations.map(item => (
+                    <button
+                      key={item.id}
+                      className="profile-quality-item"
+                      onClick={() => item.action === "Edit identity" ? setEditingCandidate(true) : setView("ingestion")}
+                    >
+                      <strong>{item.label}</strong>
+                      <span>{item.detail}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </aside>
 

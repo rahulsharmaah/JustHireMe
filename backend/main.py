@@ -511,7 +511,7 @@ async def _ghost_tick():
                 continue
 
             ok = await asyncio.to_thread(_act, lead, asset)
-            if ok:
+            if ok is True:
                 await asyncio.to_thread(mark_applied, item["job_id"])
                 await cm.broadcast({"type": "agent", "event": "ghost_applied",
                                     "msg": f"Applied: {item.get('title','?')} @ {item.get('company','?')}"})
@@ -1658,6 +1658,79 @@ class FormReadBody(StrictBody):
     url: str = Field(default="", max_length=2000)
 
 
+class ApplySubmitBody(StrictBody):
+    confirm: bool = False
+
+
+def _sensitive_apply_labels(labels: list[str]) -> list[str]:
+    sensitive_markers = (
+        "sponsor", "visa", "work authorization", "authorized", "disability",
+        "gender", "race", "ethnicity", "veteran", "salary", "compensation",
+        "criminal", "background check", "relocate",
+    )
+    out: list[str] = []
+    for label in labels:
+        lower = str(label or "").lower()
+        if any(marker in lower for marker in sensitive_markers):
+            out.append(str(label))
+    return list(dict.fromkeys(out))
+
+
+def _apply_readiness(result: dict) -> dict:
+    fields = result.get("fields") if isinstance(result, dict) else []
+    unmatched = result.get("unmatched_labels") if isinstance(result, dict) else []
+    fields = fields if isinstance(fields, list) else []
+    unmatched = unmatched if isinstance(unmatched, list) else []
+    missing_answers = [
+        f.get("label") or f.get("type") or f.get("selector")
+        for f in fields
+        if f.get("found_on_page") and not str(f.get("answer") or "").strip()
+    ]
+    sensitive = _sensitive_apply_labels([str(x) for x in unmatched + missing_answers])
+    return {
+        "missing_answers": [str(x) for x in missing_answers if x],
+        "sensitive_labels": sensitive,
+        "requires_user_review": bool(missing_answers or sensitive or result.get("error")),
+    }
+
+
+async def _apply_context(job_id: str) -> tuple[dict, str, dict, str]:
+    from db.client import get_lead_for_fire, get_profile, get_settings
+
+    lead, asset = await asyncio.to_thread(get_lead_for_fire, job_id)
+    status_code, detail = _fire_blocker(lead, asset)
+    if detail:
+        raise HTTPException(status_code=status_code, detail=detail)
+
+    profile = await asyncio.to_thread(get_profile)
+    cfg = await asyncio.to_thread(get_settings)
+    candidate = (profile.get("candidate") or {}) if isinstance(profile, dict) else {}
+    identity = {
+        **lead,
+        "name":            cfg.get("full_name", "") or candidate.get("n", ""),
+        "email":           cfg.get("email", ""),
+        "phone":           cfg.get("phone", ""),
+        "linkedin_url":    cfg.get("linkedin_url", ""),
+        "github":          cfg.get("github_url", ""),
+        "website":         cfg.get("website_url", ""),
+        "city":            cfg.get("city", ""),
+        "current_company": cfg.get("current_company", ""),
+    }
+
+    cover_text = ""
+    cover_path = lead.get("cover_letter_asset") or lead.get("cover_letter_path") or ""
+    if cover_path and os.path.isfile(cover_path):
+        md_path = cover_path.replace(".pdf", ".md")
+        if os.path.isfile(md_path):
+            try:
+                with open(md_path, encoding="utf-8") as f:
+                    cover_text = f.read()
+            except Exception:
+                cover_text = ""
+    identity["cover_letter"] = cover_text
+    return lead, asset, identity, cfg
+
+
 @app.post("/api/v1/leads/{job_id}/form/read")
 async def read_lead_form(job_id: str, body: FormReadBody):
     from db.client import get_lead_by_id, get_profile, get_settings
@@ -1730,14 +1803,58 @@ async def refresh_selectors():
 
 @app.post("/api/v1/leads/{job_id}/apply/preview")
 async def preview_apply(job_id: str):
-    from agents.actuator import run as _act
-    from db.client import get_lead_for_fire
+    from agents.actuator import read_form
+    from db.client import record_event
 
-    lead, asset = await asyncio.to_thread(get_lead_for_fire, job_id)
-    status_code, detail = _fire_blocker(lead, asset)
-    if detail:
-        raise HTTPException(status_code=status_code, detail=detail)
-    return await asyncio.to_thread(_act, lead, asset, True)
+    lead, _asset, identity, _cfg = await _apply_context(job_id)
+    result = await read_form(lead.get("url", ""), identity, identity.get("cover_letter", ""))
+    readiness = _apply_readiness(result)
+    payload = {
+        **result,
+        **readiness,
+        "stage": "preview",
+        "job_id": job_id,
+        "can_fill": not result.get("error"),
+        "can_submit": not readiness["requires_user_review"],
+    }
+    await asyncio.to_thread(record_event, job_id, "apply_preview")
+    return payload
+
+
+@app.post("/api/v1/leads/{job_id}/apply/fill")
+async def fill_apply(job_id: str):
+    from agents.actuator import run as _act
+    from db.client import record_event
+
+    lead, asset, identity, _cfg = await _apply_context(job_id)
+    result = await asyncio.to_thread(_act, identity or lead, asset, False, False)
+    await asyncio.to_thread(record_event, job_id, "apply_fill")
+    if isinstance(result, dict):
+        return {**result, "stage": "fill", "job_id": job_id, "submitted": False}
+    return {"stage": "fill", "job_id": job_id, "submitted": False, "ok": bool(result)}
+
+
+@app.post("/api/v1/leads/{job_id}/apply/submit")
+async def submit_apply(job_id: str, body: ApplySubmitBody):
+    from agents.actuator import run as _act
+    from db.client import get_setting, mark_applied, record_event
+
+    if not body.confirm:
+        raise HTTPException(400, "confirm must be true before submitting")
+    if get_setting("auto_apply", "false") != "true":
+        raise HTTPException(409, "Enable Experimental Auto Apply before final submission")
+
+    lead, asset, identity, _cfg = await _apply_context(job_id)
+    result = await asyncio.to_thread(_act, identity or lead, asset, False, True)
+    if result is True:
+        await asyncio.to_thread(mark_applied, job_id)
+        return {"stage": "submit", "job_id": job_id, "submitted": True}
+
+    await asyncio.to_thread(record_event, job_id, "apply_submit_failed")
+    detail = "Application was not submitted"
+    if isinstance(result, dict):
+        detail = result.get("error") or result.get("status") or detail
+    raise HTTPException(502, detail)
 
 
 async def _generate_one(jid: str):
@@ -1781,6 +1898,7 @@ async def _generate_one(jid: str):
             "asset": package["resume"],
             "resume_asset": package["resume"],
             "cover_letter_asset": package["cover_letter"],
+            "resume_version": package.get("version", lead.get("resume_version", 0)),
             "selected_projects": package.get("selected_projects", []),
             "keyword_coverage": package.get("keyword_coverage", {}),
             "outreach_reply": package.get("founder_message", lead.get("outreach_reply", "")),
@@ -1822,7 +1940,7 @@ async def _actuate(jid: str):
                             "msg": f"Submission failed for {jid}: {exc}"})
         return
 
-    if ok:
+    if ok is True:
         await asyncio.to_thread(mark_applied, jid)
         await cm.broadcast({"type": "agent", "event": "applied", "job_id": jid,
                             "msg": f"Application submitted for {jid}"})

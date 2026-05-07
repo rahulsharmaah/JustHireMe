@@ -1,8 +1,30 @@
 export type ConnSt = "disconnected" | "connecting" | "connected";
 export type View = "apply" | "dashboard" | "inbox" | "pipeline" | "graph" | "activity" | "profile" | "ingestion";
-export type PipelineTab = "all" | "hot" | "found" | "evaluated" | "generated" | "applied" | "discarded";
+export type PipelineTab = "today" | "all" | "hot" | "found" | "evaluated" | "generated" | "applied" | "discarded";
 export type LeadSort = "recommended" | "newest" | "signal" | "match" | "company";
 export type SeniorityFilter = "all" | "beginner" | "fresher" | "junior" | "mid" | "senior" | "unknown";
+
+export interface PipelineFilterState {
+  tab: PipelineTab;
+  search: string;
+  platform: string;
+  minSignal: number;
+  minMatch: number;
+  sort: LeadSort;
+  budgetOnly: boolean;
+  learningOnly: boolean;
+  remoteOnly: boolean;
+  uncontactedOnly: boolean;
+  hideDiscarded: boolean;
+  seniority: SeniorityFilter;
+}
+
+export interface SavedPipelineView {
+  id: string;
+  name: string;
+  filters: PipelineFilterState;
+  createdAt: string;
+}
 
 export interface KeywordCoverage {
   jd_terms?: string[];
@@ -52,6 +74,7 @@ export interface Lead {
   lead_quality_score?: number; lead_quality_reason?: string;
   source_meta?: Record<string, any>; feedback?: string; feedback_note?: string;
   followup_due_at?: string; last_contacted_at?: string;
+  created_at?: string;
   events?: { action: string; ts: string }[];
 }
 export interface GraphStats {
@@ -81,4 +104,25 @@ export interface FormReadResult {
   fields: FormField[];
   unmatched_labels: string[];
   error: string | null;
+}
+
+export interface ApplyPreviewResult extends FormReadResult {
+  stage: "preview";
+  job_id: string;
+  missing_answers: string[];
+  sensitive_labels: string[];
+  requires_user_review: boolean;
+  can_fill: boolean;
+  can_submit: boolean;
+}
+
+export interface ApplyRunResult {
+  stage: "fill" | "submit";
+  job_id: string;
+  status?: string;
+  submitted?: boolean;
+  fields_filled?: string[];
+  resume_uploaded?: boolean;
+  ready_to_submit?: boolean;
+  screenshot_b64?: string;
 }

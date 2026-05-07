@@ -357,7 +357,7 @@ async def _find_submit(p):
     return None
 
 
-async def _run(job: dict, asset: str, dry_run: bool = False) -> bool | dict:
+async def _run(job: dict, asset: str, dry_run: bool = False, submit: bool | None = None) -> bool | dict:
     if not job.get("url") or not asset or not os.path.isfile(asset):
         return False
 
@@ -414,10 +414,11 @@ async def _run(job: dict, asset: str, dry_run: bool = False) -> bool | dict:
                     "ready_to_submit": bool(submit_btn and ready),
                 }
 
-            if not _AUTO_APPLY_ENABLED:
+            final_submit = _AUTO_APPLY_ENABLED if submit is None else bool(submit)
+
+            if not final_submit:
                 _log.warning(
-                    "auto-apply is disabled — form was read but not submitted. "
-                    "Set JHM_AUTO_APPLY=true to re-enable."
+                    "auto-apply submit is disabled — form was read but not submitted."
                 )
                 _shot = await pg.screenshot(type="png", full_page=False)
                 return {
@@ -448,5 +449,5 @@ async def _run(job: dict, asset: str, dry_run: bool = False) -> bool | dict:
     return ok
 
 
-def run(job: dict, asset: str, dry_run: bool = False) -> bool | dict:
-    return asyncio.run(_run(job, asset, dry_run=dry_run))
+def run(job: dict, asset: str, dry_run: bool = False, submit: bool | None = None) -> bool | dict:
+    return asyncio.run(_run(job, asset, dry_run=dry_run, submit=submit))

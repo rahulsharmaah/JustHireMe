@@ -1,7 +1,7 @@
 import Icon from "../components/Icon";
 import type { Lead, LogLine, View } from "../types";
 import { StatCard } from "../components/Topbar";
-import { getMark, getTone } from "../lib/leadUtils";
+import { getMark, getTone, leadSignal, needsTodayAction, todayActionLabel } from "../lib/leadUtils";
 
 export function DashboardView({
   leads, dueFollowups, logs, setView, openDrawer,
@@ -20,9 +20,13 @@ export function DashboardView({
     applied:    leads.filter(l=>l.status==="applied").length,
   };
   const topMatches = [...leads].filter(l => l.score > 0).sort((a,b) => b.score - a.score).slice(0, 4);
+  const todayQueue = [...leads]
+    .filter(needsTodayAction)
+    .sort((a, b) => Number(Boolean(b.followup_due_at)) - Number(Boolean(a.followup_due_at)) || leadSignal(b) - leadSignal(a))
+    .slice(0, 8);
   const dailyHot = [...leads]
     .filter(l => l.status !== "discarded")
-    .sort((a, b) => Math.max(b.signal_score || 0, b.score || 0) - Math.max(a.signal_score || 0, a.score || 0))
+    .sort((a, b) => leadSignal(b) - leadSignal(a))
     .slice(0, 6);
 
   return (
@@ -34,6 +38,7 @@ export function DashboardView({
             <h1>Today's run</h1>
             <div className="dashboard-summary">
               <span><b>{leads.length}</b> leads</span>
+              <span><b>{todayQueue.length}</b> need action</span>
               <span><b>{counts.evaluated}</b> evaluated</span>
               <span><b>{counts.tailoring + counts.approved}</b> tailored</span>
             </div>
@@ -112,17 +117,15 @@ export function DashboardView({
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14, marginBottom: 18 }}>
         <div className="card" style={{ padding: 18 }}>
           <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
-            <h3>Daily hot leads</h3>
+            <h3>Today action queue</h3>
             <button className="btn btn-ghost" onClick={() => setView("pipeline")} style={{ fontSize: 12 }}>Pipeline <Icon name="arrow-right" size={12} /></button>
           </div>
           <div className="col gap-2">
-            {dailyHot.length === 0 ? (
-              <div className="card-flat" style={{ padding: 14, color: "var(--ink-3)", fontSize: 12 }}>No hot leads yet.</div>
-            ) : dailyHot.map(lead => {
-              const signal = Math.max(lead.signal_score || 0, lead.score || 0);
-              const nextAction = lead.last_contacted_at
-                ? "Follow up"
-                : "Send fit email";
+            {todayQueue.length === 0 ? (
+              <div className="card-flat" style={{ padding: 14, color: "var(--ink-3)", fontSize: 12 }}>Nothing urgent. Run a scan, paste a lead, or review the full pipeline.</div>
+            ) : todayQueue.map(lead => {
+              const signal = leadSignal(lead);
+              const nextAction = todayActionLabel(lead);
               return (
                 <div key={lead.job_id} onClick={() => openDrawer(lead)} className="lift" style={{ padding: 12, borderRadius: 12, border: "1px solid var(--line)", background: "var(--card)", cursor: "pointer", display: "grid", gridTemplateColumns: "1fr auto", gap: 10 }}>
                   <div style={{ minWidth: 0 }}>
@@ -131,7 +134,7 @@ export function DashboardView({
                     <div className="row gap-2" style={{ marginTop: 4, flexWrap: "wrap" }}>
                       <span className="pill mono" style={{ fontSize: 9 }}>{lead.platform}</span>
                       <span className="pill mono" style={{ fontSize: 9 }}>{lead.kind || "job"}</span>
-                      <span className="pill mono" style={{ fontSize: 9, background: "var(--blue-soft)", color: "var(--blue-ink)" }}>{nextAction}</span>
+                      <span className="pill mono" style={{ fontSize: 9, background: "var(--green-soft)", color: "var(--green-ink)" }}>{nextAction}</span>
                       {!!lead.learning_delta && <span className="pill mono" style={{ fontSize: 9, background: lead.learning_delta > 0 ? "var(--green-soft)" : "var(--bad-soft)", color: lead.learning_delta > 0 ? "var(--green-ink)" : "var(--bad)" }}>learn {lead.learning_delta > 0 ? "+" : ""}{lead.learning_delta}</span>}
                       {lead.budget && <span className="pill mono" style={{ fontSize: 9, background: "var(--green-soft)", color: "var(--green-ink)" }}>{lead.budget}</span>}
                     </div>
@@ -140,6 +143,25 @@ export function DashboardView({
                 </div>
               );
             })}
+          </div>
+        </div>
+        <div className="card" style={{ padding: 18, background: "var(--blue-soft)" }}>
+          <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
+            <h3>Strong leads</h3>
+            <span className="pill mono" style={{ background: "var(--blue)", color: "var(--blue-ink)" }}>{dailyHot.length}</span>
+          </div>
+          <div className="col gap-2">
+            {dailyHot.length === 0 ? (
+              <div style={{ fontSize: 12, color: "var(--ink-3)", lineHeight: 1.45 }}>No scored leads yet.</div>
+            ) : dailyHot.slice(0, 5).map(lead => (
+              <div key={lead.job_id} onClick={() => openDrawer(lead)} className="lift" style={{ padding: 10, borderRadius: 10, border: "1px solid var(--line)", background: "var(--card)", cursor: "pointer", display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lead.title}</div>
+                  <div className="mono" style={{ fontSize: 10, color: "var(--ink-3)", marginTop: 3 }}>{lead.company}</div>
+                </div>
+                <span className="mono" style={{ fontSize: 12, fontWeight: 800, color: "var(--blue-ink)" }}>{leadSignal(lead)}</span>
+              </div>
+            ))}
           </div>
         </div>
         <div className="card" style={{ padding: 18, background: "var(--green-soft)" }}>

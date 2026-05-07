@@ -2,8 +2,43 @@ import { useEffect, useMemo, useState } from "react";
 import Icon from "../components/Icon";
 import { LeadFilterBar } from "../components/LeadFilterBar";
 import { PipelineJobCard, PipelineSkeleton } from "../components/JobCard";
-import type { ApiFetch, Lead, LeadSort, PipelineTab, SeniorityFilter } from "../types";
-import { PAGE_SIZE, leadSearchText, sortLeads, seniorityMatches, uniqueLeadValues } from "../lib/leadUtils";
+import type { ApiFetch, Lead, LeadSort, PipelineFilterState, PipelineTab, SavedPipelineView, SeniorityFilter } from "../types";
+import { PAGE_SIZE, isContactedLead, isRemoteLead, leadSearchText, needsTodayAction, sortLeads, seniorityMatches, uniqueLeadValues } from "../lib/leadUtils";
+
+const PIPELINE_FILTER_KEY = "justhireme:pipeline:filters:v1";
+const PIPELINE_SAVED_VIEWS_KEY = "justhireme:pipeline:saved-views:v1";
+
+const defaultFilters: PipelineFilterState = {
+  tab: "today",
+  search: "",
+  platform: "",
+  minSignal: 0,
+  minMatch: 0,
+  sort: "recommended",
+  budgetOnly: false,
+  learningOnly: false,
+  remoteOnly: false,
+  uncontactedOnly: true,
+  hideDiscarded: true,
+  seniority: "all",
+};
+
+const loadPipelineFilters = (): PipelineFilterState => {
+  try {
+    return { ...defaultFilters, ...JSON.parse(localStorage.getItem(PIPELINE_FILTER_KEY) || "{}") };
+  } catch {
+    return defaultFilters;
+  }
+};
+
+const loadSavedViews = (): SavedPipelineView[] => {
+  try {
+    const value = JSON.parse(localStorage.getItem(PIPELINE_SAVED_VIEWS_KEY) || "[]");
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
+};
 
 export function PipelineView({ leads, openDrawer, deleteLead, port, api, scanning, reevaluating, cleaning, onReevaluate, onStopReevaluate, onCleanup, loading, error }: {
   leads: Lead[]; openDrawer: (l: Lead) => void;
@@ -11,21 +46,75 @@ export function PipelineView({ leads, openDrawer, deleteLead, port, api, scannin
   scanning: boolean; reevaluating: boolean; cleaning: boolean; onReevaluate: () => void; onStopReevaluate: () => void; onCleanup: () => void;
   loading: boolean; error: string | null;
 }) {
-  const [tab, setTab] = useState<PipelineTab>("all");
-  const [search, setSearch] = useState("");
-  const [platform, setPlatform] = useState("");
-  const [minSignal, setMinSignal] = useState(0);
-  const [minMatch, setMinMatch] = useState(0);
-  const [sort, setSort] = useState<LeadSort>("recommended");
-  const [budgetOnly, setBudgetOnly] = useState(false);
-  const [learningOnly, setLearningOnly] = useState(false);
-  const [seniority, setSeniority] = useState<SeniorityFilter>("all");
+  const [initialFilters] = useState(loadPipelineFilters);
+  const [tab, setTab] = useState<PipelineTab>(initialFilters.tab);
+  const [search, setSearch] = useState(initialFilters.search);
+  const [platform, setPlatform] = useState(initialFilters.platform);
+  const [minSignal, setMinSignal] = useState(initialFilters.minSignal);
+  const [minMatch, setMinMatch] = useState(initialFilters.minMatch);
+  const [sort, setSort] = useState<LeadSort>(initialFilters.sort);
+  const [budgetOnly, setBudgetOnly] = useState(initialFilters.budgetOnly);
+  const [learningOnly, setLearningOnly] = useState(initialFilters.learningOnly);
+  const [remoteOnly, setRemoteOnly] = useState(initialFilters.remoteOnly);
+  const [uncontactedOnly, setUncontactedOnly] = useState(initialFilters.uncontactedOnly);
+  const [hideDiscarded, setHideDiscarded] = useState(initialFilters.hideDiscarded);
+  const [seniority, setSeniority] = useState<SeniorityFilter>(initialFilters.seniority);
+  const [savedViews, setSavedViews] = useState<SavedPipelineView[]>(loadSavedViews);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [bulkSelecting, setBulkSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
 
-  useEffect(() => setVisibleCount(PAGE_SIZE), [tab, search, platform, minSignal, minMatch, sort, budgetOnly, learningOnly, seniority]);
+  useEffect(() => setVisibleCount(PAGE_SIZE), [tab, search, platform, minSignal, minMatch, sort, budgetOnly, learningOnly, remoteOnly, uncontactedOnly, hideDiscarded, seniority]);
+
+  const currentFilters: PipelineFilterState = useMemo(() => ({
+    tab, search, platform, minSignal, minMatch, sort, budgetOnly, learningOnly,
+    remoteOnly, uncontactedOnly, hideDiscarded, seniority,
+  }), [tab, search, platform, minSignal, minMatch, sort, budgetOnly, learningOnly, remoteOnly, uncontactedOnly, hideDiscarded, seniority]);
+
+  useEffect(() => {
+    localStorage.setItem(PIPELINE_FILTER_KEY, JSON.stringify(currentFilters));
+  }, [currentFilters]);
+
+  const applyFilters = (filters: PipelineFilterState) => {
+    setTab(filters.tab);
+    setSearch(filters.search);
+    setPlatform(filters.platform);
+    setMinSignal(filters.minSignal);
+    setMinMatch(filters.minMatch);
+    setSort(filters.sort);
+    setBudgetOnly(filters.budgetOnly);
+    setLearningOnly(filters.learningOnly);
+    setRemoteOnly(filters.remoteOnly);
+    setUncontactedOnly(filters.uncontactedOnly);
+    setHideDiscarded(filters.hideDiscarded);
+    setSeniority(filters.seniority);
+    setBulkSelecting(false);
+    setSelected(new Set());
+  };
+
+  const saveCurrentView = () => {
+    const name = window.prompt("Name this pipeline view", tab === "today" ? "Today: uncontacted strong leads" : `${tab} view`);
+    const cleanName = String(name || "").trim();
+    if (!cleanName) return;
+    const next = [
+      ...savedViews.filter(view => view.name.toLowerCase() !== cleanName.toLowerCase()),
+      {
+        id: `${Date.now()}-${cleanName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+        name: cleanName,
+        filters: currentFilters,
+        createdAt: new Date().toISOString(),
+      },
+    ];
+    setSavedViews(next);
+    localStorage.setItem(PIPELINE_SAVED_VIEWS_KEY, JSON.stringify(next));
+  };
+
+  const deleteSavedView = (id: string) => {
+    const next = savedViews.filter(view => view.id !== id);
+    setSavedViews(next);
+    localStorage.setItem(PIPELINE_SAVED_VIEWS_KEY, JSON.stringify(next));
+  };
 
   const platforms = useMemo(() => uniqueLeadValues(leads, "platform"), [leads]);
 
@@ -38,11 +127,15 @@ export function PipelineView({ leads, openDrawer, deleteLead, port, api, scannin
       if (minMatch && (lead.score || 0) < minMatch) return false;
       if (budgetOnly && !lead.budget) return false;
       if (learningOnly && !lead.learning_delta) return false;
+      if (remoteOnly && !isRemoteLead(lead)) return false;
+      if (uncontactedOnly && isContactedLead(lead)) return false;
+      if (hideDiscarded && tab !== "discarded" && lead.status === "discarded") return false;
       if (!seniorityMatches(lead, seniority)) return false;
       return true;
     };
     const apply = (arr: Lead[]) => sortLeads(arr.filter(keep), sort);
     const tabItems: { id: PipelineTab; label: string; tone: string; leads: Lead[] }[] = [
+      { id: "today",     label: "Today",     tone: "green",  leads: apply(leads.filter(needsTodayAction)) },
       { id: "all",       label: "All",       tone: "teal",   leads: apply(leads) },
       { id: "hot",       label: "Hot",       tone: "orange", leads: apply(leads.filter(l => (l.signal_score || 0) >= 80 || (l.score || 0) >= 85)) },
       { id: "found",     label: "New",       tone: "blue",   leads: apply(leads.filter(l => l.status === "discovered")) },
@@ -52,16 +145,18 @@ export function PipelineView({ leads, openDrawer, deleteLead, port, api, scannin
       { id: "discarded", label: "Discarded", tone: "bad",    leads: apply(leads.filter(l => l.status === "discarded")) },
     ];
     return tabItems;
-  }, [leads, search, platform, minSignal, minMatch, sort, budgetOnly, learningOnly, seniority]);
+  }, [leads, tab, search, platform, minSignal, minMatch, sort, budgetOnly, learningOnly, remoteOnly, uncontactedOnly, hideDiscarded, seniority]);
 
   const activeTab = tabs.find(t => t.id === tab) || tabs[0];
   const visibleLeads = activeTab.leads.slice(0, visibleCount);
-  const hasFilters = Boolean(search || platform || minSignal || minMatch || budgetOnly || learningOnly || seniority !== "all");
+  const hasFilters = Boolean(search || platform || minSignal || minMatch || budgetOnly || learningOnly || remoteOnly || uncontactedOnly || hideDiscarded || seniority !== "all");
   const hotCount = leads.filter(l => (l.signal_score || 0) >= 80 || (l.score || 0) >= 85).length;
+  const todayCount = leads.filter(needsTodayAction).length;
   const readyCount = leads.filter(l => l.status === "tailoring" || l.status === "approved").length;
   const activeCount = leads.filter(l => ["applied", "interviewing", "accepted", "rejected"].includes(l.status)).length;
   const busyLabel = scanning ? "Scanning for new leads" : reevaluating ? "Re-evaluating fit scores" : cleaning ? "Cleaning bad data" : "";
   const metrics = [
+    { label: "Today", value: todayCount, tone: "green", icon: "clock" },
     { label: "Total", value: leads.length, tone: "blue", icon: "layers" },
     { label: "Hot", value: hotCount, tone: "orange", icon: "spark" },
     { label: "New", value: leads.filter(l => l.status === "discovered").length, tone: "teal", icon: "search" },
@@ -120,7 +215,7 @@ export function PipelineView({ leads, openDrawer, deleteLead, port, api, scannin
               key={metric.label}
               className="pipeline-metric"
               onClick={() => {
-                const nextTab = metric.label === "Hot" ? "hot" : metric.label === "New" ? "found" : metric.label === "Ready" ? "generated" : metric.label === "Active" ? "applied" : metric.label === "Discarded" ? "discarded" : "all";
+                const nextTab = metric.label === "Today" ? "today" : metric.label === "Hot" ? "hot" : metric.label === "New" ? "found" : metric.label === "Ready" ? "generated" : metric.label === "Active" ? "applied" : metric.label === "Discarded" ? "discarded" : "all";
                 setTab(nextTab as PipelineTab);
                 setBulkSelecting(false);
                 setSelected(new Set());
@@ -162,6 +257,9 @@ export function PipelineView({ leads, openDrawer, deleteLead, port, api, scannin
             <button className="btn" onClick={exportCsv} disabled={!api || exporting || loading}>
               {exporting ? "Exporting..." : "Export CSV"}
             </button>
+            <button className="btn" onClick={saveCurrentView} disabled={loading}>
+              <Icon name="check" size={13} /> Save view
+            </button>
             {reevaluating ? (
               <button className="btn danger" onClick={onStopReevaluate}>
                 <Icon name="x" size={13} /> Stop re-eval
@@ -187,6 +285,22 @@ export function PipelineView({ leads, openDrawer, deleteLead, port, api, scannin
           </div>
         </div>
 
+        <div className="pipeline-saved-views">
+          <button className="pipeline-saved-chip primary" onClick={() => applyFilters(defaultFilters)}>
+            <Icon name="clock" size={12} /> Today focus
+          </button>
+          {savedViews.length === 0 ? (
+            <span className="pipeline-saved-empty">Save filters you use every morning.</span>
+          ) : savedViews.map(view => (
+            <span key={view.id} className="pipeline-saved-chip">
+              <button onClick={() => applyFilters(view.filters)}>{view.name}</button>
+              <button className="pipeline-saved-delete" onClick={() => deleteSavedView(view.id)} title={`Delete ${view.name}`}>
+                <Icon name="x" size={11} />
+              </button>
+            </span>
+          ))}
+        </div>
+
         <LeadFilterBar
           search={search}
           setSearch={setSearch}
@@ -202,6 +316,12 @@ export function PipelineView({ leads, openDrawer, deleteLead, port, api, scannin
           setBudgetOnly={setBudgetOnly}
           learningOnly={learningOnly}
           setLearningOnly={setLearningOnly}
+          remoteOnly={remoteOnly}
+          setRemoteOnly={setRemoteOnly}
+          uncontactedOnly={uncontactedOnly}
+          setUncontactedOnly={setUncontactedOnly}
+          hideDiscarded={hideDiscarded}
+          setHideDiscarded={setHideDiscarded}
           seniority={seniority}
           setSeniority={setSeniority}
           platforms={platforms}

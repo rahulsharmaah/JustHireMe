@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import Icon from "./Icon";
-import type { ApiFetch, KeywordCoverage, Lead } from "../types";
+import type { ApiFetch, ApplyPreviewResult, ApplyRunResult, KeywordCoverage, Lead } from "../types";
 import { cleanLeadText, getTone, leadDisplayHeading } from "../lib/leadUtils";
 import { FormReader } from "./FormReader";
 import { showToast } from "../lib/toast";
@@ -43,7 +43,6 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
 }) {
   type DocKind = "resume" | "cover";
   type VersionEntry = { version: number; resume?: string; cover_letter?: string };
-  const [firing, setFiring] = useState(false);
   const [done,   setDone]   = useState(false);
   const [generating, setGenerating] = useState(false);
   const [activeDoc, setActiveDoc] = useState<DocKind>("resume");
@@ -53,7 +52,6 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
   const [generateErr, setGenerateErr] = useState<string | null>(null);
   const [pipelineRunning, setPipelineRunning] = useState(false);
   const [pipelineMsg, setPipelineMsg] = useState<string | null>(null);
-  const [fireErr, setFireErr] = useState<string | null>(null);
   const [feedbackBusy, setFeedbackBusy] = useState<string | null>(null);
   const [feedbackErr, setFeedbackErr] = useState<string | null>(null);
   const [followupBusy, setFollowupBusy] = useState<number | null>(null);
@@ -61,6 +59,10 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
   const [selectedVersion, setSelectedVersion] = useState<number | null>(null);
   const [versionErr, setVersionErr] = useState<string | null>(null);
   const [experimentalAutoApply, setExperimentalAutoApply] = useState(false);
+  const [applyBusy, setApplyBusy] = useState<"preview" | "fill" | "submit" | null>(null);
+  const [applyPreview, setApplyPreview] = useState<ApplyPreviewResult | null>(null);
+  const [applyResult, setApplyResult] = useState<ApplyRunResult | null>(null);
+  const [applyErr, setApplyErr] = useState<string | null>(null);
 
   const resumeReady = Boolean(j.resume_asset || j.asset);
   const coverReady = Boolean(j.cover_letter_asset);
@@ -84,7 +86,9 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
   const qualityScore = Number(j.lead_quality_score || j.source_meta?.lead_quality_score || 0);
   const qualityReason = String(j.lead_quality_reason || j.source_meta?.lead_quality_reason || "");
   const timeline = (j.events || []).slice().reverse();
-  const canFire = experimentalAutoApply && resumeReady && coverReady && !firing;
+  const canPreviewApply = resumeReady && coverReady && !applyBusy;
+  const canFillApply = Boolean(applyPreview?.can_fill) && !applyBusy;
+  const canSubmitApply = experimentalAutoApply && Boolean(applyResult?.ready_to_submit || applyPreview?.can_submit) && !applyBusy;
   const display = leadDisplayHeading(j);
   const originalTitle = cleanLeadText(j.title);
   const descriptionText = cleanLeadText(j.description);
@@ -151,24 +155,46 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
     if (generating && resumeReady && coverReady) setGenerating(false);
   }, [resumeReady, coverReady, generating]);
 
-  const fire = async () => {
-    if (!canFire) return;
-    setFiring(true);
-    setFireErr(null);
-    showToast({ id: `fire-${j.job_id}`, tone: "loading", title: "Submitting application", message: j.company });
+  const runApplyStage = async (stage: "preview" | "fill" | "submit") => {
+    if (applyBusy) return;
+    if ((stage === "preview" && !canPreviewApply) || (stage === "fill" && !canFillApply) || (stage === "submit" && !canSubmitApply)) return;
+    setApplyBusy(stage);
+    setApplyErr(null);
+    showToast({
+      id: `apply-${j.job_id}`,
+      tone: "loading",
+      title: stage === "preview" ? "Reading application" : stage === "fill" ? "Filling application" : "Submitting application",
+      message: display.company,
+    });
     try {
-      const r = await api(`/api/v1/fire/${j.job_id}`, { method: "POST" });
+      const r = await api(`/api/v1/leads/${j.job_id}/apply/${stage}`, {
+        method: "POST",
+        headers: stage === "submit" ? { "Content-Type": "application/json" } : undefined,
+        body: stage === "submit" ? JSON.stringify({ confirm: true }) : undefined,
+      });
       if (!r.ok) {
         const detail = await r.json().then(d => d.detail).catch(() => "");
         throw new Error(detail || `Server returned ${r.status}`);
       }
-      setDone(true); setTimeout(onFired, 1500);
-      showToast({ id: `fire-${j.job_id}`, tone: "success", title: "Application submitted", message: j.company });
+      const data = await r.json();
+      if (stage === "preview") setApplyPreview(data);
+      else setApplyResult(data);
+      if (stage === "submit") {
+        setDone(true);
+        window.setTimeout(onFired, 1200);
+      }
+      showToast({
+        id: `apply-${j.job_id}`,
+        tone: "success",
+        title: stage === "preview" ? "Preview ready" : stage === "fill" ? "Form filled" : "Application submitted",
+        message: display.company,
+      });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Fire failed";
-      setFireErr(message);
-      setFiring(false);
-      showToast({ id: `fire-${j.job_id}`, tone: "error", title: "Application failed", message });
+      const message = err instanceof Error ? err.message : `${stage} failed`;
+      setApplyErr(message);
+      showToast({ id: `apply-${j.job_id}`, tone: "error", title: "Apply automation failed", message });
+    } finally {
+      setApplyBusy(null);
     }
   };
 
@@ -709,23 +735,54 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
             </div>
             <div style={{ textAlign: "center", padding: 16, borderTop: "1px solid var(--line)", background: "var(--paper)", flexShrink: 0 }}>
               {done
-                ? <div style={{ fontSize: 15, color: "var(--ok)", fontWeight: 700 }}>Experimental automation running</div>
+                ? <div style={{ fontSize: 15, color: "var(--ok)", fontWeight: 700 }}>Application submitted</div>
                 : <>
-                    <button className="btn btn-accent" onClick={fire} disabled={!canFire} aria-busy={firing} style={{ fontSize: 15, padding: "12px 24px", width: "100%", cursor: canFire ? "pointer" : "not-allowed", opacity: canFire ? 1 : 0.58, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                      <Icon name="fire" size={15} color="#fff" /> {firing ? "Starting..." : "Experimental Auto Apply"}
-                    </button>
-                    {fireErr ? (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+                      <button className="btn" onClick={() => runApplyStage("preview")} disabled={!canPreviewApply} aria-busy={applyBusy === "preview"} style={{ justifyContent: "center" }}>
+                        <Icon name="search" size={14} /> {applyBusy === "preview" ? "Reading..." : "Preview"}
+                      </button>
+                      <button className="btn" onClick={() => runApplyStage("fill")} disabled={!canFillApply} aria-busy={applyBusy === "fill"} style={{ justifyContent: "center" }}>
+                        <Icon name="spark" size={14} /> {applyBusy === "fill" ? "Filling..." : "Fill"}
+                      </button>
+                      <button className="btn btn-accent" onClick={() => runApplyStage("submit")} disabled={!canSubmitApply} aria-busy={applyBusy === "submit"} style={{ justifyContent: "center", opacity: canSubmitApply ? 1 : 0.58 }}>
+                        <Icon name="fire" size={14} color="#fff" /> {applyBusy === "submit" ? "Submitting..." : "Submit"}
+                      </button>
+                    </div>
+                    {applyPreview ? (
+                      <div style={{ marginTop: 10, textAlign: "left", border: "1px solid var(--line)", borderRadius: 8, padding: 10, background: "var(--paper-2)", fontSize: 11.5, lineHeight: 1.45 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 6 }}>
+                          <strong>{applyPreview.platform_label || "Application form"}</strong>
+                          <span className="pill mono">{applyPreview.can_submit ? "ready" : "review"}</span>
+                        </div>
+                        <div>{applyPreview.fields.filter(f => f.found_on_page).length} matched fields detected.</div>
+                        {applyPreview.missing_answers.length > 0 ? (
+                          <div style={{ color: "var(--bad)", marginTop: 5 }}>Missing: {applyPreview.missing_answers.join(", ")}</div>
+                        ) : null}
+                        {applyPreview.sensitive_labels.length > 0 ? (
+                          <div style={{ color: "var(--warn)", marginTop: 5 }}>Needs approval: {applyPreview.sensitive_labels.join(", ")}</div>
+                        ) : null}
+                        {applyPreview.error ? (
+                          <div style={{ color: "var(--bad)", marginTop: 5 }}>{applyPreview.error}</div>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {applyResult ? (
+                      <div style={{ marginTop: 8, fontSize: 11.5, color: "var(--ink-3)", lineHeight: 1.45 }}>
+                        Fill result: {(applyResult.fields_filled || []).join(", ") || "no fields reported"}; resume {applyResult.resume_uploaded ? "uploaded" : "not uploaded"}.
+                      </div>
+                    ) : null}
+                    {applyErr ? (
                       <div style={{ marginTop: 8, fontSize: 11.5, color: "var(--bad)", lineHeight: 1.45 }}>
-                        {fireErr}
+                        {applyErr}
                       </div>
                     ) : null}
                     {!experimentalAutoApply ? (
                       <div style={{ marginTop: 8, fontSize: 11.5, color: "var(--ink-3)", lineHeight: 1.45 }}>
-                        Auto-apply is an unsupported contributor lab. Enable Experimental Auto Apply in settings to test it.
+                        Preview and fill are available after package generation. Enable Experimental Auto Apply only when you are ready to allow the final submit click.
                       </div>
                     ) : !resumeReady || !coverReady ? (
                       <div style={{ marginTop: 8, fontSize: 11.5, color: "var(--ink-3)", lineHeight: 1.45 }}>
-                        Generate the resume and cover letter before testing experimental automation.
+                        Generate the resume and cover letter before running apply automation.
                       </div>
                     ) : null}
                   </>

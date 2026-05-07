@@ -4,7 +4,8 @@ import type { LeadSort, SeniorityFilter } from "../types";
 export function LeadFilterBar({
   search, setSearch, platform, setPlatform, minSignal, setMinSignal,
   minMatch, setMinMatch, sort, setSort, budgetOnly, setBudgetOnly,
-  learningOnly, setLearningOnly, seniority, setSeniority, platforms, total, shown, label,
+  learningOnly, setLearningOnly, remoteOnly, setRemoteOnly, uncontactedOnly, setUncontactedOnly,
+  hideDiscarded, setHideDiscarded, seniority, setSeniority, platforms, total, shown, label,
 }: {
   search: string; setSearch: (v: string) => void;
   platform: string; setPlatform: (v: string) => void;
@@ -13,10 +14,13 @@ export function LeadFilterBar({
   sort: LeadSort; setSort: (v: LeadSort) => void;
   budgetOnly: boolean; setBudgetOnly: (v: boolean) => void;
   learningOnly: boolean; setLearningOnly: (v: boolean) => void;
+  remoteOnly: boolean; setRemoteOnly: (v: boolean) => void;
+  uncontactedOnly: boolean; setUncontactedOnly: (v: boolean) => void;
+  hideDiscarded: boolean; setHideDiscarded: (v: boolean) => void;
   seniority: SeniorityFilter; setSeniority: (v: SeniorityFilter) => void;
   platforms: string[]; total: number; shown: number; label: string;
 }) {
-  const hasFilters = Boolean(search || platform || minSignal || minMatch || budgetOnly || learningOnly || seniority !== "all");
+  const hasFilters = Boolean(search || platform || minSignal || minMatch || budgetOnly || learningOnly || remoteOnly || uncontactedOnly || hideDiscarded || seniority !== "all");
   const resetFilters = () => {
     setSearch("");
     setPlatform("");
@@ -24,6 +28,9 @@ export function LeadFilterBar({
     setMinMatch(0);
     setBudgetOnly(false);
     setLearningOnly(false);
+    setRemoteOnly(false);
+    setUncontactedOnly(false);
+    setHideDiscarded(false);
     setSeniority("all");
     setSort("recommended");
   };
@@ -97,6 +104,9 @@ export function LeadFilterBar({
       <div className="pipeline-filter-actions">
         <button className={toggleClass(budgetOnly)} onClick={() => setBudgetOnly(!budgetOnly)}>Budget</button>
         <button className={toggleClass(learningOnly)} onClick={() => setLearningOnly(!learningOnly)}>Learned</button>
+        <button className={toggleClass(remoteOnly)} onClick={() => setRemoteOnly(!remoteOnly)}>Remote</button>
+        <button className={toggleClass(uncontactedOnly)} onClick={() => setUncontactedOnly(!uncontactedOnly)}>Uncontacted</button>
+        <button className={toggleClass(hideDiscarded)} onClick={() => setHideDiscarded(!hideDiscarded)}>Hide discarded</button>
         <button className="pipeline-clear" onClick={resetFilters} disabled={!hasFilters}>Clear</button>
         <span className="pipeline-count mono">{shown}/{total}</span>
       </div>

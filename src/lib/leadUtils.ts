@@ -13,6 +13,42 @@ Build production AI workflows for hiring teams using Python, FastAPI, React, Pos
 
 export const leadSignal = (lead: Lead) => Math.max(lead.signal_score || 0, lead.score || 0);
 
+export const isDueNow = (value?: string) => {
+  if (!value) return false;
+  const normalized = value.includes("T") ? value : `${value.replace(" ", "T")}Z`;
+  const due = new Date(normalized);
+  return !Number.isNaN(due.getTime()) && due.getTime() <= Date.now();
+};
+
+export const isRemoteLead = (lead: Lead) =>
+  /\b(remote|work from home|wfh|anywhere|distributed)\b/i.test([
+    lead.location,
+    lead.title,
+    lead.description,
+    lead.reason,
+    ...(lead.signal_tags || []),
+  ].join(" "));
+
+export const isContactedLead = (lead: Lead) =>
+  Boolean(lead.last_contacted_at || lead.followup_due_at || lead.feedback === "already_contacted" || lead.status === "applied" || lead.status === "proposal_sent");
+
+export const needsTodayAction = (lead: Lead) => {
+  if (lead.status === "discarded" || lead.status === "rejected" || lead.status === "accepted" || lead.status === "completed") return false;
+  if (isDueNow(lead.followup_due_at)) return true;
+  if ((lead.status === "approved" || lead.status === "tailoring") && !isContactedLead(lead)) return true;
+  if (!isContactedLead(lead) && leadSignal(lead) >= 80) return true;
+  if (lead.status === "discovered" && leadSignal(lead) >= 65) return true;
+  return false;
+};
+
+export const todayActionLabel = (lead: Lead) => {
+  if (isDueNow(lead.followup_due_at)) return "Follow up today";
+  if ((lead.status === "approved" || lead.status === "tailoring") && !isContactedLead(lead)) return "Review package";
+  if (!isContactedLead(lead) && leadSignal(lead) >= 80) return "Apply today";
+  if (lead.status === "discovered") return "Evaluate fit";
+  return "Review";
+};
+
 export const leadSearchText = (lead: Lead) => [
   lead.title, lead.company, lead.platform, lead.status, lead.kind, lead.budget,
   lead.location, lead.urgency, lead.feedback, lead.description, lead.reason,
@@ -134,14 +170,16 @@ export const sortLeads = (items: Lead[], sort: LeadSort) => {
   if (sort === "signal") return copy.sort((a, b) => (b.signal_score || 0) - (a.signal_score || 0));
   if (sort === "match") return copy.sort((a, b) => (b.score || 0) - (a.score || 0));
   if (sort === "company") return copy.sort((a, b) => `${a.company} ${a.title}`.localeCompare(`${b.company} ${b.title}`));
+  if (sort === "newest") return copy.sort((a, b) => Date.parse(b.created_at || "0") - Date.parse(a.created_at || "0"));
   if (sort === "recommended") {
     return copy.sort((a, b) => {
       const aContacted = a.last_contacted_at ? 1 : 0;
       const bContacted = b.last_contacted_at ? 1 : 0;
       return (
+        Number(needsTodayAction(b)) - Number(needsTodayAction(a)) ||
         leadSignal(b) - leadSignal(a) ||
         (b.learning_delta || 0) - (a.learning_delta || 0) ||
-        bContacted - aContacted ||
+        aContacted - bContacted ||
         (b.budget ? 1 : 0) - (a.budget ? 1 : 0)
       );
     });
