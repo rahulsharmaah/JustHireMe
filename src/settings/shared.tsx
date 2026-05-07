@@ -12,7 +12,7 @@ export interface Cfg {
   llm_provider: string;
   anthropic_key: string; openai_api_key: string; openai_model: string;
   deepseek_api_key: string; groq_api_key: string; nvidia_api_key: string;
-  nvidia_model: string; ollama_url: string;
+  nvidia_model: string; ollama_url: string; ollama_model: string;
   scout_provider: string;     scout_api_key: string;     scout_model: string;
   evaluator_provider: string; evaluator_api_key: string; evaluator_model: string;
   generator_provider: string; generator_api_key: string; generator_model: string;
@@ -30,7 +30,7 @@ export const EMPTY: Cfg = {
   llm_provider: "ollama",
   anthropic_key: "", openai_api_key: "", openai_model: "gpt-4o-mini",
   deepseek_api_key: "", groq_api_key: "", nvidia_api_key: "",
-  nvidia_model: "z-ai/glm-5.1", ollama_url: "http://localhost:11434/v1",
+  nvidia_model: "z-ai/glm-5.1", ollama_url: "http://localhost:11434/v1", ollama_model: "gemma2",
   scout_provider: "", scout_api_key: "", scout_model: "",
   evaluator_provider: "", evaluator_api_key: "", evaluator_model: "",
   generator_provider: "", generator_api_key: "", generator_model: "",
@@ -59,7 +59,7 @@ export const MODEL_HINTS: Record<string, string[]> = {
   groq:      ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"],
   openai:    ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo"],
   anthropic: ["claude-sonnet-4-6", "claude-haiku-4-5-20251001", "claude-opus-4-6"],
-  ollama:    ["llama3", "mistral", "gemma2", "codellama"],
+  ollama:    ["gemma2", "llama3.2", "mistral", "qwen2.5", "codellama"],
 };
 
 export const STEPS = [
@@ -143,6 +143,7 @@ export const hasProviderCredential = (cfg: Cfg, provider: string, stepKey?: keyo
 
 export const hasProviderModel = (cfg: Cfg, provider: string, stepModelKey?: keyof Cfg) => {
   if (stepModelKey && String(cfg[stepModelKey] || "").trim()) return true;
+  if (provider === "ollama") return !!String(cfg.ollama_model || "").trim();
   if (provider === "openai") return !!String(cfg.openai_model || "").trim();
   if (provider === "nvidia") return !!String(cfg.nvidia_model || "").trim();
   return true;
@@ -156,12 +157,20 @@ export const getSettingsIssues = (cfg: Cfg): SettingsIssue[] => {
     if (!String(cfg.ollama_url || "").trim()) {
       issues.push({ section: "models", field: "ollama_url", level: "error", message: "Ollama needs a base URL before settings can be saved." });
     }
+    if (!String(cfg.ollama_model || "").trim()) {
+      issues.push({ section: "models", field: "ollama_model", level: "warning", message: "Choose a local Ollama model such as gemma2, llama3.2, or mistral." });
+    }
   } else if (!hasProviderCredential(cfg, globalProvider)) {
     issues.push({ section: "models", field: KEY_FIELD[globalProvider] || "llm_provider", level: "error", message: `${providerLabel(globalProvider)} needs an API key before settings can be saved.` });
   }
 
   if (!hasProviderModel(cfg, globalProvider)) {
-    issues.push({ section: "models", field: globalProvider === "nvidia" ? "nvidia_model" : "openai_model", level: "warning", message: `${providerLabel(globalProvider)} has no model selected.` });
+    issues.push({
+      section: "models",
+      field: globalProvider === "nvidia" ? "nvidia_model" : globalProvider === "ollama" ? "ollama_model" : "openai_model",
+      level: "warning",
+      message: `${providerLabel(globalProvider)} has no model selected.`,
+    });
   }
 
   for (const step of STEPS) {

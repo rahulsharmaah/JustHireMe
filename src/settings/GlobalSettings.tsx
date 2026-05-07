@@ -57,6 +57,8 @@ export function GlobalSettings({ cfg, set, onChange, prov, api, issues = [] }: {
     unchecked: "unchecked",
   }[status]);
 
+  const localStatus = results?.ollama;
+
   return (
     <>
 {/* 1. Global default */}
@@ -77,7 +79,31 @@ export function GlobalSettings({ cfg, set, onChange, prov, api, issues = [] }: {
                 <ApiKeyInput value={cfg[KEY_FIELD[prov]] as string} onChange={v => onChange(KEY_FIELD[prov], v)} provider={prov} />
               )}
               {prov === "ollama" && (
-                <FieldInput type="text" placeholder="http://localhost:11434/v1" value={cfg.ollama_url} onChange={set("ollama_url")} />
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div style={{ padding: 14, borderRadius: "var(--radius-card)", background: "var(--paper-3)", border: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: 12 }}>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink)" }}>Local LLM Runtime</div>
+                      <div style={{ fontSize: 11.5, color: "var(--ink-3)", marginTop: 3, lineHeight: 1.45 }}>
+                        Route the whole app through a local OpenAI-compatible endpoint such as Ollama. Pick a model like `gemma2`, `llama3.2`, or `mistral`, and every workflow step will use it unless you override that step later.
+                      </div>
+                    </div>
+                    <LabelledLocalField label="Runtime URL" hint="Ollama base URL">
+                      <FieldInput type="text" placeholder="http://localhost:11434/v1" value={cfg.ollama_url} onChange={set("ollama_url")} />
+                    </LabelledLocalField>
+                    <LabelledLocalField label="Local model" hint="global default for all steps">
+                      <ModelChips provider="ollama" value={cfg.ollama_model} onChange={v => onChange("ollama_model", v)} />
+                    </LabelledLocalField>
+                    <div className="row gap-2" style={{ flexWrap: "wrap", alignItems: "center" }}>
+                      <span className="pill mono" style={{ background: "var(--blue-soft)", color: "var(--blue-ink)", border: "1px solid var(--blue)" }}>Global default</span>
+                      <span className="pill mono" style={{ background: "var(--paper)", color: "var(--ink-3)", border: "1px solid var(--line)" }}>{cfg.ollama_model || "Choose a model"}</span>
+                      {localStatus && (
+                        <span className="pill mono" style={badgeStyle(localStatus.status)}>
+                          {label(localStatus.status)}{["ok", "unreachable"].includes(localStatus.status) && localStatus.latency_ms ? ` · ${localStatus.latency_ms}ms` : ""}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
               )}
               {(prov === "nvidia" || prov === "openai") && (
                 <div>
@@ -109,5 +135,17 @@ export function GlobalSettings({ cfg, set, onChange, prov, api, issues = [] }: {
             </div>
           </div>
     </>
+  );
+}
+
+function LabelledLocalField({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <div className="row gap-2" style={{ alignItems: "baseline", flexWrap: "wrap" }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ink)" }}>{label}</span>
+        {hint && <span className="mono" style={{ fontSize: 10.5, color: "var(--ink-3)" }}>{hint}</span>}
+      </div>
+      {children}
+    </div>
   );
 }

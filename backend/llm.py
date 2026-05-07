@@ -1,4 +1,7 @@
 import os
+from functools import lru_cache
+from urllib.parse import urlparse
+
 import httpx
 import anthropic
 import instructor
@@ -40,6 +43,64 @@ _DEFAULT_MODELS: dict[str, str] = {
 }
 
 
+def _ollama_models_endpoint(base_url: str) -> str:
+    raw = str(base_url or "http://localhost:11434/v1").strip().rstrip("/")
+    parsed = urlparse(raw)
+    path = parsed.path.rstrip("/")
+    if path.endswith("/v1"):
+        path = f"{path}/models"
+    else:
+        path = "/api/tags"
+    return parsed._replace(path=path, params="", query="", fragment="").geturl()
+
+
+@lru_cache(maxsize=32)
+def _fetch_ollama_model_ids(base_url: str) -> tuple[str, ...]:
+    endpoint = _ollama_models_endpoint(base_url)
+    try:
+        with httpx.Client(timeout=httpx.Timeout(5.0, connect=2.0)) as client:
+            response = client.get(endpoint)
+            response.raise_for_status()
+            payload = response.json()
+    except Exception as exc:
+        _log.warning("ollama model discovery failed at %s: %s", endpoint, exc)
+        return ()
+
+    if isinstance(payload, dict) and isinstance(payload.get("data"), list):
+        values = [str(item.get("id") or "").strip() for item in payload["data"] if isinstance(item, dict)]
+    elif isinstance(payload, dict) and isinstance(payload.get("models"), list):
+        values = [str(item.get("name") or item.get("model") or "").strip() for item in payload["models"] if isinstance(item, dict)]
+    else:
+        values = []
+    return tuple(value for value in values if value)
+
+
+def _resolve_ollama_model_alias(base_url: str, model: str) -> str:
+    desired = str(model or "").strip()
+    if not desired:
+        return desired
+    installed = _fetch_ollama_model_ids(base_url)
+    if not installed:
+        return desired
+    if desired in installed:
+        return desired
+
+    desired_lower = desired.lower()
+    exact_family = next(
+        (name for name in installed if name.split(":", 1)[0].lower() == desired_lower),
+        None,
+    )
+    if exact_family:
+        _log.info("ollama model alias %s -> %s", desired, exact_family)
+        return exact_family
+
+    prefix_match = next((name for name in installed if name.lower().startswith(f"{desired_lower}:")), None)
+    if prefix_match:
+        _log.info("ollama model alias %s -> %s", desired, prefix_match)
+        return prefix_match
+    return desired
+
+
 def _resolve(step: str | None = None) -> tuple[str, str, str]:
     """
     Resolve (provider, api_key, model) for a given pipeline step.
@@ -66,6 +127,8 @@ def _resolve(step: str | None = None) -> tuple[str, str, str]:
     # Model: step-specific > provider-level setting > default
     if sm:
         model = sm
+    elif p == "ollama":
+        model = get_setting("ollama_model", _DEFAULT_MODELS["ollama"])
     elif p == "nvidia":
         model = get_setting("nvidia_model", _DEFAULT_MODELS["nvidia"])
     elif p == "openai":
@@ -177,9 +240,11 @@ def call_llm(s: str, u: str, m: type[BaseModel], step: str | None = None):
 
     else:  # ollama / default
         b = get_setting("ollama_url", "http://localhost:11434/v1")
+        model = _resolve_ollama_model_alias(b, model)
         _log.info("ollama at %s model=%s (step=%s)", b, model, step)
         c = instructor.from_openai(
-            OpenAI(base_url=b, api_key="ollama", timeout=_TIMEOUT, max_retries=0)
+            OpenAI(base_url=b, api_key="ollama", timeout=_TIMEOUT, max_retries=0),
+            mode=instructor.Mode.JSON,
         )
         return c.chat.completions.create(
             model=model,
@@ -255,6 +320,7 @@ def call_raw(s: str, u: str, step: str | None = None) -> str:
 
     else:  # ollama
         b = get_setting("ollama_url", "http://localhost:11434/v1")
+        model = _resolve_ollama_model_alias(b, model)
         c = OpenAI(base_url=b, api_key="ollama", timeout=_TIMEOUT, max_retries=0)
         r = c.chat.completions.create(
             model=model,

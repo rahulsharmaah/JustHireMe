@@ -14,6 +14,7 @@ export function OnboardingWizard({ api, onFinish, onOpenSettings }: { api: ApiFe
   const [provider, setProvider] = useState("ollama");
   const [apiKey, setApiKey] = useState("");
   const [ollamaUrl, setOllamaUrl] = useState("http://localhost:11434");
+  const [ollamaModel, setOllamaModel] = useState("gemma2");
   const [demoDraft, setDemoDraft] = useState(DEMO_JOB_DRAFT);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -62,7 +63,10 @@ export function OnboardingWizard({ api, onFinish, onOpenSettings }: { api: ApiFe
       onboarding_target_role: role,
       free_sources_enabled: true,
     };
-    if (provider === "ollama") payload.ollama_url = ollamaUrl;
+    if (provider === "ollama") {
+      payload.ollama_url = ollamaUrl;
+      payload.ollama_model = ollamaModel;
+    }
     const field = keyField[provider];
     if (field && apiKey.trim()) payload[field] = apiKey.trim();
     try {
@@ -198,9 +202,18 @@ export function OnboardingWizard({ api, onFinish, onOpenSettings }: { api: ApiFe
                 </div>
               </div>
               {provider === "ollama" ? (
-                <div>
-                  <label className="eyebrow">Ollama URL</label>
-                  <input className="field-input" value={ollamaUrl} onChange={e => setOllamaUrl(e.target.value)} style={{ marginTop: 7 }} />
+                <div className="col gap-3">
+                  <div>
+                    <label className="eyebrow">Ollama URL</label>
+                    <input className="field-input" value={ollamaUrl} onChange={e => setOllamaUrl(e.target.value)} style={{ marginTop: 7 }} />
+                  </div>
+                  <div>
+                    <label className="eyebrow">Local model</label>
+                    <input className="field-input" value={ollamaModel} onChange={e => setOllamaModel(e.target.value)} placeholder="gemma2" style={{ marginTop: 7 }} />
+                    <div style={{ fontSize: 11.5, color: "var(--ink-3)", marginTop: 6, lineHeight: 1.45 }}>
+                      Examples: `gemma2`, `llama3.2`, `mistral`, `qwen2.5`.
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div>

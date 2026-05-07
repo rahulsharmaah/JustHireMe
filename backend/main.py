@@ -163,6 +163,19 @@ class _CM:
 
 cm = _CM()
 
+
+def _spawn_task(coro, label: str):
+    task = asyncio.create_task(coro)
+
+    def _done(t: asyncio.Task):
+        try:
+            t.result()
+        except Exception as exc:
+            _log.exception("background task failed (%s): %s", label, exc)
+
+    task.add_done_callback(_done)
+    return task
+
 DEFAULT_JOB_TARGETS = [
     "hn-hiring",
     "https://remoteok.com/api",
@@ -784,13 +797,13 @@ async def due_followups(limit: int = 25):
 
 
 @app.post("/api/v1/leads/{job_id}/generate")
-async def generate_for_lead(job_id: str, bt: BackgroundTasks):
-    bt.add_task(_generate_one, job_id)
+async def generate_for_lead(job_id: str):
+    _spawn_task(_generate_one(job_id), f"generate:{job_id}")
     return {"status": "generating", "job_id": job_id}
 
 
 @app.post("/api/v1/leads/{job_id}/pipeline/run")
-async def run_pipeline(job_id: str, bt: BackgroundTasks):
+async def run_pipeline(job_id: str):
     from db.client import get_lead_by_id, get_profile, get_settings
     from graph import PipelineState, eval_graph
 
@@ -823,7 +836,7 @@ async def run_pipeline(job_id: str, bt: BackgroundTasks):
             "msg": f"Pipeline done for {job_id}: score={result['score']}, error={result['error']}",
         })
 
-    bt.add_task(_run)
+    _spawn_task(_run(), f"pipeline:{job_id}")
     return {"status": "started", "job_id": job_id}
 
 
@@ -1262,15 +1275,50 @@ async def _probe_provider_key(provider: str, key: str) -> dict:
     return {"status": status, "latency_ms": round((time.perf_counter() - started) * 1000)}
 
 
+async def _probe_local_runtime(base_url: str) -> dict:
+    import httpx
+
+    started = time.perf_counter()
+    raw = str(base_url or "").strip()
+    if not raw:
+        return {"status": "not_configured", "latency_ms": 0}
+
+    timeout = httpx.Timeout(5.0)
+    candidates: list[str] = []
+    trimmed = raw.rstrip("/")
+    if trimmed.endswith("/v1"):
+        candidates.append(f"{trimmed}/models")
+        candidates.append(f"{trimmed[:-3]}/api/tags")
+    else:
+        candidates.append(f"{trimmed}/api/tags")
+        candidates.append(f"{trimmed}/v1/models")
+
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            for url in candidates:
+                try:
+                    r = await client.get(url)
+                    if r.status_code == 200:
+                        return {"status": "ok", "latency_ms": round((time.perf_counter() - started) * 1000)}
+                except Exception:
+                    continue
+    except Exception:
+        pass
+
+    return {"status": "unreachable", "latency_ms": round((time.perf_counter() - started) * 1000)}
+
+
 @app.get("/api/v1/settings/validate")
 async def validate_settings():
     from db.client import get_settings
     from llm import _ENV_NAMES, _KEY_NAMES
 
     cfg = get_settings()
-    providers = ["anthropic", "openai", "groq", *[p for p in _KEY_NAMES if p not in {"anthropic", "openai", "groq"}]]
+    providers = ["ollama", "anthropic", "openai", "groq", *[p for p in _KEY_NAMES if p not in {"anthropic", "openai", "groq"}]]
 
     async def one(provider: str):
+        if provider == "ollama":
+            return provider, await _probe_local_runtime(str(cfg.get("ollama_url", "") or ""))
         key_name = _KEY_NAMES.get(provider, "")
         key = str(cfg.get(key_name) or os.environ.get(_ENV_NAMES.get(provider, ""), "") or "").strip()
         if not key:
@@ -1644,13 +1692,13 @@ def _fire_blocker(lead: dict, asset: str) -> tuple[int, str]:
 
 
 @app.post("/api/v1/fire/{job_id}")
-async def fire(job_id: str, bt: BackgroundTasks):
+async def fire(job_id: str):
     from db.client import get_lead_for_fire
     lead, asset = await asyncio.to_thread(get_lead_for_fire, job_id)
     status, detail = _fire_blocker(lead, asset)
     if detail:
         raise HTTPException(status_code=status, detail=detail)
-    bt.add_task(_actuate, job_id)
+    _spawn_task(_actuate(job_id), f"fire:{job_id}")
     return {"status": "firing", "job_id": job_id}
 
 
