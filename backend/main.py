@@ -540,10 +540,11 @@ def _start_worker_service():
                 "leads.reevaluate": _handle_worker_task,
                 "knowledge.refresh": _handle_worker_task,
             },
-            concurrency=_int_cfg(os.environ, "JHM_WORKER_CONCURRENCY", 1, 1, 8),
+            concurrency=_int_cfg(os.environ, "JHM_WORKER_CONCURRENCY", 3, 1, 8),
+            poll_interval=0.2,
         )
         _worker_service.start()
-        _log.info("SQLite worker service started.")
+        _log.info("SQLite worker service started with concurrency=%s.", _worker_service.concurrency)
     except Exception as exc:
         _worker_queue = None
         _worker_service = None

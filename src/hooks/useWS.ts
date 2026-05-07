@@ -3,8 +3,12 @@ import type { ConnSt, Lead, LogLine } from "../types";
 import { showToast } from "../lib/toast";
 
 export function useWS() {
-  const devPort = Number(import.meta.env.VITE_JHM_PORT || 0) || null;
-  const devToken = import.meta.env.VITE_JHM_TOKEN || null;
+  const browserDevBackend =
+    import.meta.env.DEV
+    && typeof window !== "undefined"
+    && ["localhost", "127.0.0.1"].includes(window.location.hostname);
+  const devPort = Number(import.meta.env.VITE_JHM_PORT || 0) || (browserDevBackend ? 43118 : null);
+  const devToken = import.meta.env.VITE_JHM_TOKEN || (browserDevBackend ? "local-dev-token" : null);
   const [conn, setConn] = useState<ConnSt>("disconnected");
   const [port, setPort] = useState<number | null>(devPort);
   const [apiToken, setApiToken] = useState<string | null>(devToken);

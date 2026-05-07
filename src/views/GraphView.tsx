@@ -188,6 +188,12 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
       : status.lastRefreshAt
         ? `Last refresh ${new Date(status.lastRefreshAt).toLocaleString()}`
         : "Ready to compile the vault again.";
+  const vaultEnabled = summary.enabled || status.enabled;
+  const vaultCompiledAt = summary.compiledAt || status.compiledAt;
+  const vaultNodeCount = summary.nodeCount || status.nodeCount || knowledge.nodes.length;
+  const vaultSourceCount = summary.sourceCount || status.sourceCount;
+  const vaultPageCount = summary.pageCount || status.pageCount;
+  const vaultAvailabilityLabel = vaultEnabled ? "Vault live" : api ? "Loading" : "Not available";
 
   useEffect(() => {
     if (!api) return;
@@ -324,11 +330,11 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
           <div className="graph-overview-stats">
             <div>
               <span className="eyebrow">Vault nodes</span>
-              <div className="display tabular graph-total">{summary.nodeCount || knowledge.nodes.length}</div>
+              <div className="display tabular graph-total">{vaultNodeCount}</div>
             </div>
             <div className="graph-mini-stats">
-              <div><span>{summary.sourceCount}</span><small>Sources compiled</small></div>
-              <div><span>{summary.pageCount}</span><small>Wiki pages</small></div>
+              <div><span>{vaultSourceCount}</span><small>Sources compiled</small></div>
+              <div><span>{vaultPageCount}</span><small>Wiki pages</small></div>
             </div>
           </div>
         </div>
@@ -478,14 +484,14 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
               <div>
                 <h3 style={{ marginBottom: 4 }}>Vault Explorer</h3>
                 <div className="mono knowledge-meta-line">
-                  {summary.compiledAt ? `Compiled ${new Date(summary.compiledAt).toLocaleString()}` : "Knowledge vault not compiled yet"}
+                  {vaultCompiledAt ? `Compiled ${new Date(vaultCompiledAt).toLocaleString()}` : api ? "Loading knowledge vault..." : "Knowledge vault not compiled yet"}
                 </div>
               </div>
-              <span className="pill mono" style={{ background: summary.enabled ? "var(--green-soft)" : "var(--orange-soft)", color: summary.enabled ? "var(--green-ink)" : "var(--orange-ink)", border: `1px solid ${summary.enabled ? "var(--green)" : "var(--orange)"}` }}>
-                {summary.enabled ? "Vault live" : "Not available"}
+              <span className="pill mono" style={{ background: vaultEnabled ? "var(--green-soft)" : "var(--orange-soft)", color: vaultEnabled ? "var(--green-ink)" : "var(--orange-ink)", border: `1px solid ${vaultEnabled ? "var(--green)" : "var(--orange)"}` }}>
+                {vaultAvailabilityLabel}
               </span>
             </div>
-            {summary.enabled ? (
+            {vaultEnabled ? (
               <>
                 <div className="knowledge-home-copy">{summary.home || "Open the featured pages to inspect the compiled project memory."}</div>
                 <div className="knowledge-explorer-toolbar">

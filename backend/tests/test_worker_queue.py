@@ -288,6 +288,21 @@ class SQLiteWorkerQueueTests(unittest.TestCase):
 
         asyncio.run(scenario())
 
+    def test_concurrent_claims_get_distinct_tasks(self):
+        async def scenario():
+            first = await _enqueue(self.queue, "apply_job", {"jobId": "job-1"})
+            second = await _enqueue(self.queue, "apply_job", {"jobId": "job-2"})
+
+            claimed = await asyncio.gather(
+                asyncio.to_thread(self.queue.claim_next, queues=("default",), worker_id="worker-1", lease_seconds=30),
+                asyncio.to_thread(self.queue.claim_next, queues=("default",), worker_id="worker-2", lease_seconds=30),
+            )
+
+            claimed_ids = {_task_id(task) for task in claimed if task is not None}
+            self.assertEqual(claimed_ids, {_task_id(first), _task_id(second)})
+
+        asyncio.run(scenario())
+
 
 @pytest.mark.skipif(WorkerService is None, reason="TODO(worker-queue): expose WorkerService.")
 def test_worker_service_executes_async_handler_and_completes_task(tmp_path):
