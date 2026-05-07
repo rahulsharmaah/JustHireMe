@@ -385,6 +385,17 @@ class TestWorkerTaskEndpoints(unittest.TestCase):
             resp = get("/api/v1/tasks/missing")
         self.assertEqual(resp.status_code, 404)
 
+    def test_free_sources_scan_queues_worker_task(self):
+        queued = types.SimpleNamespace(id="free-scout-task")
+        with mock.patch.object(main, "_queue_task", return_value=queued) as queue_task:
+            resp = post("/api/v1/free-sources/scan")
+
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["status"], "queued")
+        self.assertEqual(data["task_id"], "free-scout-task")
+        queue_task.assert_called_once_with("free_sources.scan", {}, unique_key="free_sources.scan", priority=55)
+
 
 class TestIngestionEndpoints(unittest.TestCase):
     def test_resume_ingest_preserves_uploaded_extension(self):

@@ -121,8 +121,8 @@ def _text_lead(item: dict, default_kind: str = "job") -> dict:
 
 @retry(
     retry=retry_if_exception_type((httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException)),
-    wait=wait_exponential(multiplier=1, min=2, max=30),
-    stop=stop_after_attempt(4),
+    wait=wait_exponential(multiplier=1, min=1, max=6),
+    stop=stop_after_attempt(2),
     reraise=True,
 )
 async def _json_get(url: str, params: dict | None = None) -> dict | list:
@@ -130,7 +130,7 @@ async def _json_get(url: str, params: dict | None = None) -> dict | list:
         "User-Agent": "JustHireMe free-source scout",
         "Accept": "application/json",
     }
-    async with httpx.AsyncClient(timeout=30, headers=headers, follow_redirects=True) as cx:
+    async with httpx.AsyncClient(timeout=10, headers=headers, follow_redirects=True) as cx:
         r = await cx.get(url, params=params)
         if r.status_code == 429:
             retry_after = int(r.headers.get("Retry-After", 15))

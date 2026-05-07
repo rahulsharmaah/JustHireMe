@@ -62,6 +62,10 @@ export function useWS() {
             window.dispatchEvent(new CustomEvent("cleanup-done"));
             window.dispatchEvent(new CustomEvent("leads-refresh"));
           }
+          if (d.event === "free_scout_done" || d.event === "free_scout_task_done") {
+            window.dispatchEvent(new CustomEvent("worker-task-refresh"));
+            window.dispatchEvent(new CustomEvent("leads-refresh"));
+          }
           if (d.event === "auto_discard_done") window.dispatchEvent(new CustomEvent("leads-refresh"));
         } else if (d.type === "LEAD_UPDATED" && d.data) {
           window.dispatchEvent(new CustomEvent("lead-updated", { detail: d.data }));

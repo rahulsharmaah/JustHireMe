@@ -390,8 +390,8 @@ async def _run_x_signal_scan(cfg: dict, kind_filter: str) -> list[dict]:
 
 # ── Scan stop flag ─────────────────────────────────────────────────────────────
 # Set by /api/v1/scan/stop; cleared when a new scan is accepted.
-async def _run_free_source_scan(cfg: dict, kind_filter: str | None = None) -> list[dict]:
-    if not _free_sources_enabled(cfg):
+async def _run_free_source_scan(cfg: dict, kind_filter: str | None = None, *, require_enabled: bool = True) -> list[dict]:
+    if require_enabled and not _free_sources_enabled(cfg):
         return []
 
     from agents import free_scout
@@ -501,6 +501,8 @@ async def _handle_worker_task(task: QueuedTask):
             await _actuate(job_id)
         elif task.kind == "scan.run":
             await _run_scan_task()
+        elif task.kind == "free_sources.scan":
+            await _run_free_sources_task()
         elif task.kind == "leads.reevaluate":
             await _run_reevaluate_jobs_task()
         elif task.kind == "knowledge.refresh":
@@ -537,6 +539,7 @@ def _start_worker_service():
                 "lead.pipeline": _handle_worker_task,
                 "lead.fire": _handle_worker_task,
                 "scan.run": _handle_worker_task,
+                "free_sources.scan": _handle_worker_task,
                 "leads.reevaluate": _handle_worker_task,
                 "knowledge.refresh": _handle_worker_task,
             },
@@ -1443,10 +1446,11 @@ async def cleanup_leads(dry_run: bool = False, limit: int = 1000):
 
 @app.post("/api/v1/free-sources/scan")
 async def free_sources_scan():
-    from db.client import get_settings
-    cfg = get_settings()
-    leads = await _run_free_source_scan(cfg, "job")
-    return {"status": "done", "leads": len(leads)}
+    task = _queue_task("free_sources.scan", {}, unique_key="free_sources.scan", priority=55)
+    if task is not None:
+        return {"status": "queued", "task_id": task.id}
+    _spawn_task(_run_free_sources_task(), "free-sources-scan")
+    return {"status": "started"}
 
 
 async def _run_scan_task():
@@ -1458,6 +1462,22 @@ async def _run_scan_task():
         await cm.broadcast({"type": "agent", "event": "eval_done", "msg": f"Scan failed: {exc}"})
     finally:
         _scan_task = None
+
+
+async def _run_free_sources_task():
+    from db.client import get_settings
+    try:
+        cfg = await asyncio.to_thread(get_settings)
+        leads = await _run_free_source_scan(cfg, "job", require_enabled=False)
+        await cm.broadcast({
+            "type": "agent",
+            "event": "free_scout_task_done",
+            "msg": f"Free scout finished with {len(leads)} leads.",
+        })
+    except Exception as exc:
+        _log.error("free scout failed: %s", exc)
+        await cm.broadcast({"type": "agent", "event": "free_scout_task_done", "msg": f"Free scout failed: {exc}"})
+        raise
 
 
 async def _run_reevaluate_jobs_task():

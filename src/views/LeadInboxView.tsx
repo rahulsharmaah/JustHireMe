@@ -47,8 +47,14 @@ export function LeadInboxView({ port, api, onCreated }: { port: number | null; a
     showToast({ id: "free-scout", tone: "loading", title: "Free scout started", message: "Scanning configured public sources." });
     try {
       const r = await api(`/api/v1/free-sources/scan`, { method: "POST" });
-      if (!r.ok) throw new Error(`Free source scan returned ${r.status}`);
-      showToast({ id: "free-scout", tone: "success", title: "Free scout queued", message: "Leads will refresh as results land." });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data?.detail || `Free source scan returned ${r.status}`);
+      showToast({
+        id: "free-scout",
+        tone: "success",
+        title: data?.status === "queued" ? "Free scout queued" : "Free scout started",
+        message: "Leads will refresh as results land.",
+      });
     } catch (e) {
       const message = e instanceof Error ? e.message : "Free source scan failed";
       setErr(message);
