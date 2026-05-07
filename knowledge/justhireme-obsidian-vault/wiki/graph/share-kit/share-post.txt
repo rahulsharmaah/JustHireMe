@@ -1,0 +1,4 @@
+I scanned justhireme-obsidian-vault with SwarmVault: 12 sources -> 108 wiki pages, 99 graph nodes, 129 edges.
+Top hubs: lead, backend, and quality.
+Most surprising link: Architecture semantically_similar_to JustHireMe MCP.
+Everything stays local. Try: npm install -g @swarmvaultai/cli && swarmvault scan ./your-repo

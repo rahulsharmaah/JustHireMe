@@ -1,0 +1,575 @@
+{
+  "generatedAt": "2026-05-07T06:20:20.347Z",
+  "graphHash": "3087c351b26ab77f7c7d8470d9d9f8c2e259904638431d3d760d4d40bc1762b7",
+  "overview": {
+    "nodes": 99,
+    "edges": 129,
+    "pages": 108,
+    "communities": 10
+  },
+  "firstPartyOverview": {
+    "nodes": 68,
+    "edges": 81,
+    "pages": 68,
+    "communities": 7
+  },
+  "sourceClassBreakdown": {
+    "first_party": {
+      "sources": 7,
+      "pages": 68,
+      "nodes": 68
+    },
+    "third_party": {
+      "sources": 0,
+      "pages": 0,
+      "nodes": 0
+    },
+    "resource": {
+      "sources": 0,
+      "pages": 0,
+      "nodes": 0
+    },
+    "generated": {
+      "sources": 0,
+      "pages": 0,
+      "nodes": 0
+    }
+  },
+  "warnings": [
+    "Non-first-party material accounts for 31.3% of graph nodes."
+  ],
+  "benchmark": {
+    "generatedAt": "2026-05-07T06:20:19.637Z",
+    "stale": false,
+    "summary": {
+      "questionCount": 3,
+      "uniqueVisitedNodes": 24,
+      "finalContextTokens": 2365,
+      "naiveCorpusTokens": 16092,
+      "avgReduction": 0.853,
+      "reductionRatio": 0.853
+    },
+    "questionCount": 3,
+    "byClass": {
+      "first_party": {
+        "sourceCount": 7,
+        "pageCount": 68,
+        "nodeCount": 68,
+        "godNodeCount": 9,
+        "finalContextTokens": 1868,
+        "naiveCorpusTokens": 16092,
+        "reductionRatio": 0.884
+      },
+      "third_party": {
+        "sourceCount": 0,
+        "pageCount": 0,
+        "nodeCount": 0,
+        "godNodeCount": 0,
+        "finalContextTokens": 0,
+        "naiveCorpusTokens": 0,
+        "reductionRatio": 0
+      },
+      "resource": {
+        "sourceCount": 0,
+        "pageCount": 0,
+        "nodeCount": 0,
+        "godNodeCount": 0,
+        "finalContextTokens": 0,
+        "naiveCorpusTokens": 0,
+        "reductionRatio": 0
+      },
+      "generated": {
+        "sourceCount": 0,
+        "pageCount": 0,
+        "nodeCount": 0,
+        "godNodeCount": 0,
+        "finalContextTokens": 0,
+        "naiveCorpusTokens": 0,
+        "reductionRatio": 0
+      }
+    }
+  },
+  "godNodes": [
+    {
+      "nodeId": "concept:lead",
+      "label": "lead",
+      "pageId": "concept:lead",
+      "degree": 45,
+      "bridgeScore": 4,
+      "surpriseReason": "degree 45, across 5 communities, 4.1σ above mean"
+    },
+    {
+      "nodeId": "concept:backend",
+      "label": "backend",
+      "pageId": "concept:backend",
+      "degree": 42,
+      "bridgeScore": 6,
+      "surpriseReason": "degree 42, across 7 communities, 3.7σ above mean"
+    },
+    {
+      "nodeId": "concept:quality",
+      "label": "quality",
+      "pageId": "concept:quality",
+      "degree": 42,
+      "bridgeScore": 6,
+      "surpriseReason": "degree 42, across 7 communities, 3.7σ above mean"
+    },
+    {
+      "nodeId": "entity:justhireme",
+      "label": "JustHireMe",
+      "pageId": "entity:justhireme",
+      "degree": 34,
+      "bridgeScore": 5,
+      "surpriseReason": "degree 34, across 6 communities, 2.6σ above mean"
+    },
+    {
+      "nodeId": "concept:source",
+      "label": "source",
+      "pageId": "concept:source",
+      "degree": 33,
+      "bridgeScore": 6,
+      "surpriseReason": "degree 33, across 7 communities, 2.5σ above mean"
+    },
+    {
+      "nodeId": "concept:local",
+      "label": "local",
+      "pageId": "concept:local",
+      "degree": 24,
+      "bridgeScore": 3,
+      "surpriseReason": "degree 24, across 4 communities"
+    },
+    {
+      "nodeId": "concept:tauri",
+      "label": "tauri",
+      "pageId": "concept:tauri",
+      "degree": 24,
+      "bridgeScore": 2,
+      "surpriseReason": "degree 24, across 3 communities"
+    },
+    {
+      "nodeId": "entity:windows",
+      "label": "Windows",
+      "pageId": "entity:windows",
+      "degree": 24,
+      "bridgeScore": 2,
+      "surpriseReason": "degree 24, across 3 communities"
+    },
+    {
+      "nodeId": "entity:recommended",
+      "label": "Recommended",
+      "pageId": "entity:recommended",
+      "degree": 24,
+      "bridgeScore": 3,
+      "surpriseReason": "degree 24, across 4 communities"
+    }
+  ],
+  "bridgeNodes": [
+    {
+      "nodeId": "concept:backend",
+      "label": "backend",
+      "pageId": "concept:backend",
+      "degree": 42,
+      "bridgeScore": 6
+    },
+    {
+      "nodeId": "concept:quality",
+      "label": "quality",
+      "pageId": "concept:quality",
+      "degree": 42,
+      "bridgeScore": 6
+    },
+    {
+      "nodeId": "concept:source",
+      "label": "source",
+      "pageId": "concept:source",
+      "degree": 33,
+      "bridgeScore": 6
+    },
+    {
+      "nodeId": "entity:justhireme",
+      "label": "JustHireMe",
+      "pageId": "entity:justhireme",
+      "degree": 34,
+      "bridgeScore": 5
+    },
+    {
+      "nodeId": "source:architecture-1e26a0b9",
+      "label": "Architecture",
+      "pageId": "source:architecture-1e26a0b9",
+      "degree": 18,
+      "bridgeScore": 4
+    },
+    {
+      "nodeId": "source:source-adapter-contract-7d8012af",
+      "label": "Source Adapter Contract",
+      "pageId": "source:source-adapter-contract-7d8012af",
+      "degree": 17,
+      "bridgeScore": 4
+    },
+    {
+      "nodeId": "concept:justhireme",
+      "label": "justhireme",
+      "pageId": "concept:justhireme",
+      "degree": 23,
+      "bridgeScore": 4
+    },
+    {
+      "nodeId": "concept:lead",
+      "label": "lead",
+      "pageId": "concept:lead",
+      "degree": 45,
+      "bridgeScore": 4
+    }
+  ],
+  "thinCommunities": [
+    {
+      "id": "community:quality-5",
+      "label": "quality",
+      "nodeCount": 2,
+      "pageId": "graph:community:quality-5",
+      "path": "graph/communities/quality-5.md",
+      "title": "Community: quality"
+    },
+    {
+      "id": "community:tauri-4",
+      "label": "tauri",
+      "nodeCount": 1,
+      "pageId": "graph:community:tauri-4",
+      "path": "graph/communities/tauri-4.md",
+      "title": "Community: tauri"
+    }
+  ],
+  "surprisingConnections": [
+    {
+      "id": "similar:afd004ac45721d17",
+      "sourceNodeId": "source:architecture-1e26a0b9",
+      "sourceLabel": "Architecture",
+      "targetNodeId": "source:justhireme-mcp-73dcb246",
+      "targetLabel": "JustHireMe MCP",
+      "relation": "semantically_similar_to",
+      "evidenceClass": "inferred",
+      "confidence": 0.96,
+      "pathNodeIds": [
+        "source:architecture-1e26a0b9",
+        "source:justhireme-mcp-73dcb246"
+      ],
+      "pathEdgeIds": [
+        "similar:afd004ac45721d17"
+      ],
+      "pathRelations": [
+        "semantically_similar_to"
+      ],
+      "pathEvidenceClasses": [
+        "inferred"
+      ],
+      "pathSummary": "Architecture -> JustHireMe MCP",
+      "why": "it crosses communities community:agents-6 and community:backend-1; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts, shared entities.; it also appears in 1 group pattern",
+      "explanation": "Architecture connects to JustHireMe MCP because it crosses communities community:agents-6 and community:backend-1; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts, shared entities.; it also appears in 1 group pattern."
+    },
+    {
+      "id": "similar:05a40742ca43690b",
+      "sourceNodeId": "source:architecture-1e26a0b9",
+      "sourceLabel": "Architecture",
+      "targetNodeId": "source:windows-release-checklist-1411fa7a",
+      "targetLabel": "Windows Release Checklist",
+      "relation": "semantically_similar_to",
+      "evidenceClass": "inferred",
+      "confidence": 0.92,
+      "pathNodeIds": [
+        "source:architecture-1e26a0b9",
+        "source:windows-release-checklist-1411fa7a"
+      ],
+      "pathEdgeIds": [
+        "similar:05a40742ca43690b"
+      ],
+      "pathRelations": [
+        "semantically_similar_to"
+      ],
+      "pathEvidenceClasses": [
+        "inferred"
+      ],
+      "pathSummary": "Architecture -> Windows Release Checklist",
+      "why": "it crosses communities community:agents-6 and community:local-3; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts.",
+      "explanation": "Architecture connects to Windows Release Checklist because it crosses communities community:agents-6 and community:local-3; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts.."
+    },
+    {
+      "id": "similar:0e9d6241e68c14d8",
+      "sourceNodeId": "source:justhireme-mcp-73dcb246",
+      "sourceLabel": "JustHireMe MCP",
+      "targetNodeId": "source:source-adapter-contract-7d8012af",
+      "targetLabel": "Source Adapter Contract",
+      "relation": "semantically_similar_to",
+      "evidenceClass": "inferred",
+      "confidence": 0.7788477030575749,
+      "pathNodeIds": [
+        "source:justhireme-mcp-73dcb246",
+        "source:source-adapter-contract-7d8012af"
+      ],
+      "pathEdgeIds": [
+        "similar:0e9d6241e68c14d8"
+      ],
+      "pathRelations": [
+        "semantically_similar_to"
+      ],
+      "pathEvidenceClasses": [
+        "inferred"
+      ],
+      "pathSummary": "JustHireMe MCP -> Source Adapter Contract",
+      "why": "it crosses communities community:backend-1 and community:company-7; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts.",
+      "explanation": "JustHireMe MCP connects to Source Adapter Contract because it crosses communities community:backend-1 and community:company-7; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts.."
+    },
+    {
+      "id": "similar:708e03410d4a51a9",
+      "sourceNodeId": "source:justhireme-task-queue-ab463a5f",
+      "sourceLabel": "JustHireMe Task Queue",
+      "targetNodeId": "source:source-adapter-contract-7d8012af",
+      "targetLabel": "Source Adapter Contract",
+      "relation": "semantically_similar_to",
+      "evidenceClass": "inferred",
+      "confidence": 0.7788477030575749,
+      "pathNodeIds": [
+        "source:justhireme-task-queue-ab463a5f",
+        "source:source-adapter-contract-7d8012af"
+      ],
+      "pathEdgeIds": [
+        "similar:708e03410d4a51a9"
+      ],
+      "pathRelations": [
+        "semantically_similar_to"
+      ],
+      "pathEvidenceClasses": [
+        "inferred"
+      ],
+      "pathSummary": "JustHireMe Task Queue -> Source Adapter Contract",
+      "why": "it crosses communities community:lead-2 and community:company-7; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts.",
+      "explanation": "JustHireMe Task Queue connects to Source Adapter Contract because it crosses communities community:lead-2 and community:company-7; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts.."
+    },
+    {
+      "id": "similar:819948b9a2e1ec86",
+      "sourceNodeId": "source:justhireme-mcp-73dcb246",
+      "sourceLabel": "JustHireMe MCP",
+      "targetNodeId": "source:justhireme-task-queue-ab463a5f",
+      "targetLabel": "JustHireMe Task Queue",
+      "relation": "semantically_similar_to",
+      "evidenceClass": "inferred",
+      "confidence": 0.7788477030575749,
+      "pathNodeIds": [
+        "source:justhireme-mcp-73dcb246",
+        "source:justhireme-task-queue-ab463a5f"
+      ],
+      "pathEdgeIds": [
+        "similar:819948b9a2e1ec86"
+      ],
+      "pathRelations": [
+        "semantically_similar_to"
+      ],
+      "pathEvidenceClasses": [
+        "inferred"
+      ],
+      "pathSummary": "JustHireMe MCP -> JustHireMe Task Queue",
+      "why": "it crosses communities community:backend-1 and community:lead-2; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts.",
+      "explanation": "JustHireMe MCP connects to JustHireMe Task Queue because it crosses communities community:backend-1 and community:lead-2; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts.."
+    },
+    {
+      "id": "similar:dcd89197371aa2ad",
+      "sourceNodeId": "source:architecture-1e26a0b9",
+      "sourceLabel": "Architecture",
+      "targetNodeId": "source:source-adapter-contract-7d8012af",
+      "targetLabel": "Source Adapter Contract",
+      "relation": "semantically_similar_to",
+      "evidenceClass": "inferred",
+      "confidence": 0.7788477030575749,
+      "pathNodeIds": [
+        "source:architecture-1e26a0b9",
+        "source:source-adapter-contract-7d8012af"
+      ],
+      "pathEdgeIds": [
+        "similar:dcd89197371aa2ad"
+      ],
+      "pathRelations": [
+        "semantically_similar_to"
+      ],
+      "pathEvidenceClasses": [
+        "inferred"
+      ],
+      "pathSummary": "Architecture -> Source Adapter Contract",
+      "why": "it crosses communities community:agents-6 and community:company-7; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts.",
+      "explanation": "Architecture connects to Source Adapter Contract because it crosses communities community:agents-6 and community:company-7; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts.."
+    },
+    {
+      "id": "similar:3be63454b070085a",
+      "sourceNodeId": "source:justhireme-mcp-73dcb246",
+      "sourceLabel": "JustHireMe MCP",
+      "targetNodeId": "source:maintainer-release-checklist-e92a78c9",
+      "targetLabel": "Maintainer Release Checklist",
+      "relation": "semantically_similar_to",
+      "evidenceClass": "inferred",
+      "confidence": 0.96,
+      "pathNodeIds": [
+        "source:justhireme-mcp-73dcb246",
+        "source:maintainer-release-checklist-e92a78c9"
+      ],
+      "pathEdgeIds": [
+        "similar:3be63454b070085a"
+      ],
+      "pathRelations": [
+        "semantically_similar_to"
+      ],
+      "pathEvidenceClasses": [
+        "inferred"
+      ],
+      "pathSummary": "JustHireMe MCP -> Maintainer Release Checklist",
+      "why": "it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts, shared entities.; it also appears in 1 group pattern",
+      "explanation": "JustHireMe MCP connects to Maintainer Release Checklist because it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts, shared entities.; it also appears in 1 group pattern."
+    },
+    {
+      "id": "architecture-1e26a0b9->entity:justhireme",
+      "sourceNodeId": "source:architecture-1e26a0b9",
+      "sourceLabel": "Architecture",
+      "targetNodeId": "entity:justhireme",
+      "targetLabel": "JustHireMe",
+      "relation": "mentions",
+      "evidenceClass": "extracted",
+      "confidence": 0.55,
+      "pathNodeIds": [
+        "source:architecture-1e26a0b9",
+        "entity:justhireme"
+      ],
+      "pathEdgeIds": [
+        "architecture-1e26a0b9->entity:justhireme"
+      ],
+      "pathRelations": [
+        "mentions"
+      ],
+      "pathEvidenceClasses": [
+        "extracted"
+      ],
+      "pathSummary": "Architecture -> JustHireMe",
+      "why": "it crosses communities community:agents-6 and community:backend-1; it spans different canonical pages; it bridges source and entity nodes; a bridge node is involved; it also appears in 1 group pattern",
+      "explanation": "Architecture connects to JustHireMe because it crosses communities community:agents-6 and community:backend-1; it spans different canonical pages; it bridges source and entity nodes; a bridge node is involved; it also appears in 1 group pattern."
+    }
+  ],
+  "groupPatterns": [
+    {
+      "id": "hyper:c04a7ee61f091599",
+      "label": "JustHireMe",
+      "relation": "participate_in",
+      "nodeIds": [
+        "entity:justhireme",
+        "source:architecture-1e26a0b9",
+        "source:justhireme-mcp-73dcb246",
+        "source:maintainer-release-checklist-e92a78c9"
+      ],
+      "evidenceClass": "extracted",
+      "confidence": 0.8999999999999999,
+      "sourcePageIds": [
+        "entity:justhireme",
+        "source:architecture-1e26a0b9",
+        "source:justhireme-mcp-73dcb246",
+        "source:maintainer-release-checklist-e92a78c9"
+      ],
+      "why": "3 source nodes converge on JustHireMe through extracted mention edges."
+    }
+  ],
+  "suggestedQuestions": [
+    "What sources would strengthen community tauri?",
+    "What sources would strengthen community quality?",
+    "Why does backend connect multiple communities in the vault?",
+    "Why does quality connect multiple communities in the vault?",
+    "Why does source connect multiple communities in the vault?",
+    "What is the exact relationship between Architecture and Maintainer Release Checklist?",
+    "What is the exact relationship between Windows Release Checklist and Maintainer Release Checklist?"
+  ],
+  "communityPages": [
+    {
+      "id": "graph:community:backend-1",
+      "path": "graph/communities/backend-1.md",
+      "title": "Community: backend"
+    },
+    {
+      "id": "graph:community:lead-2",
+      "path": "graph/communities/lead-2.md",
+      "title": "Community: lead"
+    },
+    {
+      "id": "graph:community:local-3",
+      "path": "graph/communities/local-3.md",
+      "title": "Community: local"
+    },
+    {
+      "id": "graph:community:tauri-4",
+      "path": "graph/communities/tauri-4.md",
+      "title": "Community: tauri"
+    },
+    {
+      "id": "graph:community:quality-5",
+      "path": "graph/communities/quality-5.md",
+      "title": "Community: quality"
+    },
+    {
+      "id": "graph:community:agents-6",
+      "path": "graph/communities/agents-6.md",
+      "title": "Community: agents"
+    },
+    {
+      "id": "graph:community:company-7",
+      "path": "graph/communities/company-7.md",
+      "title": "Community: company"
+    },
+    {
+      "id": "graph:community:docs-8",
+      "path": "graph/communities/docs-8.md",
+      "title": "Community: docs"
+    },
+    {
+      "id": "graph:community:architecture-module-9",
+      "path": "graph/communities/architecture-module-9.md",
+      "title": "Community: ARCHITECTURE module"
+    },
+    {
+      "id": "graph:community:architecture-interactive-module-10",
+      "path": "graph/communities/architecture-interactive-module-10.md",
+      "title": "Community: ARCHITECTURE_INTERACTIVE module"
+    }
+  ],
+  "recentResearchSources": [],
+  "contradictions": [],
+  "communityCohesion": [
+    {
+      "id": "community:backend-1",
+      "label": "backend",
+      "nodeCount": 18,
+      "cohesion": 0
+    },
+    {
+      "id": "community:lead-2",
+      "label": "lead",
+      "nodeCount": 12,
+      "cohesion": 0
+    },
+    {
+      "id": "community:local-3",
+      "label": "local",
+      "nodeCount": 12,
+      "cohesion": 0
+    },
+    {
+      "id": "community:agents-6",
+      "label": "agents",
+      "nodeCount": 8,
+      "cohesion": 0
+    },
+    {
+      "id": "community:company-7",
+      "label": "company",
+      "nodeCount": 8,
+      "cohesion": 0
+    }
+  ],
+  "knowledgeGaps": {
+    "isolatedNodes": [],
+    "thinCommunityCount": 2,
+    "ambiguousEdgeRatio": 0.024691358024691357,
+    "warnings": []
+  }
+}

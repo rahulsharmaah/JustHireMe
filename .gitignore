@@ -84,3 +84,26 @@ test_resume_output.pdf
 # User-generated documents
 *.pdf
 !docs/**/*.pdf
+
+# Root-level local agent and SwarmVault working state
+/.claude/
+/.codex/
+/.cursor/
+/AGENTS.md
+/CLAUDE.md
+/raw/
+/state/
+/wiki/
+/swarmvault.config.json
+/swarmvault.schema.md
+
+# Portable knowledge vault: keep the curated vault, ignore machine-local runtime inside it
+/knowledge/*
+!/knowledge/justhireme-obsidian-vault/
+/knowledge/justhireme-obsidian-vault/.claude/
+/knowledge/justhireme-obsidian-vault/.codex/
+/knowledge/justhireme-obsidian-vault/.cursor/
+/knowledge/justhireme-obsidian-vault/state/
+/knowledge/justhireme-obsidian-vault/inbox/
+/knowledge/justhireme-obsidian-vault/agent/
+/knowledge/justhireme-obsidian-vault/.obsidian/workspace.json

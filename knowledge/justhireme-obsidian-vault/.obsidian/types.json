@@ -1,0 +1,21 @@
+{
+  "types": {
+    "page_id": "text",
+    "kind": "text",
+    "title": "text",
+    "tags": "tags",
+    "aliases": "aliases",
+    "source_ids": "multitext",
+    "project_ids": "multitext",
+    "node_ids": "multitext",
+    "freshness": "text",
+    "status": "text",
+    "confidence": "number",
+    "created_at": "datetime",
+    "updated_at": "datetime",
+    "compiled_from": "multitext",
+    "managed_by": "text",
+    "backlinks": "multitext",
+    "cssclasses": "multitext"
+  }
+}

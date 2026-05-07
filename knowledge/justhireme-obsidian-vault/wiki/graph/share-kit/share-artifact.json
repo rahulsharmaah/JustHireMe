@@ -1,0 +1,123 @@
+{
+  "generatedAt": "2026-05-07T06:20:20.351Z",
+  "vaultName": "justhireme-obsidian-vault",
+  "tagline": "A local-first map of justhireme-obsidian-vault: 12 sources compiled into 99 graph nodes and 108 wiki pages.",
+  "overview": {
+    "sources": 12,
+    "nodes": 99,
+    "edges": 129,
+    "pages": 108,
+    "communities": 10
+  },
+  "firstPartyOverview": {
+    "nodes": 68,
+    "edges": 81,
+    "pages": 68,
+    "communities": 7
+  },
+  "highlights": {
+    "topHubs": [
+      {
+        "nodeId": "concept:lead",
+        "label": "lead",
+        "degree": 45
+      },
+      {
+        "nodeId": "concept:backend",
+        "label": "backend",
+        "degree": 42
+      },
+      {
+        "nodeId": "concept:quality",
+        "label": "quality",
+        "degree": 42
+      },
+      {
+        "nodeId": "entity:justhireme",
+        "label": "JustHireMe",
+        "degree": 34
+      },
+      {
+        "nodeId": "concept:source",
+        "label": "source",
+        "degree": 33
+      }
+    ],
+    "bridgeNodes": [
+      {
+        "nodeId": "concept:backend",
+        "label": "backend",
+        "bridgeScore": 6
+      },
+      {
+        "nodeId": "concept:quality",
+        "label": "quality",
+        "bridgeScore": 6
+      },
+      {
+        "nodeId": "concept:source",
+        "label": "source",
+        "bridgeScore": 6
+      }
+    ],
+    "surprisingConnections": [
+      {
+        "sourceLabel": "Architecture",
+        "targetLabel": "JustHireMe MCP",
+        "relation": "semantically_similar_to",
+        "why": "it crosses communities community:agents-6 and community:backend-1; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts, sha..."
+      },
+      {
+        "sourceLabel": "Architecture",
+        "targetLabel": "Windows Release Checklist",
+        "relation": "semantically_similar_to",
+        "why": "it crosses communities community:agents-6 and community:local-3; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts."
+      },
+      {
+        "sourceLabel": "JustHireMe MCP",
+        "targetLabel": "Source Adapter Contract",
+        "relation": "semantically_similar_to",
+        "why": "it crosses communities community:backend-1 and community:company-7; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts."
+      }
+    ],
+    "suggestedQuestions": [
+      "What sources would strengthen community tauri?",
+      "What sources would strengthen community quality?",
+      "Why does backend connect multiple communities in the vault?",
+      "Why does quality connect multiple communities in the vault?",
+      "Why does source connect multiple communities in the vault?"
+    ]
+  },
+  "knowledgeGaps": [
+    "Non-first-party material accounts for 31.3% of graph nodes."
+  ],
+  "shortPost": "I scanned justhireme-obsidian-vault with SwarmVault: 12 sources -> 108 wiki pages, 99 graph nodes, 129 edges.\nTop hubs: lead, backend, and quality.\nMost surprising link: Architecture semantically_similar_to JustHireMe MCP.\nEverything stays local. Try: npm install -g @swarmvaultai/cli && swarmvault scan ./your-repo",
+  "relatedNodeIds": [
+    "concept:lead",
+    "concept:backend",
+    "concept:quality",
+    "entity:justhireme",
+    "concept:source"
+  ],
+  "relatedPageIds": [
+    "concept:lead",
+    "concept:backend",
+    "concept:quality",
+    "entity:justhireme",
+    "concept:source"
+  ],
+  "relatedSourceIds": [
+    "architecture-1e26a0b9",
+    "architecture-7bacf36d",
+    "architecture-interactive-6e908276",
+    "justhireme-hero-99dc8ea1",
+    "justhireme-mcp-73dcb246",
+    "justhireme-task-queue-ab463a5f",
+    "maintainer-release-checklist-e92a78c9",
+    "roadmap-0a538d29",
+    "source-adapter-contract-7d8012af",
+    "spec-1447dd6d",
+    "the-short-version-46ce9e60",
+    "windows-release-checklist-1411fa7a"
+  ]
+}

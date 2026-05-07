@@ -1,0 +1,15 @@
+{
+  "alwaysUpdateLinks": true,
+  "newFileLocation": "folder",
+  "newFileFolderPath": "wiki/insights",
+  "useMarkdownLinks": false,
+  "attachmentFolderPath": "raw/assets",
+  "userIgnoreFilters": [
+    "state/",
+    "agent/",
+    "inbox/",
+    ".claude/",
+    ".codex/",
+    ".cursor/"
+  ]
+}
