@@ -245,7 +245,7 @@ export function IngestionView({ api }: { api: ApiFetch }) {
   };
 
   const TABS = [
-    { id: "resume" as const, label: "Resume", description: "PDF parser", icon: "upload", accent: "teal" },
+    { id: "resume" as const, label: "Resume", description: "File parser", icon: "upload", accent: "teal" },
     { id: "manual" as const, label: "Manual", description: "Skills, roles, projects", icon: "plus", accent: "blue" },
     { id: "raw" as const, label: "Raw Text", description: "Paste notes", icon: "file", accent: "yellow" },
     { id: "template" as const, label: "Template", description: "Resume format", icon: "layers", accent: "purple" },
@@ -303,10 +303,10 @@ export function IngestionView({ api }: { api: ApiFetch }) {
         {activeTab === "resume" && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} className="card col gap-4" style={{ padding: "64px 32px", alignItems: "center", textAlign: "center", border: "2px dashed var(--line)", background: "var(--paper-2)" }}>
             <div style={{ width: 64, height: 64, borderRadius: 16, background: "var(--teal-soft)", color: "var(--teal)", display: "grid", placeItems: "center" }}><Icon name="upload" size={28} /></div>
-            <div style={{ fontWeight: 600, fontSize: 18 }}>Drop a fresh Resume PDF</div>
+            <div style={{ fontWeight: 600, fontSize: 18 }}>Drop a fresh resume file</div>
             <div style={{ fontSize: 14, color: "var(--ink-3)", maxWidth: 360, lineHeight: 1.5 }}>Our ingestion agent discovers skills, roles, and projects and maps them into your graph.</div>
-            <input type="file" accept=".pdf" onChange={e => e.target.files?.[0] && ingestResume(e.target.files[0])} style={{ display: "none" }} id="pdf-in" />
-            <button className="btn btn-primary" style={{ marginTop: 16, padding: "12px 32px", fontSize: 15 }} onClick={() => document.getElementById("pdf-in")?.click()}>Select PDF File</button>
+            <input type="file" accept=".pdf,.docx,.txt,.md" onChange={e => e.target.files?.[0] && ingestResume(e.target.files[0])} style={{ display: "none" }} id="resume-file-in" />
+            <button className="btn btn-primary" style={{ marginTop: 16, padding: "12px 32px", fontSize: 15 }} onClick={() => document.getElementById("resume-file-in")?.click()}>Select Resume File</button>
             {status === "loading" && <div className="mono pulse" style={{ fontSize: 12, marginTop: 16 }}>Agent parsing resume...</div>}
           </motion.div>
         )}

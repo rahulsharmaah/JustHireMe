@@ -150,7 +150,7 @@ export function OnboardingWizard({ api, onFinish, onOpenSettings }: { api: ApiFe
           {step === 0 && (
             <div className="col gap-4">
               <label className="card" style={{ padding: 18, cursor: "pointer", borderStyle: "dashed", background: "var(--paper)" }}>
-                <input type="file" accept=".pdf,.doc,.docx,.txt,.md" style={{ display: "none" }} onChange={e => setFile(e.target.files?.[0] || null)} />
+                <input type="file" accept=".pdf,.docx,.txt,.md" style={{ display: "none" }} onChange={e => setFile(e.target.files?.[0] || null)} />
                 <div className="row gap-3">
                   <Icon name="upload" size={20} />
                   <div>

@@ -1736,7 +1736,10 @@ async def ingest(
     from agents.ingestor import ingest as _ingest
     pdf_path = None
     if file and file.filename:
-        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+        suffix = Path(file.filename).suffix.lower()
+        if suffix not in {".pdf", ".docx", ".txt", ".md"}:
+            raise HTTPException(status_code=415, detail="Upload a PDF, DOCX, TXT, or Markdown resume.")
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
         shutil.copyfileobj(file.file, tmp)
         tmp.close()
         pdf_path = tmp.name
@@ -1751,7 +1754,6 @@ async def ingest(
                             "msg": f"Profile ingested: {p.n} — {len(p.skills)} skills"})
         return p.model_dump()
     except Exception as e:
-        from fastapi import HTTPException
         raise HTTPException(status_code=400, detail=str(e))
     finally:
         if pdf_path and os.path.exists(pdf_path):

@@ -387,6 +387,41 @@ class TestWorkerTaskEndpoints(unittest.TestCase):
 
 
 class TestIngestionEndpoints(unittest.TestCase):
+    def test_resume_ingest_preserves_uploaded_extension(self):
+        import agents.ingestor as _ingestor_mod
+
+        seen = {}
+
+        class _Profile:
+            n = "Test User"
+            skills = []
+
+            def model_dump(self):
+                return {"n": self.n, "skills": []}
+
+        def _fake_ingest(raw="", pdf=None):
+            seen["raw"] = raw
+            seen["pdf"] = pdf
+            return _Profile()
+
+        with mock.patch.object(_ingestor_mod, "ingest", side_effect=_fake_ingest):
+            resp = CLIENT.post(
+                "/api/v1/ingest",
+                headers=AUTH,
+                files={"file": ("resume.txt", b"name: Test User\nsummary: Builder", "text/plain")},
+            )
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(str(seen.get("pdf", "")).endswith(".txt"))
+
+    def test_resume_ingest_rejects_unsupported_file_type(self):
+        resp = CLIENT.post(
+            "/api/v1/ingest",
+            headers=AUTH,
+            files={"file": ("resume.doc", b"legacy doc", "application/msword")},
+        )
+        self.assertEqual(resp.status_code, 415)
+
     def test_linkedin_ingest_rejects_non_zip(self):
         resp = CLIENT.post(
             "/api/v1/ingest/linkedin",
