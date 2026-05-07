@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import re
+import shutil
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -22,6 +24,21 @@ def _iso_now() -> str:
 
 def _normalize_path(value: str) -> str:
     return str(value or "").replace("\\", "/").lstrip("/")
+
+
+def _resolve_command(command: list[Any]) -> list[str]:
+    parts = [str(part) for part in command]
+    if not parts:
+        return parts
+    executable = shutil.which(parts[0])
+    if executable:
+        return [executable, *parts[1:]]
+    if os.name == "nt" and Path(parts[0]).suffix == "":
+        for suffix in (".cmd", ".bat", ".exe"):
+            executable = shutil.which(f"{parts[0]}{suffix}")
+            if executable:
+                return [executable, *parts[1:]]
+    return parts
 
 
 @dataclass
@@ -537,7 +554,7 @@ class KnowledgeService:
                 )
             else:
                 proc = await asyncio.create_subprocess_exec(
-                    *[str(part) for part in command],
+                    *_resolve_command(command),
                     cwd=str(self.vault_root),
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,

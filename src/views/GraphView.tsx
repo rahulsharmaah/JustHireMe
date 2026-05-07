@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Icon from "../components/Icon";
 import { useKnowledgeCandidates, useKnowledgeGraph, useKnowledgePage, useKnowledgeStatus, useKnowledgeSummary } from "../hooks/useKnowledgeVault";
-import type { ApiFetch, GraphStats, KnowledgeCandidate, KnowledgeGraphNode } from "../types";
+import type { ApiFetch, GraphStats, KnowledgeCandidate, KnowledgeGraphNode, WorkerTask, WorkerTasksPayload } from "../types";
 
 function PentagonGraph({ stats }: { stats: any[] }) {
   const cx = 130, cy = 125, R = 80;
@@ -168,16 +168,56 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
   const [candidateFilter, setCandidateFilter] = useState<"pending" | "promoted" | "archived">("pending");
   const [nodeTypeFilter, setNodeTypeFilter] = useState<"all" | "source" | "concept" | "entity">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [refreshTask, setRefreshTask] = useState<WorkerTask | null>(null);
   const summary = useKnowledgeSummary(api, reloadKey);
   const knowledge = useKnowledgeGraph(api, reloadKey);
   const status = useKnowledgeStatus(api, reloadKey, 3000);
   const candidates = useKnowledgeCandidates(api, candidateFilter, reloadKey);
   const page = useKnowledgePage(api, selectedPath, reloadKey);
+  const refreshTaskActive = refreshTask?.kind === "knowledge.refresh" && ["queued", "running"].includes(refreshTask.status);
+  const refreshInFlight = status.refreshing || refreshTaskActive;
+  const refreshStatusLabel = refreshTaskActive
+    ? refreshTask.status === "queued" ? "Queued" : "Running"
+    : status.refreshing ? "Running" : status.lastRefreshStatus;
+  const refreshMeta = refreshTaskActive
+    ? refreshTask.status === "queued"
+      ? "Vault refresh is queued behind the current worker task."
+      : "Vault refresh is running in the worker."
+    : status.refreshing
+      ? "Compile in progress..."
+      : status.lastRefreshAt
+        ? `Last refresh ${new Date(status.lastRefreshAt).toLocaleString()}`
+        : "Ready to compile the vault again.";
 
   useEffect(() => {
-    if (!status.lastRefreshAt || status.refreshing) return;
+    if (!api) return;
+    let cancelled = false;
+    let timer: number | null = null;
+    const loadRefreshTask = () => {
+      api("/api/v1/tasks?limit=30")
+        .then(r => (r.ok ? r.json() : Promise.reject(new Error("Task lookup failed"))))
+        .then((payload: WorkerTasksPayload) => {
+          if (cancelled) return;
+          const task = [...(payload.active || []), ...(payload.recent || [])]
+            .find(item => item.kind === "knowledge.refresh") || null;
+          setRefreshTask(task);
+        })
+        .catch(() => {
+          if (!cancelled) setRefreshTask(null);
+        });
+    };
+    loadRefreshTask();
+    timer = window.setInterval(loadRefreshTask, refreshInFlight ? 1500 : 5000);
+    return () => {
+      cancelled = true;
+      if (timer !== null) window.clearInterval(timer);
+    };
+  }, [api, refreshInFlight]);
+
+  useEffect(() => {
+    if (!status.lastRefreshAt || refreshInFlight) return;
     setReloadKey(key => key + 1);
-  }, [status.lastRefreshAt, status.refreshing]);
+  }, [status.lastRefreshAt, refreshInFlight]);
 
   useEffect(() => {
     if (!selectedPath && summary.featuredPages.length) {
@@ -234,8 +274,25 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
   };
 
   const triggerRefresh = async () => {
-    if (!api || status.refreshing) return;
-    await api("/api/v1/knowledge/refresh", { method: "POST" });
+    if (!api || refreshInFlight) return;
+    const response = await api("/api/v1/knowledge/refresh", { method: "POST" });
+    const payload = await response.json().catch(() => null);
+    if (payload?.taskId) {
+      setRefreshTask({
+        id: String(payload.taskId),
+        queue: "default",
+        kind: "knowledge.refresh",
+        payload: {},
+        status: payload.lastRefreshStatus === "running" ? "running" : "queued",
+        attempts: 0,
+        max_attempts: 1,
+        priority: 70,
+        unique_key: "knowledge.refresh",
+        available_at: "",
+        created_at: "",
+        updated_at: "",
+      });
+    }
     setReloadKey(key => key + 1);
   };
 
@@ -282,21 +339,34 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
               <div>
                 <h3 style={{ marginBottom: 4 }}>Knowledge Operations</h3>
                 <div className="mono knowledge-meta-line">
-                  {status.refreshing ? "Compile in progress..." : status.lastRefreshAt ? `Last refresh ${new Date(status.lastRefreshAt).toLocaleString()}` : "Ready to compile the vault again."}
+                  {refreshMeta}
                 </div>
               </div>
-              <button className="knowledge-action-button" onClick={triggerRefresh} disabled={!api || status.refreshing}>
-                <Icon name={status.refreshing ? "clock" : "spark"} size={14} />
-                <span>{status.refreshing ? "Refreshing" : "Refresh vault"}</span>
+              <button className="knowledge-action-button" onClick={triggerRefresh} disabled={!api || refreshInFlight}>
+                <Icon name={refreshInFlight ? "clock" : "spark"} size={14} />
+                <span>{refreshInFlight ? refreshStatusLabel : "Refresh vault"}</span>
               </button>
             </div>
             <div className="knowledge-ops-grid">
               <div className="knowledge-status-row">
-                <span className={`pill mono knowledge-status-pill ${status.lastRefreshStatus === "error" ? "error" : status.lastRefreshStatus === "ok" ? "success" : ""}`}>
-                  {status.refreshing ? "Running" : status.lastRefreshStatus}
+                <span className={`pill mono knowledge-status-pill ${status.lastRefreshStatus === "error" || refreshTask?.status === "failed" ? "error" : status.lastRefreshStatus === "ok" ? "success" : ""}`}>
+                  {refreshStatusLabel}
                 </span>
                 {status.compiledAt && <span className="mono knowledge-meta-line">Compiled {new Date(status.compiledAt).toLocaleString()}</span>}
               </div>
+              {refreshTaskActive && (
+                <div className="knowledge-stale-banner">
+                  <Icon name="clock" size={15} />
+                  <div>
+                    <strong>{refreshTask.status === "queued" ? "Refresh queued" : "Refresh running"}</strong>
+                    <div className="knowledge-banner-copy">
+                      {refreshTask.status === "queued"
+                        ? "The worker will sync the vault after the current job finishes."
+                        : "The worker is compiling the vault now."}
+                    </div>
+                  </div>
+                </div>
+              )}
               {status.stale && (
                 <div className="knowledge-stale-banner">
                   <Icon name="clock" size={15} />

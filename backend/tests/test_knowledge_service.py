@@ -1,9 +1,10 @@
 import json
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
-from knowledge.service import KnowledgeService
+from knowledge.service import KnowledgeService, _resolve_command
 
 
 def _write(path: Path, content: str):
@@ -79,6 +80,16 @@ class KnowledgeServiceTests(unittest.TestCase):
 
         reset = service.review_candidate("candidates/concepts/lead.md", "reset")
         self.assertEqual(reset["page"]["reviewStatus"], "pending")
+
+    def test_refresh_command_resolves_shell_shims(self):
+        def fake_which(name: str):
+            return "C:/tools/npx.cmd" if name == "npx.cmd" else None
+
+        with mock.patch("knowledge.service.os.name", "nt"), mock.patch("knowledge.service.shutil.which", side_effect=fake_which):
+            resolved = _resolve_command(["npx", "@swarmvaultai/cli", "compile"])
+
+        self.assertEqual(resolved[1:], ["@swarmvaultai/cli", "compile"])
+        self.assertEqual(Path(resolved[0]).name.lower(), "npx.cmd")
 
 
 if __name__ == "__main__":
