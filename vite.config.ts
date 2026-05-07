@@ -1,6 +1,10 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+
+const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
@@ -8,6 +12,11 @@ const host = process.env.TAURI_DEV_HOST;
 // https://vite.dev/config/
 export default defineConfig(async () => ({
   plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: {
+      "@": path.resolve(rootDir, "./src"),
+    },
+  },
   build: {
     rollupOptions: {
       output: {
@@ -16,7 +25,7 @@ export default defineConfig(async () => ({
           if (id.includes("react") || id.includes("scheduler")) return "vendor-react";
           if (id.includes("framer-motion") || id.includes("motion-dom") || id.includes("motion-utils")) return "vendor-motion";
           if (id.includes("@tauri-apps")) return "vendor-tauri";
-          return "vendor";
+          return undefined;
         },
       },
     },

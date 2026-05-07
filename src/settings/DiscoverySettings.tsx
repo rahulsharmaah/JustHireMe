@@ -1,5 +1,6 @@
 import type { Cfg } from "./shared";
-import { BigToggle, GLOBAL_SOURCE_PRESET, INDIA_SOURCE_PRESET, LabelledField, SectionLabel } from "./shared";
+import { BigToggle, FieldInput, FieldTextarea, GLOBAL_SOURCE_PRESET, INDIA_SOURCE_PRESET, LabelledField, SectionLabel } from "./shared";
+import { Button } from "@/components/ui/button";
 
 export function DiscoverySettings({ cfg, set, onChange }: { cfg: Cfg; set: (k: keyof Cfg) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void; onChange: (k: keyof Cfg, v: string) => void }) {
   return (
@@ -10,17 +11,14 @@ export function DiscoverySettings({ cfg, set, onChange }: { cfg: Cfg; set: (k: k
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <LabelledField label="Apify Token" hint="for LinkedIn/X scraping">
-                  <input type="password" placeholder="apify_api_•••" value={cfg.apify_token} onChange={set("apify_token")} className="mono field-input"
-                    style={{ width: "100%", padding: "9px 12px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 12 }} />
+                  <FieldInput type="password" placeholder="apify_api_•••" value={cfg.apify_token} onChange={set("apify_token")} />
                 </LabelledField>
                 <LabelledField label="Apify Actor ID" hint="actor to run">
-                  <input type="text" placeholder="drobnikj/…" value={cfg.apify_actor} onChange={set("apify_actor")} className="mono field-input"
-                    style={{ width: "100%", padding: "9px 12px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 12 }} />
+                  <FieldInput type="text" placeholder="drobnikj/…" value={cfg.apify_actor} onChange={set("apify_actor")} />
                 </LabelledField>
               </div>
               <LabelledField label="LinkedIn session cookie" hint="li_at value">
-                <input type="password" placeholder="li_at=•••" value={cfg.linkedin_cookie} onChange={set("linkedin_cookie")} className="mono field-input"
-                  style={{ width: "100%", padding: "9px 12px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 12 }} />
+                <FieldInput type="password" placeholder="li_at=•••" value={cfg.linkedin_cookie} onChange={set("linkedin_cookie")} />
               </LabelledField>
               <div style={{ padding: 13, borderRadius: 13, background: "var(--paper-2)", border: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: 10 }}>
                 <SectionLabel label="Recruiter Lookup" sub="Hunter.io emails, optional Proxycurl LinkedIn" />
@@ -35,12 +33,10 @@ export function DiscoverySettings({ cfg, set, onChange }: { cfg: Cfg; set: (k: k
                 />
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   <LabelledField label="Hunter.io API key" hint="domain search">
-                    <input type="password" placeholder="hunter key" value={cfg.hunter_api_key} onChange={set("hunter_api_key")} className="mono field-input"
-                      style={{ width: "100%", padding: "9px 12px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 12 }} />
+                    <FieldInput type="password" placeholder="hunter key" value={cfg.hunter_api_key} onChange={set("hunter_api_key")} />
                   </LabelledField>
                   <LabelledField label="Proxycurl API key" hint="optional LinkedIn resolve">
-                    <input type="password" placeholder="proxycurl key" value={cfg.proxycurl_api_key} onChange={set("proxycurl_api_key")} className="mono field-input"
-                      style={{ width: "100%", padding: "9px 12px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 12 }} />
+                    <FieldInput type="password" placeholder="proxycurl key" value={cfg.proxycurl_api_key} onChange={set("proxycurl_api_key")} />
                   </LabelledField>
                 </div>
               </div>
@@ -48,39 +44,34 @@ export function DiscoverySettings({ cfg, set, onChange }: { cfg: Cfg; set: (k: k
               <div style={{ padding: 13, borderRadius: 13, background: "var(--paper-2)", border: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: 10 }}>
                 <SectionLabel label="X Signals" sub="recent posts for job leads" />
                 <LabelledField label="X API Bearer Token" hint="Developer Console token">
-                  <input type="password" placeholder="Bearer token" value={cfg.x_bearer_token} onChange={set("x_bearer_token")} className="mono field-input"
-                    style={{ width: "100%", padding: "9px 12px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 12 }} />
+                  <FieldInput type="password" placeholder="Bearer token" value={cfg.x_bearer_token} onChange={set("x_bearer_token")} />
                 </LabelledField>
                 <LabelledField label="X recent-search queries" hint="one query per line; leave blank for AI defaults">
-                  <textarea value={cfg.x_search_queries} onChange={set("x_search_queries")} rows={4} className="mono field-input"
+                  <FieldTextarea value={cfg.x_search_queries} onChange={set("x_search_queries")} rows={4}
                     placeholder={[
                       "(\"hiring\" OR \"job opening\" OR \"open role\") (\"AI engineer\" OR \"software engineer\" OR \"Python developer\") lang:en -is:retweet",
                       "(\"we are hiring\" OR \"is hiring\") (\"React developer\" OR \"backend engineer\" OR \"full stack engineer\") lang:en -is:retweet",
                       "(\"apply\" OR \"open role\") (Python OR React OR FastAPI OR LLM) (remote OR hybrid) lang:en -is:retweet",
                     ].join("\n")}
-                    style={{ width: "100%", padding: "9px 12px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 11.5, resize: "vertical", lineHeight: 1.6 }} />
+                    style={{ resize: "vertical" }} />
                 </LabelledField>
                 <LabelledField label="X watchlist handles" hint="one founder, hiring, or AI account per line">
-                  <textarea value={cfg.x_watchlist} onChange={set("x_watchlist")} rows={3} className="mono field-input"
+                  <FieldTextarea value={cfg.x_watchlist} onChange={set("x_watchlist")} rows={3}
                     placeholder={"@levelsio\n@alexalbert__\n@rauchg"}
-                    style={{ width: "100%", padding: "9px 12px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 11.5, resize: "vertical", lineHeight: 1.6 }} />
+                    style={{ resize: "vertical" }} />
                 </LabelledField>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 8 }}>
                   <LabelledField label="Requests" hint="per scan">
-                    <input type="number" min={1} max={50} value={cfg.x_max_requests_per_scan} onChange={set("x_max_requests_per_scan")} className="mono field-input"
-                      style={{ width: "100%", padding: "9px 10px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 12 }} />
+                    <FieldInput type="number" min={1} max={50} value={cfg.x_max_requests_per_scan} onChange={set("x_max_requests_per_scan")} />
                   </LabelledField>
                   <LabelledField label="Posts" hint="per query">
-                    <input type="number" min={10} max={100} value={cfg.x_max_results_per_query} onChange={set("x_max_results_per_query")} className="mono field-input"
-                      style={{ width: "100%", padding: "9px 10px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 12 }} />
+                    <FieldInput type="number" min={10} max={100} value={cfg.x_max_results_per_query} onChange={set("x_max_results_per_query")} />
                   </LabelledField>
                   <LabelledField label="Min signal" hint="0-100">
-                    <input type="number" min={0} max={100} value={cfg.x_min_signal_score} onChange={set("x_min_signal_score")} className="mono field-input"
-                      style={{ width: "100%", padding: "9px 10px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 12 }} />
+                    <FieldInput type="number" min={0} max={100} value={cfg.x_min_signal_score} onChange={set("x_min_signal_score")} />
                   </LabelledField>
                   <LabelledField label="Hot score" hint="0-100">
-                    <input type="number" min={1} max={100} value={cfg.x_hot_lead_threshold} onChange={set("x_hot_lead_threshold")} className="mono field-input"
-                      style={{ width: "100%", padding: "9px 10px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 12 }} />
+                    <FieldInput type="number" min={1} max={100} value={cfg.x_hot_lead_threshold} onChange={set("x_hot_lead_threshold")} />
                   </LabelledField>
                 </div>
                 <BigToggle
@@ -105,7 +96,7 @@ export function DiscoverySettings({ cfg, set, onChange }: { cfg: Cfg; set: (k: k
                   tone="green"
                 />
                 <LabelledField label="Company watchlist" hint="provider,slug per line: greenhouse,openai">
-                  <textarea value={cfg.company_watchlist} onChange={set("company_watchlist")} rows={4} className="mono field-input"
+                  <FieldTextarea value={cfg.company_watchlist} onChange={set("company_watchlist")} rows={4}
                     placeholder={[
                       "greenhouse,openai",
                       "greenhouse,anthropic",
@@ -113,26 +104,24 @@ export function DiscoverySettings({ cfg, set, onChange }: { cfg: Cfg; set: (k: k
                       "ashby,linear",
                       "workable,canonical",
                     ].join("\n")}
-                    style={{ width: "100%", padding: "9px 12px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 11.5, resize: "vertical", lineHeight: 1.6 }} />
+                    style={{ resize: "vertical" }} />
                 </LabelledField>
                 <LabelledField label="Free source targets" hint="github:, hn:, reddit:, or ats: targets">
-                  <textarea value={cfg.free_source_targets} onChange={set("free_source_targets")} rows={5} className="mono field-input"
+                  <FieldTextarea value={cfg.free_source_targets} onChange={set("free_source_targets")} rows={5}
                     placeholder={[
                       "github:software engineer help wanted",
                       "hn:software engineer remote",
                       "reddit:cscareerquestions:developer hiring",
                       "ats:greenhouse:openai",
                     ].join("\n")}
-                    style={{ width: "100%", padding: "9px 12px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 11.5, resize: "vertical", lineHeight: 1.6 }} />
+                    style={{ resize: "vertical" }} />
                 </LabelledField>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
                   <LabelledField label="Free requests" hint="per scan">
-                    <input type="number" min={1} max={80} value={cfg.free_source_max_requests} onChange={set("free_source_max_requests")} className="mono field-input"
-                      style={{ width: "100%", padding: "9px 10px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 12 }} />
+                    <FieldInput type="number" min={1} max={80} value={cfg.free_source_max_requests} onChange={set("free_source_max_requests")} />
                   </LabelledField>
                   <LabelledField label="Free min signal" hint="0-100">
-                    <input type="number" min={0} max={100} value={cfg.free_source_min_signal_score} onChange={set("free_source_min_signal_score")} className="mono field-input"
-                      style={{ width: "100%", padding: "9px 10px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 12 }} />
+                    <FieldInput type="number" min={0} max={100} value={cfg.free_source_min_signal_score} onChange={set("free_source_min_signal_score")} />
                   </LabelledField>
                 </div>
               </div>
@@ -146,15 +135,10 @@ export function DiscoverySettings({ cfg, set, onChange }: { cfg: Cfg; set: (k: k
                     ].map(mode => {
                       const active = (cfg.job_market_focus || "global") === mode.id;
                       return (
-                        <button key={mode.id} onClick={() => onChange("job_market_focus", mode.id)} style={{
-                          textAlign: "left", padding: "10px 12px", borderRadius: 10, cursor: "pointer",
-                          background: active ? "var(--blue-soft)" : "var(--paper-3)",
-                          border: `1.5px solid ${active ? "var(--blue)" : "var(--line)"}`,
-                          color: active ? "var(--blue-ink)" : "var(--ink-2)",
-                        }}>
+                        <Button key={mode.id} type="button" variant="outline" onClick={() => onChange("job_market_focus", mode.id)} className={`h-auto items-start rounded-[10px] border-[1.5px] px-3 py-2.5 text-left shadow-none ${active ? "border-[color:var(--blue)] bg-[color:var(--blue-soft)] text-[color:var(--blue-ink)]" : "border-[color:var(--line)] bg-[color:var(--paper-3)] text-[color:var(--ink-2)]"}`}>
                           <div style={{ fontSize: 12, fontWeight: 700 }}>{mode.label}</div>
                           <div style={{ fontSize: 11, marginTop: 3, lineHeight: 1.35, color: "var(--ink-3)" }}>{mode.sub}</div>
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -183,27 +167,20 @@ export function DiscoverySettings({ cfg, set, onChange }: { cfg: Cfg; set: (k: k
                     ].map(p => {
                       const already = cfg.job_boards.includes(p.url);
                       return (
-                        <button key={p.label} onClick={() => {
+                        <Button key={p.label} type="button" variant="outline" size="sm" onClick={() => {
                           if (already) return;
                           const sep = cfg.job_boards.trim() ? ",\n" : "";
                           if (p.label === "India preset") onChange("job_market_focus", "india");
                           if (p.label === "Global preset") onChange("job_market_focus", "global");
                           onChange("job_boards", cfg.job_boards.trim() + sep + p.url);
-                        }} style={{
-                          padding: "4px 10px", borderRadius: 7, fontSize: 10.5, cursor: already ? "default" : "pointer",
-                          fontWeight: 600, transition: "all .12s ease",
-                          background: already ? "var(--blue-soft)" : "var(--paper-3)",
-                          color: already ? "var(--blue-ink)" : "var(--ink-2)",
-                          border: `1px solid ${already ? "var(--blue)" : "var(--line)"}`,
-                          opacity: already ? 0.7 : 1,
-                        }}>
+                        }} className={`h-7 rounded-[7px] px-2.5 text-[10.5px] font-semibold shadow-none ${already ? "border-[color:var(--blue)] bg-[color:var(--blue-soft)] text-[color:var(--blue-ink)] opacity-70" : "border-[color:var(--line)] bg-[color:var(--paper-3)] text-[color:var(--ink-2)]"}`}>
                           {already ? "✓ " : "+ "}{p.label}
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
                 </div>
-                <textarea value={cfg.job_boards} onChange={set("job_boards")} rows={5} className="mono field-input"
+                <FieldTextarea value={cfg.job_boards} onChange={set("job_boards")} rows={5}
                   placeholder={[
                     "# Hacker News Who is Hiring (Algolia API)",
                     "hn-hiring,",
@@ -221,7 +198,7 @@ export function DiscoverySettings({ cfg, set, onChange }: { cfg: Cfg; set: (k: k
                     "site:apply.workable.com,",
                     "site:wellfound.com/jobs,",
                   ].join("\n")}
-                  style={{ width: "100%", padding: "9px 12px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 11.5, resize: "vertical", lineHeight: 1.6 }} />
+                  style={{ resize: "vertical" }} />
               </LabelledField>
             </div>
           </div>

@@ -1,4 +1,8 @@
 import Icon from "./Icon";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { LeadSort, SeniorityFilter } from "../types";
 
 export function LeadFilterBar({
@@ -34,81 +38,99 @@ export function LeadFilterBar({
     setSeniority("all");
     setSort("recommended");
   };
-  const toggleClass = (active: boolean) => `pipeline-toggle ${active ? "active" : ""}`;
+  const toggleClass = (active: boolean) =>
+    `pipeline-toggle h-[30px] rounded-[8px] border px-[9px] text-[11.5px] font-bold shadow-none ${active ? "border-[color:var(--blue)] bg-[color:var(--blue-soft)] text-[color:var(--blue-ink)]" : "border-[color:var(--line)] bg-[color:var(--paper)] text-[color:var(--ink-2)]"}`;
 
   return (
     <div className="pipeline-filterbar">
       <label className="pipeline-searchbox">
         <Icon name="search" size={14} />
-        <input
+        <Input
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={`Search ${label}`}
+          className="h-auto border-0 bg-transparent px-0 py-0 text-[13px] shadow-none focus-visible:ring-0 focus-visible:border-0 dark:bg-transparent"
         />
       </label>
 
       <div className="pipeline-filter-fields">
         <label className="pipeline-field">
           <span>Source</span>
-          <select value={platform} onChange={e => setPlatform(e.target.value)}>
-            <option value="">All sources</option>
-            {platforms.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
+          <Select value={platform || "__all__"} onValueChange={v => setPlatform(v === "__all__" ? "" : v)}>
+            <SelectTrigger className="h-[34px] w-full rounded-[10px] border-[color:var(--line)] bg-[rgba(255,255,255,0.68)] px-[9px] text-[12px] text-[color:var(--ink)] shadow-none focus-visible:ring-0">
+              <SelectValue placeholder="All sources" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All sources</SelectItem>
+              {platforms.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </label>
         <label className="pipeline-field">
           <span>Level</span>
-          <select value={seniority} onChange={e => setSeniority(e.target.value as SeniorityFilter)}>
-            <option value="all">All levels</option>
-            <option value="beginner">Beginner</option>
-            <option value="fresher">Fresher</option>
-            <option value="junior">Junior</option>
-            <option value="mid">Mid</option>
-            <option value="senior">Senior</option>
-            <option value="unknown">Unknown</option>
-          </select>
+          <Select value={seniority} onValueChange={v => setSeniority(v as SeniorityFilter)}>
+            <SelectTrigger className="h-[34px] w-full rounded-[10px] border-[color:var(--line)] bg-[rgba(255,255,255,0.68)] px-[9px] text-[12px] text-[color:var(--ink)] shadow-none focus-visible:ring-0">
+              <SelectValue placeholder="All levels" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All levels</SelectItem>
+              <SelectItem value="beginner">Beginner</SelectItem>
+              <SelectItem value="fresher">Fresher</SelectItem>
+              <SelectItem value="junior">Junior</SelectItem>
+              <SelectItem value="mid">Mid</SelectItem>
+              <SelectItem value="senior">Senior</SelectItem>
+              <SelectItem value="unknown">Unknown</SelectItem>
+            </SelectContent>
+          </Select>
         </label>
         <label className="pipeline-field">
           <span>Sort</span>
-          <select value={sort} onChange={e => setSort(e.target.value as LeadSort)}>
-            <option value="recommended">Recommended</option>
-            <option value="newest">Newest</option>
-            <option value="signal">Signal score</option>
-            <option value="match">Match score</option>
-            <option value="company">Company</option>
-          </select>
+          <Select value={sort} onValueChange={v => setSort(v as LeadSort)}>
+            <SelectTrigger className="h-[34px] w-full rounded-[10px] border-[color:var(--line)] bg-[rgba(255,255,255,0.68)] px-[9px] text-[12px] text-[color:var(--ink)] shadow-none focus-visible:ring-0">
+              <SelectValue placeholder="Recommended" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recommended">Recommended</SelectItem>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="signal">Signal score</SelectItem>
+              <SelectItem value="match">Match score</SelectItem>
+              <SelectItem value="company">Company</SelectItem>
+            </SelectContent>
+          </Select>
         </label>
         <label className="pipeline-field compact">
           <span>Signal</span>
-          <input
+          <Input
             type="number"
             min={0}
             max={100}
             value={minSignal}
             onChange={e => setMinSignal(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
             title="Minimum signal score"
+            className="h-[34px] rounded-[10px] border-[color:var(--line)] bg-[rgba(255,255,255,0.68)] px-[9px] text-[12px] text-[color:var(--ink)] shadow-none focus-visible:ring-0"
           />
         </label>
         <label className="pipeline-field compact">
           <span>Fit</span>
-          <input
+          <Input
             type="number"
             min={0}
             max={100}
             value={minMatch}
             onChange={e => setMinMatch(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
             title="Minimum fit score"
+            className="h-[34px] rounded-[10px] border-[color:var(--line)] bg-[rgba(255,255,255,0.68)] px-[9px] text-[12px] text-[color:var(--ink)] shadow-none focus-visible:ring-0"
           />
         </label>
       </div>
 
       <div className="pipeline-filter-actions">
-        <button className={toggleClass(budgetOnly)} onClick={() => setBudgetOnly(!budgetOnly)}>Budget</button>
-        <button className={toggleClass(learningOnly)} onClick={() => setLearningOnly(!learningOnly)}>Learned</button>
-        <button className={toggleClass(remoteOnly)} onClick={() => setRemoteOnly(!remoteOnly)}>Remote</button>
-        <button className={toggleClass(uncontactedOnly)} onClick={() => setUncontactedOnly(!uncontactedOnly)}>Uncontacted</button>
-        <button className={toggleClass(hideDiscarded)} onClick={() => setHideDiscarded(!hideDiscarded)}>Hide discarded</button>
-        <button className="pipeline-clear" onClick={resetFilters} disabled={!hasFilters}>Clear</button>
-        <span className="pipeline-count mono">{shown}/{total}</span>
+        <Button type="button" variant="outline" className={toggleClass(budgetOnly)} onClick={() => setBudgetOnly(!budgetOnly)}>Budget</Button>
+        <Button type="button" variant="outline" className={toggleClass(learningOnly)} onClick={() => setLearningOnly(!learningOnly)}>Learned</Button>
+        <Button type="button" variant="outline" className={toggleClass(remoteOnly)} onClick={() => setRemoteOnly(!remoteOnly)}>Remote</Button>
+        <Button type="button" variant="outline" className={toggleClass(uncontactedOnly)} onClick={() => setUncontactedOnly(!uncontactedOnly)}>Uncontacted</Button>
+        <Button type="button" variant="outline" className="pipeline-clear h-[30px] rounded-[8px] border-[color:var(--line)] bg-[color:var(--paper)] px-[9px] text-[11.5px] font-bold text-[color:var(--ink-2)] shadow-none" onClick={resetFilters} disabled={!hasFilters}>Clear</Button>
+        <Badge variant="outline" className="pipeline-count mono inline-grid min-h-[30px] place-items-center rounded-[8px] border-[color:var(--line)] bg-[color:var(--card)] px-[9px] py-0 text-[11.5px] font-bold text-[color:var(--ink-3)] shadow-none">{shown}/{total}</Badge>
       </div>
     </div>
   );

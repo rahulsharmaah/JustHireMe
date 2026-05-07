@@ -1,4 +1,11 @@
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import Icon from "../components/Icon";
 
 export interface Cfg {
@@ -180,10 +187,10 @@ export const getSettingsIssues = (cfg: Cfg): SettingsIssue[] => {
 /* helpers */
 export function LabelledField({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-2)" }}>{label}</span>
-        {hint && <span style={{ fontSize: 11, color: "var(--ink-3)" }}>{hint}</span>}
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-2">
+        <span className="text-[12px] font-semibold text-[color:var(--ink-2)]">{label}</span>
+        {hint && <span className="text-[11px] text-[color:var(--ink-3)]">{hint}</span>}
       </div>
       {children}
     </div>
@@ -192,31 +199,36 @@ export function LabelledField({ label, hint, children }: { label: string; hint?:
 
 export function SectionLabel({ label, sub }: { label: string; sub?: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-      <span style={{ fontSize: 13, fontWeight: 700 }}>{label}</span>
-      {sub && <span style={{ fontSize: 11, color: "var(--ink-3)", fontFamily: "var(--font-mono)" }}>{sub}</span>}
+    <div className="mb-2.5 flex items-center gap-2">
+      <span className="text-[13px] font-bold">{label}</span>
+      {sub && <span className="font-mono text-[11px] text-[color:var(--ink-3)]">{sub}</span>}
     </div>
   );
 }
 
 export function ProviderPills({ value, onChange, small }: { value: string; onChange: (v: string) => void; small?: boolean }) {
   return (
-    <div style={{ display: "flex", gap: small ? 5 : 7, flexWrap: "wrap" }}>
+    <div className={cn("flex flex-wrap", small ? "gap-1.5" : "gap-2")}>
       {PROVIDERS.map(p => {
         const active = value === p.id;
         return (
-          <button key={p.id} onClick={() => onChange(p.id)} style={{
-            padding: small ? "5px 10px" : "10px 12px", borderRadius: small ? 8 : 11, cursor: "pointer",
-            background: active ? `var(--${p.tone}-soft)` : "var(--card)",
-            border: `1.5px solid ${active ? `var(--${p.tone})` : "var(--line)"}`,
-            display: "flex", flexDirection: "column", alignItems: "center",
-            gap: small ? 2 : 5, transition: "all .15s ease", minWidth: small ? 0 : 78,
-          }}>
-            <div style={{ fontSize: small ? 12 : 13, fontWeight: 600, color: active ? `var(--${p.tone}-ink)` : "var(--ink-2)" }}>
-              {p.label}
-            </div>
-            {!small && <div style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, color: "var(--ink-3)" }}>{p.sub}</div>}
-          </button>
+          <Button
+            key={p.id}
+            type="button"
+            variant="outline"
+            size={small ? "sm" : "default"}
+            onClick={() => onChange(p.id)}
+            className={cn(
+              "h-auto cursor-pointer flex-col items-center justify-center rounded-[11px] border-[1.5px] bg-[color:var(--card)] shadow-none transition-all",
+              small ? "min-w-0 gap-0.5 px-2.5 py-1.5 rounded-lg" : "min-w-[78px] gap-1.5 px-3 py-2.5",
+              active
+                ? `border-[color:var(--${p.tone})] bg-[color:var(--${p.tone}-soft)] text-[color:var(--${p.tone}-ink)]`
+                : "border-[color:var(--line)] text-[color:var(--ink-2)]"
+            )}
+          >
+            <span className={cn(small ? "text-[12px]" : "text-[13px]", "font-semibold")}>{p.label}</span>
+            {!small && <span className="font-mono text-[9.5px] text-[color:var(--ink-3)]">{p.sub}</span>}
+          </Button>
         );
       })}
     </div>
@@ -229,22 +241,30 @@ export function ModelChips({ provider, value, onChange }: { provider: string; va
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
       {hints.length > 0 && (
-        <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+        <div className="flex flex-wrap gap-1.5">
           {hints.map(m => (
-            <button key={m} onClick={() => onChange(m)} style={{
-              padding: "3px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer",
-              fontFamily: "var(--font-mono)",
-              background: value === m ? "var(--ink)" : "var(--paper-3)",
-              color: value === m ? "var(--paper)" : "var(--ink-3)",
-              border: "1px solid var(--line)", transition: "all .12s ease",
-            }}>{m}</button>
+            <Button
+              key={m}
+              type="button"
+              variant={value === m ? "default" : "outline"}
+              size="sm"
+              onClick={() => onChange(m)}
+              className={cn(
+                "h-7 rounded-md px-2.5 font-mono text-[11px] shadow-none",
+                value === m
+                  ? "bg-[color:var(--ink)] text-[color:var(--paper)]"
+                  : "border-[color:var(--line)] bg-[color:var(--paper-3)] text-[color:var(--ink-3)]"
+              )}
+            >
+              {m}
+            </Button>
           ))}
         </div>
       )}
-      <input type="text" value={value} onChange={e => onChange(e.target.value)}
+      <Input type="text" value={value} onChange={e => onChange(e.target.value)}
         placeholder={`custom model — e.g. ${placeholder}`}
         className="mono field-input"
-        style={{ width: "100%", padding: "8px 12px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 12 }}
+        style={{ width: "100%", fontSize: 12 }}
       />
     </div>
   );
@@ -256,10 +276,10 @@ export function ApiKeyInput({ value, onChange, provider, isStep, disabled = fals
   if (provider === "ollama") return null;
   const ph: Record<string, string> = { anthropic: "sk-ant-••••", groq: "gsk_••••", nvidia: "nvapi-••••", openai: "sk-••••", deepseek: "sk-••••" };
   return (
-    <input type="password" value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
+    <Input type="password" value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
       placeholder={placeholder || (isStep ? `API key for ${provider}` : ph[provider] || "API key")}
       className="mono field-input"
-      style={{ width: "100%", padding: "9px 12px", borderRadius: 9, border: "1px solid var(--line)", background: disabled ? "var(--paper-3)" : "var(--card)", fontSize: 12, opacity: disabled ? 0.75 : 1, cursor: disabled ? "not-allowed" : "text" }}
+      style={{ width: "100%", fontSize: 12, opacity: disabled ? 0.75 : 1, cursor: disabled ? "not-allowed" : "text" }}
     />
   );
 }
@@ -281,28 +301,61 @@ export function StepCard({ step, cfg, onChange, issues = [] }: { step: typeof ST
   const disable = () => { setForceStepKey(false); onChange(provKey, ""); onChange(apiKey, ""); onChange(modelKey, ""); };
 
   return (
-    <div style={{ padding: 14, borderRadius: 14, background: isCustom ? "var(--card)" : "var(--paper-2)", border: `1.5px solid ${isCustom ? `var(--${step.tone})` : "var(--line)"}`, transition: "all .15s ease" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: isCustom ? 14 : 0 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-            <div style={{ width: 26, height: 26, borderRadius: 7, flexShrink: 0, background: isCustom ? `var(--${step.tone}-soft)` : "var(--paper-3)", color: isCustom ? `var(--${step.tone}-ink)` : "var(--ink-3)", display: "grid", placeItems: "center" }}>
-              <Icon name={step.icon} size={13} />
+    <Card
+      className={cn(
+        "gap-0 rounded-[14px] border-[1.5px] py-0 shadow-none transition-all",
+        isCustom
+          ? `border-[color:var(--${step.tone})] bg-[color:var(--card)]`
+          : "border-[color:var(--line)] bg-[color:var(--paper-2)]"
+      )}
+    >
+      <CardHeader className={cn("px-3.5 py-3.5", isCustom ? "pb-3" : "pb-3.5")}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-2">
+              <div
+                className={cn(
+                  "grid size-[26px] shrink-0 place-items-center rounded-[7px]",
+                  isCustom
+                    ? `bg-[color:var(--${step.tone}-soft)] text-[color:var(--${step.tone}-ink)]`
+                    : "bg-[color:var(--paper-3)] text-[color:var(--ink-3)]"
+                )}
+              >
+                <Icon name={step.icon} size={13} />
+              </div>
+              <CardTitle className="text-[13px] font-bold">{step.label}</CardTitle>
+              {isCustom && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "rounded-full border px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.1em] shadow-none",
+                    `border-[color:var(--${step.tone})] bg-[color:var(--${step.tone}-soft)] text-[color:var(--${step.tone}-ink)]`
+                  )}
+                >
+                  {stepProv}{cfg[modelKey] ? ` · ${cfg[modelKey]}` : ""}
+                </Badge>
+              )}
             </div>
-            <span style={{ fontSize: 13, fontWeight: 700 }}>{step.label}</span>
-            {isCustom && (
-              <span className="mono" style={{ fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase", background: `var(--${step.tone}-soft)`, color: `var(--${step.tone}-ink)`, padding: "2px 8px", borderRadius: 999 }}>
-                {stepProv}{cfg[modelKey] ? ` · ${cfg[modelKey]}` : ""}
-              </span>
-            )}
+            <div className="pl-[33px] text-[11.5px] leading-[1.4] text-[color:var(--ink-3)]">{step.desc}</div>
           </div>
-          <div style={{ fontSize: 11.5, color: "var(--ink-3)", paddingLeft: 33, lineHeight: 1.4 }}>{step.desc}</div>
+          <Button
+            type="button"
+            variant={isCustom ? "default" : "outline"}
+            size="sm"
+            onClick={isCustom ? disable : enable}
+            className={cn(
+              "h-7 shrink-0 rounded-full border-[1.5px] px-3 font-mono text-[11px] uppercase tracking-[0.08em] shadow-none",
+              isCustom
+                ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--paper)]"
+                : "border-[color:var(--line)] bg-[color:var(--paper-3)] text-[color:var(--ink-3)]"
+            )}
+          >
+            {isCustom ? "reset" : "override"}
+          </Button>
         </div>
-        <button onClick={isCustom ? disable : enable} style={{ padding: "4px 12px", borderRadius: 999, cursor: "pointer", fontSize: 11, fontWeight: 600, fontFamily: "var(--font-mono)", letterSpacing: "0.08em", textTransform: "uppercase", flexShrink: 0, background: isCustom ? "var(--ink)" : "var(--paper-3)", color: isCustom ? "var(--paper)" : "var(--ink-3)", border: `1.5px solid ${isCustom ? "var(--ink)" : "var(--line)"}`, transition: "all .15s ease" }}>
-          {isCustom ? "reset" : "override"}
-        </button>
-      </div>
+      </CardHeader>
       {isCustom && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <CardContent className="flex flex-col gap-2.5 px-3.5 pb-3.5">
           {issues.length > 0 && (
             <div className="settings-alert-stack">
               {issues.map(issue => (
@@ -312,25 +365,24 @@ export function StepCard({ step, cfg, onChange, issues = [] }: { step: typeof ST
               ))}
             </div>
           )}
-          <div>
+            <div>
             <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 7 }}>Provider</div>
             <ProviderPills value={stepProv} onChange={v => { setForceStepKey(false); onChange(provKey, v); onChange(apiKey, ""); }} small />
           </div>
           {stepProv !== "ollama" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--ink-2)", cursor: "pointer", userSelect: "none" }}>
-                <input
-                  type="checkbox"
+            <div className="flex flex-col gap-1.5">
+              <label className="flex cursor-pointer items-center gap-2 text-[12px] text-[color:var(--ink-2)] select-none">
+                <Switch
                   checked={usesGlobalKey}
-                  onChange={e => {
-                    if (e.target.checked) {
+                  onCheckedChange={checked => {
+                    if (checked) {
                       setForceStepKey(false);
                       onChange(apiKey, "");
                     } else {
                       setForceStepKey(true);
                     }
                   }}
-                  style={{ width: 14, height: 14, accentColor: "var(--accent)", cursor: "pointer" }}
+                  size="sm"
                 />
                 <span>{keySourceLabel}</span>
               </label>
@@ -354,30 +406,76 @@ export function StepCard({ step, cfg, onChange, issues = [] }: { step: typeof ST
               <div className="settings-inline-warning">Pick a model for this override or reset the step to global.</div>
             )}
           </div>
-        </div>
+        </CardContent>
       )}
-    </div>
+    </Card>
   );
 }
 
 export function BigToggle({ active, onToggle, icon, label, badge, sub, tone }: { active: boolean; onToggle: () => void; icon: string; label: string; badge: string; sub: string; tone: string }) {
   return (
-    <div onClick={onToggle} style={{ padding: 14, borderRadius: 14, cursor: "pointer", background: active ? `var(--${tone}-soft)` : "var(--paper-2)", border: `1px solid ${active ? `var(--${tone})` : "var(--line)"}`, transition: "all .2s ease", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: active ? `var(--${tone})` : "var(--paper-3)", color: active ? `var(--${tone}-ink)` : "var(--ink-3)", display: "grid", placeItems: "center", transition: "all .2s ease" }}>
+    <button
+      type="button"
+      onClick={onToggle}
+      className={cn(
+        "flex w-full items-center justify-between gap-3 rounded-[14px] border px-3.5 py-3.5 text-left transition-all",
+        active
+          ? `border-[color:var(--${tone})] bg-[color:var(--${tone}-soft)]`
+          : "border-[color:var(--line)] bg-[color:var(--paper-2)]"
+      )}
+    >
+      <div className="flex items-center gap-2.5">
+        <div
+          className={cn(
+            "grid size-8 shrink-0 place-items-center rounded-[9px] transition-all",
+            active
+              ? `bg-[color:var(--${tone})] text-[color:var(--${tone}-ink)]`
+              : "bg-[color:var(--paper-3)] text-[color:var(--ink-3)]"
+          )}
+        >
           <Icon name={icon} size={15} />
         </div>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-            <span style={{ fontSize: 13, fontWeight: 600 }}>{label}</span>
-            <span className="mono" style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", background: active ? `var(--${tone})` : "var(--paper-3)", color: active ? `var(--${tone}-ink)` : "var(--ink-3)", padding: "2px 7px", borderRadius: 999, transition: "all .2s ease" }}>{badge}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[13px] font-semibold">{label}</span>
+            <Badge
+              variant="outline"
+              className={cn(
+                "rounded-full px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] shadow-none",
+                active
+                  ? `border-[color:var(--${tone})] bg-[color:var(--${tone})] text-[color:var(--${tone}-ink)]`
+                  : "border-[color:var(--line)] bg-[color:var(--paper-3)] text-[color:var(--ink-3)]"
+              )}
+            >
+              {badge}
+            </Badge>
           </div>
-          <div style={{ fontSize: 11.5, color: "var(--ink-3)", marginTop: 2 }}>{sub}</div>
+          <div className="mt-0.5 text-[11.5px] text-[color:var(--ink-3)]">{sub}</div>
         </div>
       </div>
-      <div style={{ width: 42, height: 24, borderRadius: 999, flexShrink: 0, background: active ? `var(--${tone})` : "var(--paper-4)", position: "relative", transition: "background .2s ease" }}>
-        <div style={{ position: "absolute", top: 3, left: active ? 21 : 3, width: 18, height: 18, borderRadius: 999, background: "white", transition: "left .2s ease", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }} />
-      </div>
-    </div>
+      <Switch
+        checked={active}
+        onCheckedChange={onToggle}
+        onClick={e => e.stopPropagation()}
+      />
+    </button>
+  );
+}
+
+export function FieldInput(props: React.ComponentProps<typeof Input>) {
+  return (
+    <Input
+      {...props}
+      className={cn("mono field-input w-full bg-[color:var(--card)] text-[12px]", props.className)}
+    />
+  );
+}
+
+export function FieldTextarea(props: React.ComponentProps<typeof Textarea>) {
+  return (
+    <Textarea
+      {...props}
+      className={cn("mono field-input w-full bg-[color:var(--card)] text-[11.5px] leading-[1.6]", props.className)}
+    />
   );
 }

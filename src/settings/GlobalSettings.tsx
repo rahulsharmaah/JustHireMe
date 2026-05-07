@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Cfg, SettingsIssue } from "./shared";
-import { ApiKeyInput, KEY_FIELD, ModelChips, ProviderPills, SectionLabel } from "./shared";
+import { ApiKeyInput, FieldInput, KEY_FIELD, ModelChips, ProviderPills, SectionLabel } from "./shared";
+import { Button } from "@/components/ui/button";
 import type { ApiFetch } from "../types";
 import { showToast } from "../lib/toast";
 
@@ -76,8 +77,7 @@ export function GlobalSettings({ cfg, set, onChange, prov, api, issues = [] }: {
                 <ApiKeyInput value={cfg[KEY_FIELD[prov]] as string} onChange={v => onChange(KEY_FIELD[prov], v)} provider={prov} />
               )}
               {prov === "ollama" && (
-                <input type="text" placeholder="http://localhost:11434/v1" value={cfg.ollama_url} onChange={set("ollama_url")} className="mono field-input"
-                  style={{ width: "100%", padding: "9px 12px", borderRadius: 9, border: "1px solid var(--line)", background: "var(--card)", fontSize: 12 }} />
+                <FieldInput type="text" placeholder="http://localhost:11434/v1" value={cfg.ollama_url} onChange={set("ollama_url")} />
               )}
               {(prov === "nvidia" || prov === "openai") && (
                 <div>
@@ -86,9 +86,9 @@ export function GlobalSettings({ cfg, set, onChange, prov, api, issues = [] }: {
                 </div>
               )}
               <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-                <button className="btn" onClick={checkKeys} disabled={checking} aria-busy={checking} style={{ alignSelf: "flex-start", fontSize: 12 }}>
+                <Button type="button" variant="outline" onClick={checkKeys} disabled={checking} aria-busy={checking} className="h-8 self-start text-[12px] shadow-none">
                   {checking ? "Checking keys..." : "Check keys"}
-                </button>
+                </Button>
                 {checking && (
                   <div className="mono" style={{ fontSize: 11, color: "var(--ink-3)" }}>Checking configured providers...</div>
                 )}
