@@ -49,6 +49,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => localStorage.getItem(ONBOARDING_KEY) !== "done");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true");
+  const [narrowShell, setNarrowShell] = useState(() => typeof window !== "undefined" && window.innerWidth < 760);
   const [applyDraft, setApplyDraft] = useState("");
   const [applyAutoFocus, setApplyAutoFocus] = useState(false);
   const [scanning, setScanning]   = useState(false);
@@ -99,6 +100,13 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(SIDEBAR_COLLAPSED_KEY, sidebarCollapsed ? "true" : "false");
   }, [sidebarCollapsed]);
+
+  useEffect(() => {
+    const update = () => setNarrowShell(window.innerWidth < 760);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
   const onScan = useCallback(async () => {
     if (!port || !api || scanning) return;
@@ -208,10 +216,10 @@ export default function App() {
     rejected:     leads.filter(l=>l.status==="rejected").length,
   };
   return (
-    <div className={`app-shell ${sidebarCollapsed ? "sidebar-is-collapsed" : ""}`} style={{ height: "100vh", width: "100vw", overflow: "hidden", alignItems: "stretch" }}>
-      <Sidebar view={view} setView={setView} leadCounts={leadCounts} online={conn === "connected"} port={port} beat={beat} onSettings={() => setShowSettings(true)} onSetup={openSetupGuide} collapsed={sidebarCollapsed} onToggleCollapsed={() => setSidebarCollapsed(prev => !prev)} />
+    <div className={`app-shell ${sidebarCollapsed || narrowShell ? "sidebar-is-collapsed" : ""}`} style={{ height: "100vh", width: "100vw", overflow: "hidden", alignItems: "stretch" }}>
+      <Sidebar view={view} setView={setView} leadCounts={leadCounts} online={conn === "connected"} port={port} beat={beat} onSettings={() => setShowSettings(true)} onSetup={openSetupGuide} collapsed={sidebarCollapsed || narrowShell} onToggleCollapsed={() => setSidebarCollapsed(prev => !prev)} />
       <div className="app-main">
-        <Topbar view={view} sidebarCollapsed={sidebarCollapsed} onToggleSidebar={() => setSidebarCollapsed(prev => !prev)} tasks={tasks} onRefreshTasks={refreshTasks} />
+        <Topbar view={view} sidebarCollapsed={sidebarCollapsed || narrowShell} onToggleSidebar={() => setSidebarCollapsed(prev => !prev)} tasks={tasks} onRefreshTasks={refreshTasks} />
         <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", background: "var(--paper)" }}>
           {view === "apply"     && <ErrorBoundary label="Apply"><ApplyJobView port={port} api={api} leads={leads} openDrawer={setSel} initialInput={applyDraft} autoFocus={applyAutoFocus} /></ErrorBoundary>}
           {view === "dashboard" && <ErrorBoundary label="Dashboard"><DashboardView leads={leads} dueFollowups={dueFollowups} logs={logs} setView={setView} openDrawer={setSel} scanning={scanning} reevaluating={reevaluating} cleaning={cleaning} onScan={onScan} onStopScan={onStopScan} onReevaluate={onReevaluateJobs} onStopReevaluate={onStopReevaluate} onCleanup={onCleanupLeads} scanErr={scanErr} /></ErrorBoundary>}

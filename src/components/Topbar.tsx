@@ -26,7 +26,7 @@ export function Topbar({
   };
   return (
     <header className="topbar">
-      <div className="row gap-3" style={{ flex: 1 }}>
+      <div className="topbar-title-row">
         <button className="btn btn-icon topbar-sidebar-toggle" onClick={onToggleSidebar} aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"} title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
           <Icon name="arrow-right" size={14} style={{ transform: sidebarCollapsed ? "rotate(0deg)" : "rotate(180deg)" }} />
         </button>
@@ -35,7 +35,7 @@ export function Topbar({
           {view.toUpperCase()}
         </span>
       </div>
-      <div className="row gap-2">
+      <div className="topbar-actions">
         {tasks && <WorkerQueueIndicator tasks={tasks} onRefresh={onRefreshTasks} />}
         {view === "profile" && (
           <button className="btn" onClick={() => window.dispatchEvent(new CustomEvent("profile-export"))}>

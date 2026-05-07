@@ -250,6 +250,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  justify-content: space-between;
   padding: 14px 24px;
   border-bottom: 1px solid var(--line);
   background: rgba(247,248,252,0.76);
@@ -257,6 +258,41 @@
   -webkit-backdrop-filter: blur(18px);
   flex-shrink: 0;
   min-height: 60px;
+  min-width: 0;
+  overflow: visible;
+}
+
+.topbar-title-row,
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.topbar-title-row {
+  flex: 1 1 auto;
+  gap: 12px;
+}
+
+.topbar-actions {
+  flex: 0 0 auto;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.topbar .type-topbar-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar .type-view-pill {
+  flex: 0 1 auto;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ══════════════════════════════════════════════════
@@ -5189,6 +5225,7 @@ button.profile-map-node {
 
 .queue-popover {
   position: relative;
+  flex: 0 0 auto;
 }
 
 .queue-popover summary {
@@ -5200,10 +5237,17 @@ button.profile-map-node {
 }
 
 .queue-summary {
+  max-width: 150px;
   height: 32px;
   padding: 0 10px;
   gap: 7px;
   white-space: nowrap;
+}
+
+.queue-summary span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .queue-menu {
@@ -5217,6 +5261,31 @@ button.profile-map-node {
   border-radius: var(--radius-card);
   padding: 14px;
   box-shadow: var(--shadow-popover);
+}
+
+@media (max-width: 720px) {
+  .topbar {
+    gap: 10px;
+    padding-inline: 12px;
+  }
+
+  .topbar-title-row {
+    gap: 8px;
+  }
+
+  .topbar .type-view-pill {
+    display: none;
+  }
+
+  .queue-summary {
+    width: 34px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .queue-summary span {
+    display: none;
+  }
 }
 
 .queue-counts {
