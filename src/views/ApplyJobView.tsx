@@ -17,6 +17,7 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
   const [coverBlobUrl, setCoverBlobUrl] = useState<string | null>(null);
   const [resumeLoadErr, setResumeLoadErr] = useState<string | null>(null);
   const [coverLoadErr, setCoverLoadErr] = useState<string | null>(null);
+  const [generationTaskId, setGenerationTaskId] = useState<string | null>(null);
 
   const liveLead = lead ? (leads.find(l => l.job_id === lead.job_id) || lead) : null;
   const resumeReady = Boolean(liveLead?.resume_asset || liveLead?.asset);
@@ -69,6 +70,32 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
       clearInterval(timer);
     };
   }, [lead?.job_id, port, resumeReady, coverReady]);
+
+  useEffect(() => {
+    if (!generationTaskId || !api || !busy) return;
+    let alive = true;
+    const timer = setInterval(async () => {
+      try {
+        const r = await api(`/api/v1/tasks/${generationTaskId}`);
+        if (!r.ok) return;
+        const task = await r.json();
+        if (!alive) return;
+        if (task.status === "failed" || task.status === "cancelled") {
+          const message = task.last_error || "Document generation failed.";
+          setGenerationTaskId(null);
+          setBusy(false);
+          setErr(message);
+          showToast({ id: "apply-package", tone: "error", title: "Package failed", message });
+        } else if (task.status === "succeeded") {
+          setGenerationTaskId(null);
+        }
+      } catch { /* queue status is best-effort */ }
+    }, 1400);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, [generationTaskId, api, busy]);
 
   useEffect(() => {
     if (!resumeDocPath || !api) { setResumeBlobUrl(null); setResumeLoadErr(null); return; }
@@ -132,6 +159,7 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
     setErr(null);
     setResumeBlobUrl(null);
     setCoverBlobUrl(null);
+    setGenerationTaskId(null);
     completionToastShown.current = false;
     showToast({ id: "apply-package", tone: "loading", title: "Generating package", message: "Analysing the role and tailoring documents." });
     try {
@@ -150,6 +178,8 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
       setLead(created);
       const gen = await api(`/api/v1/leads/${created.job_id}/generate`, { method: "POST" });
       if (!gen.ok) throw new Error(`Generation returned ${gen.status}`);
+      const genPayload = await gen.json().catch(() => null);
+      if (genPayload?.task_id) setGenerationTaskId(String(genPayload.task_id));
       showToast({ id: "apply-package", tone: "loading", title: "Tailoring in progress", message: "Waiting for resume and cover letter assets." });
     } catch (e) {
       const message = e instanceof Error ? e.message : "Application package failed";
@@ -172,7 +202,7 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
   const stepPill = (label: string, done: boolean, active: boolean) => {
     const tone = stepTone(done, active);
     return (
-      <div className="pill mono" style={{ background: `var(--${tone}-soft)`, color: `var(--${tone}-ink)`, border: `1px solid var(--${tone})`, fontSize: 10 }}>
+      <div className="pill mono apply-progress-pill" style={{ background: `var(--${tone}-soft)`, color: `var(--${tone}-ink)`, border: `1px solid var(--${tone})`, fontSize: 10 }}>
         {done ? "Done" : active ? "Working" : "Waiting"} - {label}
       </div>
     );
@@ -289,7 +319,7 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
                 )}
               </div>
               {primaryContact && (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10, marginTop: 12 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 10, marginTop: 12 }}>
                   <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 8, padding: 12 }}>
                     <div className="eyebrow">Direct line</div>
                     <div className="col gap-2" style={{ marginTop: 8, fontSize: 12.5, color: "var(--ink-2)" }}>
@@ -323,7 +353,7 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
               )}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 14 }}>
               {[
                 { label: "Resume", ready: resumeReady, blob: resumeBlobUrl, error: resumeLoadErr },
                 { label: "Cover Letter", ready: coverReady, blob: coverBlobUrl, error: coverLoadErr },
@@ -359,7 +389,7 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
             </div>
 
             {(liveLead.outreach_reply || liveLead.outreach_dm || liveLead.outreach_email || (liveLead.fit_bullets?.length ?? 0) > 0) && (
-              <div className="card" style={{ padding: 16, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
+              <div className="card" style={{ padding: 16, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 10 }}>
                 {[
                   ["3-line pitch", liveLead.outreach_reply],
                   ["Cold email", liveLead.outreach_email],
@@ -398,7 +428,7 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
                     </div>
                   </div>
                 )}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 10 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))", gap: 10 }}>
                   {applicationAnswers.map(item => (
                     <div key={item.key} style={{ background: "var(--paper-3)", border: "1px solid var(--line)", borderRadius: 8, padding: "10px 12px" }}>
                       <div className="row" style={{ justifyContent: "space-between", gap: 8, marginBottom: 7, alignItems: "center" }}>

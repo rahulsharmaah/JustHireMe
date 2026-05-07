@@ -502,6 +502,8 @@ async def _handle_worker_task(task: QueuedTask):
         await _run_scan_task()
     elif task.kind == "leads.reevaluate":
         await _run_reevaluate_jobs_task()
+    elif task.kind == "knowledge.refresh":
+        await _knowledge.run_refresh_now()
     else:
         raise ValueError(f"Unknown worker task kind: {task.kind}")
     await cm.broadcast({
@@ -527,6 +529,7 @@ def _start_worker_service():
                 "lead.fire": _handle_worker_task,
                 "scan.run": _handle_worker_task,
                 "leads.reevaluate": _handle_worker_task,
+                "knowledge.refresh": _handle_worker_task,
             },
             concurrency=_int_cfg(os.environ, "JHM_WORKER_CONCURRENCY", 1, 1, 8),
         )
@@ -1020,6 +1023,23 @@ async def worker_tasks(limit: int = 30, status: str = ""):
     }
 
 
+@app.get("/api/v1/jobs")
+async def worker_jobs(limit: int = 30, status: str = ""):
+    return await worker_tasks(limit=limit, status=status)
+
+
+@app.get("/api/v1/jobs/status")
+async def worker_jobs_status():
+    data = await worker_tasks(limit=10, status="")
+    return {
+        "enabled": data["enabled"],
+        "concurrency": data["concurrency"],
+        "active": data["active"],
+        "recent": data["recent"],
+        "counts": data["counts"],
+    }
+
+
 @app.get("/api/v1/tasks/{task_id}", response_model=WorkerTaskPayload)
 async def worker_task_detail(task_id: str):
     if _worker_queue is None:
@@ -1028,6 +1048,11 @@ async def worker_task_detail(task_id: str):
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     return _task_payload(task)
+
+
+@app.get("/api/v1/jobs/{task_id}", response_model=WorkerTaskPayload)
+async def worker_job_detail(task_id: str):
+    return await worker_task_detail(task_id)
 
 
 @app.post("/api/v1/leads/{job_id}/generate")
@@ -1176,6 +1201,19 @@ async def knowledge_status():
 @app.post("/api/v1/knowledge/refresh")
 async def knowledge_refresh():
     try:
+        task = _queue_task(
+            "knowledge.refresh",
+            {},
+            unique_key="knowledge.refresh",
+            priority=70,
+        )
+        if task is not None:
+            return {
+                **_knowledge.status_payload(),
+                "refreshing": True,
+                "lastRefreshStatus": "queued",
+                "taskId": task.id,
+            }
         return await _knowledge.start_refresh()
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Knowledge vault not available")

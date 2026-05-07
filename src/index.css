@@ -2222,6 +2222,7 @@ body,
   gap: 18px;
   justify-content: center;
   align-items: start;
+  min-width: 0;
 }
 
 .apply-shell-result {
@@ -2236,6 +2237,7 @@ body,
   flex-direction: column;
   gap: 16px;
   overflow: hidden;
+  min-width: 0;
 }
 
 .apply-composer::before {
@@ -2289,6 +2291,9 @@ body,
 }
 
 .apply-input {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 220px;
   padding: 16px;
   border-radius: var(--radius-card);
@@ -2300,10 +2305,15 @@ body,
 }
 
 .apply-primary-action {
+  width: 100%;
+  min-width: 0;
   min-height: 46px;
   justify-content: center;
   padding: 12px 16px;
   font-size: 14px;
+  white-space: normal;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .apply-run-strip {
@@ -2331,10 +2341,46 @@ body,
   font: 760 10px/1 var(--font-mono);
 }
 
+@media (max-width: 560px) {
+  .apply-page {
+    padding: 18px;
+  }
+
+  .apply-composer {
+    padding: 24px;
+  }
+
+  .apply-run-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .apply-run-step {
+    justify-content: flex-start;
+    min-height: 38px;
+  }
+}
+
 .apply-progress-stack {
   display: flex;
   flex-direction: column;
   gap: 9px;
+  min-width: 0;
+}
+
+.apply-progress-pill,
+.apply-progress-stack > .btn {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.apply-progress-pill {
+  justify-content: center;
+  white-space: normal;
+  overflow: hidden;
+  text-align: center;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 /* Command Center */
@@ -4489,6 +4535,18 @@ button.profile-map-node {
   min-width: 0;
 }
 
+.approval-drawer {
+  min-width: 0;
+}
+
+.approval-apply-actions {
+  min-width: 0;
+}
+
+.approval-apply-actions .btn {
+  min-width: 0;
+}
+
 @media (max-width: 920px) {
   .approval-modal-grid {
     grid-template-columns: 1fr;
@@ -4503,6 +4561,30 @@ button.profile-map-node {
 
   .approval-detail-pane {
     min-height: 420px;
+  }
+}
+
+@media (max-width: 560px) {
+  .drawer-backdrop {
+    padding: 12px !important;
+  }
+
+  .approval-title {
+    font-size: 24px;
+    line-height: 1.08;
+  }
+
+  .approval-doc-pane {
+    padding: 14px !important;
+  }
+
+  .approval-apply-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .approval-apply-actions .btn {
+    min-height: 38px;
+    white-space: normal;
   }
 }
 

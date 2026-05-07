@@ -326,12 +326,12 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
   ) : null;
 
   return (
-    <div className="drawer-backdrop" onClick={onClose} style={{ zIndex: 100, display: "grid", placeItems: "center", padding: 16, overflow: "auto" }}>
-      <motion.div className="card"
+    <div className="drawer-backdrop" onClick={onClose} style={{ zIndex: 100, display: "grid", placeItems: "center", padding: 16, overflowY: "auto", overflowX: "hidden" }}>
+      <motion.div className="card approval-drawer"
         initial={{ opacity: 0, y: 24, scale: 0.985 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18, scale: 0.985 }}
         transition={{ type: "spring", damping: 28, stiffness: 260 }}
         onClick={e => e.stopPropagation()}
-        style={{ width: "min(1240px, calc(100vw - 32px))", height: "min(900px, calc(100vh - 32px))", maxHeight: "calc(100vh - 32px)", display: "flex", flexDirection: "column", background: "var(--paper)", zIndex: 101, overflow: "hidden", borderRadius: "var(--radius-card)" }}>
+        style={{ width: "min(1240px, 100%)", height: "min(900px, calc(100vh - 32px))", maxHeight: "calc(100vh - 32px)", display: "flex", flexDirection: "column", background: "var(--paper)", zIndex: 101, overflow: "hidden", borderRadius: "var(--radius-card)" }}>
 
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", padding: "18px 22px 16px", borderBottom: "1px solid var(--line)", flexShrink: 0, gap: 16, background: "var(--paper)", flexWrap: "wrap" }}>
           <div style={{ minWidth: 0 }}>
@@ -773,7 +773,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
               {done
                 ? <div style={{ fontSize: 15, color: "var(--ok)", fontWeight: 700 }}>Application submitted</div>
                 : <>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+                    <div className="approval-apply-actions" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
                       <button className="btn" onClick={() => runApplyStage("preview")} disabled={!canPreviewApply} aria-busy={applyBusy === "preview"} style={{ justifyContent: "center" }}>
                         <Icon name="search" size={14} /> {applyBusy === "preview" ? "Reading..." : "Preview"}
                       </button>

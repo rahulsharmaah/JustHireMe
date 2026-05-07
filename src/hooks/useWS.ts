@@ -66,6 +66,7 @@ export function useWS() {
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
+    const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
     (async () => {
       let token: string | null = null;
       let currentPort: number | null = null;
@@ -74,6 +75,7 @@ export function useWS() {
         currentPort = devPort;
         connect(devPort, devToken);
       }
+      if (!isTauri) return;
       try { token = await invoke<string>("get_api_token"); setApiToken(token); } catch { /* not ready */ }
       try {
         const p = await invoke<number>("get_sidecar_port");
@@ -81,18 +83,20 @@ export function useWS() {
         setPort(p);
         if (token) connect(p, token);
       } catch { /* not ready */ }
-      unlisten = await listen<number>("sidecar-port", ev => {
-        currentPort = ev.payload;
-        setPort(ev.payload);
-        if (token) connect(ev.payload, token);
-      });
-      const unlistenToken = await listen<string>("sidecar-token", ev => {
-        token = ev.payload;
-        setApiToken(ev.payload);
-        if (currentPort) connect(currentPort, ev.payload);
-      });
-      const prevUnlisten = unlisten;
-      unlisten = () => { prevUnlisten?.(); unlistenToken(); };
+      try {
+        unlisten = await listen<number>("sidecar-port", ev => {
+          currentPort = ev.payload;
+          setPort(ev.payload);
+          if (token) connect(ev.payload, token);
+        });
+        const unlistenToken = await listen<string>("sidecar-token", ev => {
+          token = ev.payload;
+          setApiToken(ev.payload);
+          if (currentPort) connect(currentPort, ev.payload);
+        });
+        const prevUnlisten = unlisten;
+        unlisten = () => { prevUnlisten?.(); unlistenToken(); };
+      } catch { /* browser dev mode */ }
     })();
     return () => { unlisten?.(); wsRef.current?.close(); };
   }, [connect, devPort, devToken]);

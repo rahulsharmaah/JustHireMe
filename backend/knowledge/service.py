@@ -512,6 +512,19 @@ class KnowledgeService:
         self._refresh_task = asyncio.create_task(self._run_refresh())
         return self.status_payload()
 
+    async def run_refresh_now(self) -> dict[str, Any]:
+        if not self.vault_root.exists():
+            raise FileNotFoundError(str(self.vault_root))
+        if self._refresh_task and not self._refresh_task.done():
+            await self._refresh_task
+            return self.status_payload()
+        self.refresh_state.refreshing = True
+        self.refresh_state.last_refresh_status = "running"
+        self.refresh_state.last_refresh_error = ""
+        self.refresh_state.last_refresh_summary = None
+        await self._run_refresh()
+        return self.status_payload()
+
     async def _run_refresh(self) -> None:
         command = self.manifest.get("refreshCommand") or ["npx", "@swarmvaultai/cli", "compile", "--json"]
         try:
