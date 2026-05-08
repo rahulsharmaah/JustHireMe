@@ -6959,3 +6959,308 @@ button[aria-busy="true"]::before,
   }
 }
 
+/* Pipeline reference polish: airy controls, table-like rows */
+.pipeline-page {
+  background: #fff !important;
+}
+
+.pipeline-top {
+  padding: 20px 28px 16px !important;
+  gap: 14px !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+
+.pipeline-overview {
+  grid-template-columns: minmax(300px, 1.8fr) repeat(7, minmax(104px, 0.62fr)) !important;
+  gap: 16px !important;
+}
+
+.pipeline-overview-copy {
+  align-self: center !important;
+}
+
+.pipeline-overview-copy h2 {
+  font-size: 20px !important;
+  line-height: 1.18 !important;
+  font-weight: 780 !important;
+}
+
+.pipeline-overview-copy p {
+  font-size: 13px !important;
+  color: var(--ink-3) !important;
+}
+
+.pipeline-metric {
+  min-height: 80px !important;
+  padding: 14px 16px !important;
+  border-radius: 7px !important;
+  align-content: center !important;
+  background: var(--card) !important;
+}
+
+.pipeline-metric span {
+  font-size: 20px !important;
+  line-height: 1 !important;
+}
+
+.pipeline-metric small {
+  font-family: var(--font-sans) !important;
+  font-size: 13px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-weight: 700 !important;
+}
+
+.pipeline-notice {
+  min-height: 36px !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  background: var(--orange-soft) !important;
+  border-color: var(--orange) !important;
+  color: var(--orange-ink) !important;
+}
+
+.pipeline-toolbar {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 14px !important;
+}
+
+.pipeline-tabs {
+  gap: 8px !important;
+}
+
+.pipeline-tabs button {
+  min-height: 36px !important;
+  padding: 7px 12px !important;
+  border-radius: 7px !important;
+  background: var(--card) !important;
+  font-size: 13px !important;
+  box-shadow: none !important;
+}
+
+.pipeline-tabs button b {
+  height: auto !important;
+  min-width: 0 !important;
+  padding: 0 0 0 4px !important;
+  background: transparent !important;
+  font-family: var(--font-sans) !important;
+  font-size: 12px !important;
+  letter-spacing: 0 !important;
+}
+
+.pipeline-actions .btn {
+  min-height: 36px !important;
+  padding: 8px 14px !important;
+  border-radius: 7px !important;
+  background: var(--card) !important;
+}
+
+.pipeline-actions .danger,
+.pipeline-actions .danger-soft {
+  background: var(--bad-soft) !important;
+  border-color: var(--bad) !important;
+  color: var(--bad) !important;
+}
+
+.pipeline-filterbar {
+  padding: 16px !important;
+  gap: 14px !important;
+  border-radius: 7px !important;
+  background: var(--card) !important;
+  grid-template-columns: minmax(260px, 1.1fr) minmax(460px, 2fr) auto !important;
+}
+
+.pipeline-searchbox,
+.pipeline-field select,
+.pipeline-field input,
+.pipeline-field [role="combobox"] {
+  height: 40px !important;
+  min-height: 40px !important;
+  border-radius: 7px !important;
+  background: var(--paper) !important;
+}
+
+.pipeline-field span {
+  font-size: 10px !important;
+  color: var(--ink-3) !important;
+}
+
+.pipeline-filter-fields {
+  grid-template-columns: minmax(118px, 1fr) minmax(118px, 1fr) minmax(150px, 1fr) 84px 84px !important;
+  gap: 10px !important;
+}
+
+.pipeline-filter-actions {
+  gap: 8px !important;
+}
+
+.pipeline-toggle,
+.pipeline-clear,
+.pipeline-count {
+  min-height: 34px !important;
+  border-radius: 7px !important;
+  background: var(--card) !important;
+  font-size: 12px !important;
+}
+
+.pipeline-content {
+  padding: 20px 28px 32px !important;
+  background: var(--card) !important;
+}
+
+.pipeline-results-head {
+  margin-bottom: 10px !important;
+}
+
+.pipeline-results-head h3 {
+  font-size: 18px !important;
+  font-weight: 760 !important;
+}
+
+.pipeline-results-head p {
+  font-size: 13px !important;
+}
+
+.pipeline-list {
+  gap: 0 !important;
+  overflow: hidden !important;
+  padding-bottom: 0 !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 7px !important;
+  background: var(--card) !important;
+}
+
+.pipeline-list-item + .pipeline-list-item {
+  border-top: 1px solid var(--line) !important;
+}
+
+.pipeline-job-card {
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  min-height: 96px !important;
+  padding: 18px 18px !important;
+  background: var(--card) !important;
+  grid-template-columns: 46px minmax(0, 1fr) minmax(430px, auto) !important;
+  align-items: center !important;
+}
+
+.pipeline-job-card:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  background: var(--paper-2) !important;
+}
+
+.pipeline-job-mark {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 7px !important;
+}
+
+.pipeline-job-title-row {
+  align-items: center !important;
+}
+
+.pipeline-job-title {
+  font-size: 14px !important;
+  line-height: 1.25 !important;
+}
+
+.pipeline-status-pill {
+  border-radius: 6px !important;
+  font-size: 10px !important;
+}
+
+.pipeline-job-meta {
+  margin-top: 8px !important;
+  font-size: 12px !important;
+}
+
+.pipeline-job-side {
+  min-width: 430px !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto !important;
+  align-items: center !important;
+  gap: 10px 14px !important;
+}
+
+.pipeline-score-stack {
+  justify-content: end !important;
+}
+
+.pipeline-score {
+  min-height: 26px !important;
+  border-radius: 6px !important;
+}
+
+.pipeline-job-actions {
+  justify-content: end !important;
+}
+
+.pipeline-job-actions .btn {
+  min-height: 34px !important;
+  border-radius: 7px !important;
+  background: var(--card) !important;
+}
+
+.pipeline-source {
+  grid-column: 1 / -1 !important;
+  justify-self: end !important;
+  max-width: 360px !important;
+  font-size: 11px !important;
+}
+
+@media (max-width: 1360px) {
+  .pipeline-overview {
+    grid-template-columns: minmax(280px, 1fr) repeat(7, minmax(92px, 0.5fr)) !important;
+    gap: 10px !important;
+  }
+
+  .pipeline-metric {
+    min-height: 68px !important;
+    padding: 10px 12px !important;
+  }
+
+  .pipeline-filterbar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .pipeline-job-card {
+    grid-template-columns: 46px minmax(0, 1fr) minmax(320px, auto) !important;
+  }
+
+  .pipeline-job-side {
+    min-width: 320px !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .pipeline-top,
+  .pipeline-content {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .pipeline-overview {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .pipeline-overview-copy {
+    grid-column: 1 / -1 !important;
+  }
+
+  .pipeline-toolbar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .pipeline-job-card {
+    grid-template-columns: 40px minmax(0, 1fr) !important;
+  }
+
+  .pipeline-job-side {
+    grid-column: 1 / -1 !important;
+    min-width: 0 !important;
+  }
+}
+
