@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-05-07T06:20:20.347Z",
-  "graphHash": "3087c351b26ab77f7c7d8470d9d9f8c2e259904638431d3d760d4d40bc1762b7",
+  "generatedAt": "2026-05-07T19:07:16.846Z",
+  "graphHash": "109af9852623a98930d6a4a5ba6b8f0cf15b2f1aeb6dbba50b366cdd4664e54d",
   "overview": {
     "nodes": 99,
     "edges": 129,
@@ -39,15 +39,15 @@
     "Non-first-party material accounts for 31.3% of graph nodes."
   ],
   "benchmark": {
-    "generatedAt": "2026-05-07T06:20:19.637Z",
+    "generatedAt": "2026-05-07T19:07:16.684Z",
     "stale": false,
     "summary": {
       "questionCount": 3,
-      "uniqueVisitedNodes": 24,
-      "finalContextTokens": 2365,
+      "uniqueVisitedNodes": 14,
+      "finalContextTokens": 1438,
       "naiveCorpusTokens": 16092,
-      "avgReduction": 0.853,
-      "reductionRatio": 0.853
+      "avgReduction": 0.911,
+      "reductionRatio": 0.911
     },
     "questionCount": 3,
     "byClass": {
@@ -56,9 +56,9 @@
         "pageCount": 68,
         "nodeCount": 68,
         "godNodeCount": 9,
-        "finalContextTokens": 1868,
+        "finalContextTokens": 725,
         "naiveCorpusTokens": 16092,
-        "reductionRatio": 0.884
+        "reductionRatio": 0.955
       },
       "third_party": {
         "sourceCount": 0,

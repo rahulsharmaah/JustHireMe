@@ -32,7 +32,7 @@ freshness: fresh
 status: active
 confidence: 1
 created_at: '2026-05-07T06:20:18.231Z'
-updated_at: '2026-05-07T06:20:18.231Z'
+updated_at: '2026-05-07T18:43:22.256Z'
 compiled_from:
   - maintainer-release-checklist-e92a78c9
   - windows-release-checklist-1411fa7a
@@ -66,33 +66,33 @@ related_source_ids: *ref_1
 
 ## Nodes
 
-- [[candidates/concepts/build|build]] (concept, degree=23, bridge=2)
-- [[candidates/concepts/installer|installer]] (concept, degree=12, bridge=0)
-- [[candidates/concepts/local|local]] (concept, degree=24, bridge=3)
-- [[candidates/concepts/release|release]] (concept, degree=23, bridge=2)
-- [[candidates/concepts/target|target]] (concept, degree=12, bridge=0)
-- [[candidates/concepts/windows|windows]] (concept, degree=12, bridge=0)
-- [[candidates/entities/artifact|Artifact]] (entity, degree=12, bridge=0)
-- [[candidates/entities/build|Build]] (entity, degree=12, bridge=0)
-- [[candidates/entities/recommended|Recommended: -]] (entity, degree=24, bridge=3)
-- [[candidates/entities/release-checklist|Release Checklist]] (entity, degree=12, bridge=0)
-- [[candidates/entities/use|Use]] (entity, degree=12, bridge=0)
-- [[candidates/entities/windows|Windows-]] (entity, degree=24, bridge=2)
+- [[concepts/build|build]] (concept, degree=23, bridge=2)
+- [[concepts/installer|installer]] (concept, degree=12, bridge=0)
+- [[concepts/local|local]] (concept, degree=24, bridge=3)
+- [[concepts/release|release]] (concept, degree=23, bridge=2)
+- [[concepts/target|target]] (concept, degree=12, bridge=0)
+- [[concepts/windows|windows]] (concept, degree=12, bridge=0)
+- [[entities/artifact|Artifact]] (entity, degree=12, bridge=0)
+- [[entities/build|Build]] (entity, degree=12, bridge=0)
+- [[entities/recommended|Recommended: -]] (entity, degree=24, bridge=3)
+- [[entities/release-checklist|Release Checklist]] (entity, degree=12, bridge=0)
+- [[entities/use|Use]] (entity, degree=12, bridge=0)
+- [[entities/windows|Windows-]] (entity, degree=24, bridge=2)
 
 ## Pages
 
-- [[candidates/concepts/build|build]]
-- [[candidates/concepts/installer|installer]]
-- [[candidates/concepts/local|local]]
-- [[candidates/concepts/release|release]]
-- [[candidates/concepts/target|target]]
-- [[candidates/concepts/windows|windows]]
-- [[candidates/entities/artifact|Artifact]]
-- [[candidates/entities/build|Build]]
-- [[candidates/entities/recommended|Recommended: -]]
-- [[candidates/entities/release-checklist|Release Checklist]]
-- [[candidates/entities/use|Use]]
-- [[candidates/entities/windows|Windows-]]
+- [[concepts/build|build]]
+- [[concepts/installer|installer]]
+- [[concepts/local|local]]
+- [[concepts/release|release]]
+- [[concepts/target|target]]
+- [[concepts/windows|windows]]
+- [[entities/artifact|Artifact]]
+- [[entities/build|Build]]
+- [[entities/recommended|Recommended: -]]
+- [[entities/release-checklist|Release Checklist]]
+- [[entities/use|Use]]
+- [[entities/windows|Windows-]]
 
 ## External Links
 

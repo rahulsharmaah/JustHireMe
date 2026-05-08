@@ -31,7 +31,7 @@ freshness: fresh
 status: active
 confidence: 1
 created_at: '2026-05-07T06:20:18.230Z'
-updated_at: '2026-05-07T06:20:18.230Z'
+updated_at: '2026-05-07T18:43:22.252Z'
 compiled_from:
   - justhireme-task-queue-ab463a5f
   - justhireme-mcp-73dcb246
@@ -64,33 +64,33 @@ related_source_ids: *ref_1
 
 ## Nodes
 
-- [[candidates/concepts/acceptance|acceptance]] (concept, degree=12, bridge=0)
-- [[candidates/concepts/criteria|criteria]] (concept, degree=12, bridge=0)
-- [[candidates/concepts/generation|generation]] (concept, degree=12, bridge=0)
-- [[candidates/concepts/goal|goal]] (concept, degree=12, bridge=0)
-- [[candidates/concepts/lead|lead]] (concept, degree=45, bridge=4)
-- [[candidates/concepts/tasks|tasks]] (concept, degree=12, bridge=0)
-- [[candidates/entities/adds|Adds]] (entity, degree=12, bridge=0)
-- [[candidates/entities/blocks|Blocks]] (entity, degree=12, bridge=0)
-- [[candidates/entities/current-north-star-make|Current North Star Make]] (entity, degree=12, bridge=0)
-- [[candidates/entities/future|Future]] (entity, degree=23, bridge=2)
-- [[candidates/entities/improves|Improves]] (entity, degree=12, bridge=0)
-- [[candidates/entities/task-queue-this|Task Queue This]] (entity, degree=12, bridge=0)
+- [[concepts/acceptance|acceptance]] (concept, degree=12, bridge=0)
+- [[concepts/criteria|criteria]] (concept, degree=12, bridge=0)
+- [[concepts/generation|generation]] (concept, degree=12, bridge=0)
+- [[concepts/goal|goal]] (concept, degree=12, bridge=0)
+- [[concepts/lead|lead]] (concept, degree=45, bridge=4)
+- [[concepts/tasks|tasks]] (concept, degree=12, bridge=0)
+- [[entities/adds|Adds]] (entity, degree=12, bridge=0)
+- [[entities/blocks|Blocks]] (entity, degree=12, bridge=0)
+- [[entities/current-north-star-make|Current North Star Make]] (entity, degree=12, bridge=0)
+- [[entities/future|Future]] (entity, degree=23, bridge=2)
+- [[entities/improves|Improves]] (entity, degree=12, bridge=0)
+- [[entities/task-queue-this|Task Queue This]] (entity, degree=12, bridge=0)
 
 ## Pages
 
-- [[candidates/concepts/acceptance|acceptance]]
-- [[candidates/concepts/criteria|criteria]]
-- [[candidates/concepts/generation|generation]]
-- [[candidates/concepts/goal|goal]]
-- [[candidates/concepts/lead|lead]]
-- [[candidates/concepts/tasks|tasks]]
-- [[candidates/entities/adds|Adds]]
-- [[candidates/entities/blocks|Blocks]]
-- [[candidates/entities/current-north-star-make|Current North Star Make]]
-- [[candidates/entities/future|Future]]
-- [[candidates/entities/improves|Improves]]
-- [[candidates/entities/task-queue-this|Task Queue This]]
+- [[concepts/acceptance|acceptance]]
+- [[concepts/criteria|criteria]]
+- [[concepts/generation|generation]]
+- [[concepts/goal|goal]]
+- [[concepts/lead|lead]]
+- [[concepts/tasks|tasks]]
+- [[entities/adds|Adds]]
+- [[entities/blocks|Blocks]]
+- [[entities/current-north-star-make|Current North Star Make]]
+- [[entities/future|Future]]
+- [[entities/improves|Improves]]
+- [[entities/task-queue-this|Task Queue This]]
 
 ## External Links
 

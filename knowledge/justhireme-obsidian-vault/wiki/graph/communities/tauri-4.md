@@ -29,7 +29,7 @@ freshness: fresh
 status: active
 confidence: 1
 created_at: '2026-05-07T06:20:18.231Z'
-updated_at: '2026-05-07T06:20:18.231Z'
+updated_at: '2026-05-07T18:43:22.258Z'
 compiled_from:
   - spec-1447dd6d
   - maintainer-release-checklist-e92a78c9
@@ -60,33 +60,33 @@ related_source_ids: *ref_1
 
 ## Nodes
 
-- [[candidates/concepts/agent|agent]] (concept, degree=12, bridge=0)
-- [[candidates/concepts/graph|graph]] (concept, degree=12, bridge=0)
-- [[candidates/concepts/logic|logic]] (concept, degree=12, bridge=0)
-- [[candidates/concepts/playwright|playwright]] (concept, degree=12, bridge=0)
-- [[candidates/concepts/python|python]] (concept, degree=12, bridge=0)
-- [[candidates/concepts/tauri|tauri]] (concept, degree=24, bridge=2)
-- [[candidates/entities/fastapi-localhost|FastAPI (Localhost,]] (entity, degree=12, bridge=0)
-- [[candidates/entities/framer-motion-orchestrator-python|Framer Motion Orchestrator: Python]] (entity, degree=12, bridge=0)
-- [[candidates/entities/graphrag|GraphRAG]] (entity, degree=12, bridge=0)
-- [[candidates/entities/react-vite-typescript-tailwind|React (Vite), TypeScript, Tailwind]] (entity, degree=12, bridge=0)
-- [[candidates/entities/state-machine-langgraph-backend|State Machine: LangGraph Backend]] (entity, degree=12, bridge=0)
-- [[candidates/entities/vision|Vision]] (entity, degree=12, bridge=0)
+- [[concepts/agent|agent]] (concept, degree=12, bridge=0)
+- [[concepts/graph|graph]] (concept, degree=12, bridge=0)
+- [[concepts/logic|logic]] (concept, degree=12, bridge=0)
+- [[concepts/playwright|playwright]] (concept, degree=12, bridge=0)
+- [[concepts/python|python]] (concept, degree=12, bridge=0)
+- [[concepts/tauri|tauri]] (concept, degree=24, bridge=2)
+- [[entities/fastapi-localhost|FastAPI (Localhost,]] (entity, degree=12, bridge=0)
+- [[entities/framer-motion-orchestrator-python|Framer Motion Orchestrator: Python]] (entity, degree=12, bridge=0)
+- [[entities/graphrag|GraphRAG]] (entity, degree=12, bridge=0)
+- [[entities/react-vite-typescript-tailwind|React (Vite), TypeScript, Tailwind]] (entity, degree=12, bridge=0)
+- [[entities/state-machine-langgraph-backend|State Machine: LangGraph Backend]] (entity, degree=12, bridge=0)
+- [[entities/vision|Vision]] (entity, degree=12, bridge=0)
 
 ## Pages
 
-- [[candidates/concepts/agent|agent]]
-- [[candidates/concepts/graph|graph]]
-- [[candidates/concepts/logic|logic]]
-- [[candidates/concepts/playwright|playwright]]
-- [[candidates/concepts/python|python]]
-- [[candidates/concepts/tauri|tauri]]
-- [[candidates/entities/fastapi-localhost|FastAPI (Localhost,]]
-- [[candidates/entities/framer-motion-orchestrator-python|Framer Motion Orchestrator: Python]]
-- [[candidates/entities/graphrag|GraphRAG]]
-- [[candidates/entities/react-vite-typescript-tailwind|React (Vite), TypeScript, Tailwind]]
-- [[candidates/entities/state-machine-langgraph-backend|State Machine: LangGraph Backend]]
-- [[candidates/entities/vision|Vision]]
+- [[concepts/agent|agent]]
+- [[concepts/graph|graph]]
+- [[concepts/logic|logic]]
+- [[concepts/playwright|playwright]]
+- [[concepts/python|python]]
+- [[concepts/tauri|tauri]]
+- [[entities/fastapi-localhost|FastAPI (Localhost,]]
+- [[entities/framer-motion-orchestrator-python|Framer Motion Orchestrator: Python]]
+- [[entities/graphrag|GraphRAG]]
+- [[entities/react-vite-typescript-tailwind|React (Vite), TypeScript, Tailwind]]
+- [[entities/state-machine-langgraph-backend|State Machine: LangGraph Backend]]
+- [[entities/vision|Vision]]
 
 ## External Links
 

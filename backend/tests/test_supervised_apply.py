@@ -77,6 +77,38 @@ class TestSupervisedApplyFlow(unittest.TestCase):
         read_form.assert_called_once()
         record_event.assert_called_once_with("apply-001", "apply_preview")
 
+    def test_preview_uses_derived_lead_contact_when_settings_are_blank(self):
+        captured_identity = {}
+
+        async def _read_form(_url, identity, *_args, **_kwargs):
+            captured_identity.update(identity)
+            return {"fields": [], "unmatched_labels": [], "error": None}
+
+        lead = _lead(
+            name="Rahul Sharma",
+            email="rahul@example.com",
+            phone="+15555550100",
+            linkedin_url="https://linkedin.com/in/rahul",
+            github="https://github.com/rahul",
+            website="https://rahul.example",
+        )
+
+        with (
+            mock.patch("db.client.get_lead_for_fire", return_value=(lead, VALID_ASSET)),
+            mock.patch("db.client.get_profile", return_value={"n": "Rahul Sharma"}),
+            mock.patch("db.client.get_settings", return_value={}),
+            mock.patch("agents.actuator.read_form", side_effect=_read_form),
+            mock.patch("db.client.record_event"),
+        ):
+            resp = post("/api/v1/leads/apply-001/apply/preview")
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(captured_identity["email"], "rahul@example.com")
+        self.assertEqual(captured_identity["phone"], "+15555550100")
+        self.assertEqual(captured_identity["linkedin_url"], "https://linkedin.com/in/rahul")
+        self.assertEqual(captured_identity["github"], "https://github.com/rahul")
+        self.assertEqual(captured_identity["website"], "https://rahul.example")
+
     def test_fill_runs_actuator_without_final_submit(self):
         context_patches = _patch_apply_context()
         with (
@@ -185,6 +217,58 @@ class TestSupervisedApplyFlow(unittest.TestCase):
         actuator_run.assert_called_once()
         self.assertEqual(actuator_run.call_args.args[2:], (False, True))
         mark_applied.assert_called_once_with("apply-001")
+
+
+class TestActuatorFillSelectors(unittest.IsolatedAsyncioTestCase):
+    async def test_fill_dom_uses_platform_selectors_from_preview_catalog(self):
+        from agents import actuator
+
+        class FakeElement:
+            def __init__(self, selector: str, page: "FakePage"):
+                self.selector = selector
+                self.page = page
+
+            @property
+            def first(self):
+                return self
+
+            async def wait_for(self, **_kwargs):
+                if self.selector not in self.page.visible:
+                    raise RuntimeError("not visible")
+
+            async def focus(self):
+                return None
+
+            async def fill(self, value: str, **_kwargs):
+                self.page.filled[self.selector] = value
+
+        class FakePage:
+            def __init__(self):
+                self.visible = {"input#first_name", "input#last_name", "input#email", "input#phone"}
+                self.filled = {}
+
+            def locator(self, selector: str):
+                return FakeElement(selector, self)
+
+            async def wait_for_timeout(self, _ms: int):
+                return None
+
+        page = FakePage()
+        job = {
+            "url": "https://boards.greenhouse.io/acme/jobs/123",
+            "name": "Rahul Sharma",
+            "email": "rahul@example.com",
+            "phone": "+15555550100",
+        }
+
+        with mock.patch("agents.actuator._upload_resume", return_value=False):
+            result = await actuator._fill_dom(page, job, "")
+
+        self.assertEqual(page.filled["input#first_name"], "Rahul")
+        self.assertEqual(page.filled["input#last_name"], "Sharma")
+        self.assertEqual(page.filled["input#email"], "rahul@example.com")
+        self.assertEqual(page.filled["input#phone"], "+15555550100")
+        self.assertEqual(result["fields"], ["first_name", "last_name", "email", "phone"])
 
 
 if __name__ == "__main__":

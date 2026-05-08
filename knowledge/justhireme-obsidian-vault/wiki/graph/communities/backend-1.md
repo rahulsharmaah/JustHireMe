@@ -37,7 +37,7 @@ freshness: fresh
 status: active
 confidence: 1
 created_at: '2026-05-07T06:20:18.228Z'
-updated_at: '2026-05-07T06:20:18.228Z'
+updated_at: '2026-05-07T18:43:22.249Z'
 compiled_from:
   - architecture-1e26a0b9
   - justhireme-mcp-73dcb246
@@ -76,53 +76,53 @@ related_source_ids: *ref_1
 
 ## Nodes
 
-- [[candidates/concepts/backend|backend]] (concept, degree=42, bridge=6)
-- [[candidates/concepts/before|before]] (concept, degree=12, bridge=2)
-- [[candidates/concepts/json|json]] (concept, degree=12, bridge=1)
-- [[candidates/concepts/justhireme|justhireme]] (concept, degree=23, bridge=4)
-- [[candidates/concepts/projects|projects]] (concept, degree=12, bridge=1)
-- [[candidates/concepts/server|server]] (concept, degree=12, bridge=1)
-- [[candidates/concepts/test|test]] (concept, degree=12, bridge=2)
-- [[candidates/entities/example-client-config|Example Client Config]] (entity, degree=12, bridge=1)
-- [[candidates/entities/justhireme|JustHireMe]] (entity, degree=34, bridge=5)
-- [[candidates/entities/keep|Keep]] (entity, degree=12, bridge=1)
-- [[candidates/entities/mcp|MCP]] (entity, degree=12, bridge=1)
-- [[candidates/entities/privacy-and-safety|Privacy And Safety - [ ]]] (entity, degree=12, bridge=2)
-- [[candidates/entities/release-checklist-use|Release Checklist Use]] (entity, degree=12, bridge=2)
-- [[candidates/entities/required-checks|Required Checks - [ ]]] (entity, degree=12, bridge=2)
-- [[candidates/entities/run|Run]] (entity, degree=12, bridge=2)
-- [[candidates/entities/start-from|Start From]] (entity, degree=12, bridge=1)
-- [[candidates/entities/tools|Tools -]] (entity, degree=12, bridge=1)
-- [[candidates/entities/websocket|WebSocket]] (entity, degree=12, bridge=2)
+- [[concepts/backend|backend]] (concept, degree=42, bridge=6)
+- [[concepts/before|before]] (concept, degree=12, bridge=2)
+- [[concepts/json|json]] (concept, degree=12, bridge=1)
+- [[concepts/justhireme|justhireme]] (concept, degree=23, bridge=4)
+- [[concepts/projects|projects]] (concept, degree=12, bridge=1)
+- [[concepts/server|server]] (concept, degree=12, bridge=1)
+- [[concepts/test|test]] (concept, degree=12, bridge=2)
+- [[entities/example-client-config|Example Client Config]] (entity, degree=12, bridge=1)
+- [[entities/justhireme|JustHireMe]] (entity, degree=34, bridge=5)
+- [[entities/keep|Keep]] (entity, degree=12, bridge=1)
+- [[entities/mcp|MCP]] (entity, degree=12, bridge=1)
+- [[entities/privacy-and-safety|Privacy And Safety - [ ]]] (entity, degree=12, bridge=2)
+- [[entities/release-checklist-use|Release Checklist Use]] (entity, degree=12, bridge=2)
+- [[entities/required-checks|Required Checks - [ ]]] (entity, degree=12, bridge=2)
+- [[entities/run|Run]] (entity, degree=12, bridge=2)
+- [[entities/start-from|Start From]] (entity, degree=12, bridge=1)
+- [[entities/tools|Tools -]] (entity, degree=12, bridge=1)
+- [[entities/websocket|WebSocket]] (entity, degree=12, bridge=2)
 
 ## Pages
 
-- [[candidates/concepts/backend|backend]]
-- [[candidates/concepts/before|before]]
-- [[candidates/concepts/json|json]]
-- [[candidates/concepts/justhireme|justhireme]]
-- [[candidates/concepts/projects|projects]]
-- [[candidates/concepts/server|server]]
-- [[candidates/concepts/test|test]]
-- [[candidates/entities/example-client-config|Example Client Config]]
-- [[candidates/entities/justhireme|JustHireMe]]
-- [[candidates/entities/keep|Keep]]
-- [[candidates/entities/mcp|MCP]]
-- [[candidates/entities/privacy-and-safety|Privacy And Safety - [ ]]]
-- [[candidates/entities/release-checklist-use|Release Checklist Use]]
-- [[candidates/entities/required-checks|Required Checks - [ ]]]
-- [[candidates/entities/run|Run]]
-- [[candidates/entities/start-from|Start From]]
-- [[candidates/entities/tools|Tools -]]
-- [[candidates/entities/websocket|WebSocket]]
+- [[concepts/backend|backend]]
+- [[concepts/before|before]]
+- [[concepts/json|json]]
+- [[concepts/justhireme|justhireme]]
+- [[concepts/projects|projects]]
+- [[concepts/server|server]]
+- [[concepts/test|test]]
+- [[entities/example-client-config|Example Client Config]]
+- [[entities/justhireme|JustHireMe]]
+- [[entities/keep|Keep]]
+- [[entities/mcp|MCP]]
+- [[entities/privacy-and-safety|Privacy And Safety - [ ]]]
+- [[entities/release-checklist-use|Release Checklist Use]]
+- [[entities/required-checks|Required Checks - [ ]]]
+- [[entities/run|Run]]
+- [[entities/start-from|Start From]]
+- [[entities/tools|Tools -]]
+- [[entities/websocket|WebSocket]]
 
 ## External Links
 
 - [[sources/the-short-version-46ce9e60|The Short Version]] conflicted_with [[sources/architecture-1e26a0b9|Architecture]] (ambiguous)
-- [[sources/justhireme-mcp-73dcb246|JustHireMe MCP]] mentions [[candidates/concepts/lead|lead]] (extracted)
-- [[sources/maintainer-release-checklist-e92a78c9|Maintainer Release Checklist]] mentions [[candidates/concepts/build|build]] (extracted)
-- [[sources/maintainer-release-checklist-e92a78c9|Maintainer Release Checklist]] mentions [[candidates/concepts/release|release]] (extracted)
-- [[sources/maintainer-release-checklist-e92a78c9|Maintainer Release Checklist]] mentions [[candidates/concepts/tauri|tauri]] (extracted)
+- [[sources/justhireme-mcp-73dcb246|JustHireMe MCP]] mentions [[concepts/lead|lead]] (extracted)
+- [[sources/maintainer-release-checklist-e92a78c9|Maintainer Release Checklist]] mentions [[concepts/build|build]] (extracted)
+- [[sources/maintainer-release-checklist-e92a78c9|Maintainer Release Checklist]] mentions [[concepts/release|release]] (extracted)
+- [[sources/maintainer-release-checklist-e92a78c9|Maintainer Release Checklist]] mentions [[concepts/tauri|tauri]] (extracted)
 - [[sources/justhireme-mcp-73dcb246|JustHireMe MCP]] semantically_similar_to [[sources/source-adapter-contract-7d8012af|Source Adapter Contract]] (inferred)
 - [[sources/maintainer-release-checklist-e92a78c9|Maintainer Release Checklist]] semantically_similar_to [[sources/spec-1447dd6d|SPEC]] (inferred)
 - [[sources/justhireme-mcp-73dcb246|JustHireMe MCP]] semantically_similar_to [[sources/justhireme-task-queue-ab463a5f|JustHireMe Task Queue]] (inferred)

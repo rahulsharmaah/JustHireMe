@@ -32,20 +32,20 @@ freshness: fresh
 status: active
 confidence: 1
 created_at: '2026-05-07T06:20:18.244Z'
-updated_at: '2026-05-07T06:20:19.679Z'
+updated_at: '2026-05-07T18:43:22.289Z'
 compiled_from:
-  - architecture-1e26a0b9
   - architecture-7bacf36d
   - architecture-interactive-6e908276
-  - justhireme-hero-99dc8ea1
-  - justhireme-mcp-73dcb246
   - justhireme-task-queue-ab463a5f
-  - maintainer-release-checklist-e92a78c9
-  - roadmap-0a538d29
   - source-adapter-contract-7d8012af
   - spec-1447dd6d
+  - architecture-1e26a0b9
+  - justhireme-mcp-73dcb246
+  - maintainer-release-checklist-e92a78c9
   - the-short-version-46ce9e60
   - windows-release-checklist-1411fa7a
+  - roadmap-0a538d29
+  - justhireme-hero-99dc8ea1
 managed_by: system
 backlinks: []
 schema_hash: bf22a9fff8b2f405ddb27953c30dc356517518aebbb9af55cc669cbd465330cd

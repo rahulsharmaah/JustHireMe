@@ -97,3 +97,51 @@
 - schema=bf22a9fff8b2
 - benchmark=ok
 
+## [2026-05-07 18:43:14] compile | Compiled 12 source(s)
+- session: `state/sessions/2026-05-07T18-43-14-940Z-compile-compiled-12-source-s.md`
+- provider=local
+- pages=120
+- dirty=0
+- clean=12
+- outputs=0
+- insights=0
+- memory=0
+- schema=bf22a9fff8b2
+- benchmark=error:ENOENT: no such file or directory, open 'D:\projects\JustHireMe\knowledge\justhireme-obsidian-vault\wiki\concepts\acceptance.md'
+
+## [2026-05-07 18:45:23] compile | Compiled 12 source(s)
+- session: `state/sessions/2026-05-07T18-45-23-712Z-compile-compiled-12-source-s.md`
+- provider=local
+- pages=120
+- dirty=0
+- clean=12
+- outputs=0
+- insights=0
+- memory=0
+- schema=bf22a9fff8b2
+- benchmark=error:ENOENT: no such file or directory, open 'D:\projects\JustHireMe\knowledge\justhireme-obsidian-vault\wiki\concepts\acceptance.md'
+
+## [2026-05-07 18:52:20] compile | Compiled 12 source(s)
+- session: `state/sessions/2026-05-07T18-52-20-856Z-compile-compiled-12-source-s.md`
+- provider=local
+- pages=120
+- dirty=0
+- clean=12
+- outputs=0
+- insights=0
+- memory=0
+- schema=bf22a9fff8b2
+- benchmark=error:ENOENT: no such file or directory, open 'D:\projects\JustHireMe\knowledge\justhireme-obsidian-vault\wiki\concepts\acceptance.md'
+
+## [2026-05-07 19:07:02] compile | Compiled 12 source(s)
+- session: `state/sessions/2026-05-07T19-07-02-916Z-compile-compiled-12-source-s.md`
+- provider=local
+- pages=120
+- dirty=0
+- clean=12
+- outputs=0
+- insights=0
+- memory=0
+- schema=bf22a9fff8b2
+- benchmark=error:ENOENT: no such file or directory, open 'D:\projects\JustHireMe\knowledge\justhireme-obsidian-vault\wiki\concepts\acceptance.md'
+

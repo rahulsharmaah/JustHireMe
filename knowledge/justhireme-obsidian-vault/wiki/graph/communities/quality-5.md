@@ -28,7 +28,7 @@ freshness: fresh
 status: active
 confidence: 1
 created_at: '2026-05-07T06:20:18.231Z'
-updated_at: '2026-05-07T06:20:18.231Z'
+updated_at: '2026-05-07T18:43:22.261Z'
 compiled_from:
   - roadmap-0a538d29
   - architecture-1e26a0b9
@@ -58,32 +58,32 @@ related_source_ids: *ref_1
 
 ## Nodes
 
-- [[candidates/concepts/contributor|contributor]] (concept, degree=12, bridge=2)
-- [[candidates/concepts/evaluation|evaluation]] (concept, degree=12, bridge=2)
-- [[candidates/concepts/improve|improve]] (concept, degree=12, bridge=2)
-- [[candidates/concepts/quality|quality]] (concept, degree=42, bridge=6)
-- [[candidates/concepts/source|source]] (concept, degree=33, bridge=6)
-- [[candidates/entities/ranking-and-evaluation-add|Ranking And Evaluation - Add]] (entity, degree=12, bridge=2)
-- [[candidates/entities/readiness-reframe|Readiness - Reframe]] (entity, degree=12, bridge=2)
-- [[candidates/entities/source-ecosystem-add|Source Ecosystem - Add]] (entity, degree=12, bridge=2)
-- [[candidates/entities/ui|UI.]] (entity, degree=12, bridge=2)
+- [[concepts/contributor|contributor]] (concept, degree=12, bridge=2)
+- [[concepts/evaluation|evaluation]] (concept, degree=12, bridge=2)
+- [[concepts/improve|improve]] (concept, degree=12, bridge=2)
+- [[concepts/quality|quality]] (concept, degree=42, bridge=6)
+- [[concepts/source|source]] (concept, degree=33, bridge=6)
+- [[entities/ranking-and-evaluation-add|Ranking And Evaluation - Add]] (entity, degree=12, bridge=2)
+- [[entities/readiness-reframe|Readiness - Reframe]] (entity, degree=12, bridge=2)
+- [[entities/source-ecosystem-add|Source Ecosystem - Add]] (entity, degree=12, bridge=2)
+- [[entities/ui|UI.]] (entity, degree=12, bridge=2)
 
 ## Pages
 
-- [[candidates/concepts/contributor|contributor]]
-- [[candidates/concepts/evaluation|evaluation]]
-- [[candidates/concepts/improve|improve]]
-- [[candidates/concepts/quality|quality]]
-- [[candidates/concepts/source|source]]
-- [[candidates/entities/ranking-and-evaluation-add|Ranking And Evaluation - Add]]
-- [[candidates/entities/readiness-reframe|Readiness - Reframe]]
-- [[candidates/entities/source-ecosystem-add|Source Ecosystem - Add]]
-- [[candidates/entities/ui|UI.]]
+- [[concepts/contributor|contributor]]
+- [[concepts/evaluation|evaluation]]
+- [[concepts/improve|improve]]
+- [[concepts/quality|quality]]
+- [[concepts/source|source]]
+- [[entities/ranking-and-evaluation-add|Ranking And Evaluation - Add]]
+- [[entities/readiness-reframe|Readiness - Reframe]]
+- [[entities/source-ecosystem-add|Source Ecosystem - Add]]
+- [[entities/ui|UI.]]
 
 ## External Links
 
-- [[sources/roadmap-0a538d29|Roadmap]] mentions [[candidates/concepts/lead|lead]] (extracted)
-- [[sources/roadmap-0a538d29|Roadmap]] mentions [[candidates/entities/future|Future]] (extracted)
-- [[sources/roadmap-0a538d29|Roadmap]] mentions [[candidates/entities/windows|Windows-]] (extracted)
+- [[sources/roadmap-0a538d29|Roadmap]] mentions [[concepts/lead|lead]] (extracted)
+- [[sources/roadmap-0a538d29|Roadmap]] mentions [[entities/future|Future]] (extracted)
+- [[sources/roadmap-0a538d29|Roadmap]] mentions [[entities/windows|Windows-]] (extracted)
 - [[sources/roadmap-0a538d29|Roadmap]] semantically_similar_to [[sources/source-adapter-contract-7d8012af|Source Adapter Contract]] (inferred)
 - [[sources/roadmap-0a538d29|Roadmap]] semantically_similar_to [[sources/the-short-version-46ce9e60|The Short Version]] (inferred)

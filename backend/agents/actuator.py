@@ -201,6 +201,22 @@ _DOM_MAP = [
 _FILL_DELAY = 500
 
 
+def _fill_selectors_for_job(job: dict) -> list[tuple[str, str]]:
+    from agents.selectors import get_platform_fields, get_selectors
+
+    selectors: list[tuple[str, str]] = []
+    try:
+        for item in get_platform_fields(str(job.get("url") or ""), get_selectors()):
+            selector = str(item.get("selector") or "").strip()
+            field_type = str(item.get("type") or "").strip()
+            if selector and field_type:
+                selectors.append((selector, field_type))
+    except Exception as exc:
+        _log.warning("selector fill map unavailable: %s", exc)
+    selectors.extend(_DOM_MAP)
+    return selectors
+
+
 async def _upload_resume(p, asset: str) -> bool:
     if not asset or not os.path.isfile(asset):
         return False
@@ -215,8 +231,11 @@ async def _upload_resume(p, asset: str) -> bool:
 
 async def _fill_dom(p, j: dict, a: str):
     result = {"fields": [], "uploaded": False, "vision_actions": 0}
-    for sel, key in _DOM_MAP:
-        v = j.get(key, "")
+    filled_keys: set[str] = set()
+    for sel, key in _fill_selectors_for_job(j):
+        if key in filled_keys:
+            continue
+        v = resolve_answer(key, j, key)
         if not v:
             continue
         try:
@@ -226,6 +245,7 @@ async def _fill_dom(p, j: dict, a: str):
             await p.wait_for_timeout(_FILL_DELAY)
             await el.fill(str(v), timeout=3000)
             result["fields"].append(key)
+            filled_keys.add(key)
             await p.wait_for_timeout(_FILL_DELAY)
         except Exception:
             pass

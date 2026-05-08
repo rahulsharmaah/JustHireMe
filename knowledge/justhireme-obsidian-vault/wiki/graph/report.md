@@ -40,20 +40,20 @@ freshness: fresh
 status: active
 confidence: 1
 created_at: '2026-05-07T06:20:18.242Z'
-updated_at: '2026-05-07T06:20:19.676Z'
+updated_at: '2026-05-07T19:07:16.853Z'
 compiled_from:
-  - architecture-1e26a0b9
   - architecture-7bacf36d
   - architecture-interactive-6e908276
-  - justhireme-hero-99dc8ea1
-  - justhireme-mcp-73dcb246
   - justhireme-task-queue-ab463a5f
-  - maintainer-release-checklist-e92a78c9
-  - roadmap-0a538d29
   - source-adapter-contract-7d8012af
   - spec-1447dd6d
+  - architecture-1e26a0b9
+  - justhireme-mcp-73dcb246
+  - maintainer-release-checklist-e92a78c9
   - the-short-version-46ce9e60
   - windows-release-checklist-1411fa7a
+  - roadmap-0a538d29
+  - justhireme-hero-99dc8ea1
 managed_by: system
 backlinks: []
 schema_hash: bf22a9fff8b2f405ddb27953c30dc356517518aebbb9af55cc669cbd465330cd
@@ -110,45 +110,45 @@ related_source_ids: *ref_1
 
 ## Benchmark Summary
 
-- Generated At: 2026-05-07T06:20:19.637Z
+- Generated At: 2026-05-07T19:07:16.684Z
 - Status: Fresh
 - Naive Corpus Tokens: 16092
-- Final Context Tokens: 2365
-- Unique Nodes Considered: 24
-- Reduction Ratio: 85.3%
+- Final Context Tokens: 1438
+- Unique Nodes Considered: 14
+- Reduction Ratio: 91.1%
 - Questions: 3
 
 ### Benchmark By Source Class
 
 | Class | Sources | Pages | Nodes | God Nodes | Naive Tokens | Guided Tokens | Reduction |
 | ----- | ------- | ----- | ----- | --------- | ------------ | ------------- | --------- |
-| First-party | 7 | 68 | 68 | 9 | 16092 | 1868 | 88.4% |
+| First-party | 7 | 68 | 68 | 9 | 16092 | 725 | 95.5% |
 | Third-party | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% |
 | Resource | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% |
 | Generated | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% |
 
 ## Top God Nodes
 
-- [[candidates/concepts/lead|lead]] (concept, degree=45, bridge=4)
-- [[candidates/concepts/backend|backend]] (concept, degree=42, bridge=6)
-- [[candidates/concepts/quality|quality]] (concept, degree=42, bridge=6)
-- [[candidates/entities/justhireme|JustHireMe]] (entity, degree=34, bridge=5)
-- [[candidates/concepts/source|source]] (concept, degree=33, bridge=6)
-- [[candidates/concepts/local|local]] (concept, degree=24, bridge=3)
-- [[candidates/concepts/tauri|tauri]] (concept, degree=24, bridge=2)
-- [[candidates/entities/windows|Windows-]] (entity, degree=24, bridge=2)
-- [[candidates/entities/recommended|Recommended: -]] (entity, degree=24, bridge=3)
+- [[concepts/lead|lead]] (concept, degree=45, bridge=4)
+- [[concepts/backend|backend]] (concept, degree=42, bridge=6)
+- [[concepts/quality|quality]] (concept, degree=42, bridge=6)
+- [[entities/justhireme|JustHireMe]] (entity, degree=34, bridge=5)
+- [[concepts/source|source]] (concept, degree=33, bridge=6)
+- [[concepts/local|local]] (concept, degree=24, bridge=3)
+- [[concepts/tauri|tauri]] (concept, degree=24, bridge=2)
+- [[entities/windows|Windows-]] (entity, degree=24, bridge=2)
+- [[entities/recommended|Recommended: -]] (entity, degree=24, bridge=3)
 
 ## Top Bridge Nodes
 
-- [[candidates/concepts/backend|backend]] (concept, degree=42, bridge=6)
-- [[candidates/concepts/quality|quality]] (concept, degree=42, bridge=6)
-- [[candidates/concepts/source|source]] (concept, degree=33, bridge=6)
-- [[candidates/entities/justhireme|JustHireMe]] (entity, degree=34, bridge=5)
+- [[concepts/backend|backend]] (concept, degree=42, bridge=6)
+- [[concepts/quality|quality]] (concept, degree=42, bridge=6)
+- [[concepts/source|source]] (concept, degree=33, bridge=6)
+- [[entities/justhireme|JustHireMe]] (entity, degree=34, bridge=5)
 - [[sources/architecture-1e26a0b9|Architecture]] (source, degree=18, bridge=4)
 - [[sources/source-adapter-contract-7d8012af|Source Adapter Contract]] (source, degree=17, bridge=4)
-- [[candidates/concepts/justhireme|justhireme]] (concept, degree=23, bridge=4)
-- [[candidates/concepts/lead|lead]] (concept, degree=45, bridge=4)
+- [[concepts/justhireme|justhireme]] (concept, degree=23, bridge=4)
+- [[concepts/lead|lead]] (concept, degree=45, bridge=4)
 
 ## Communities
 
@@ -177,7 +177,7 @@ related_source_ids: *ref_1
 - [[sources/justhireme-mcp-73dcb246|JustHireMe MCP]] semantically_similar_to [[sources/justhireme-task-queue-ab463a5f|JustHireMe Task Queue]] (inferred, 0.78). Why: it crosses communities community:backend-1 and community:lead-2; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts.. JustHireMe MCP connects to JustHireMe Task Queue because it crosses communities community:backend-1 and community:lead-2; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts.. Path: JustHireMe MCP -> JustHireMe Task Queue.
 - [[sources/architecture-1e26a0b9|Architecture]] semantically_similar_to [[sources/source-adapter-contract-7d8012af|Source Adapter Contract]] (inferred, 0.78). Why: it crosses communities community:agents-6 and community:company-7; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts.. Architecture connects to Source Adapter Contract because it crosses communities community:agents-6 and community:company-7; it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts.. Path: Architecture -> Source Adapter Contract.
 - [[sources/justhireme-mcp-73dcb246|JustHireMe MCP]] semantically_similar_to [[sources/maintainer-release-checklist-e92a78c9|Maintainer Release Checklist]] (inferred, 0.96). Why: it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts, shared entities.; it also appears in 1 group pattern. JustHireMe MCP connects to Maintainer Release Checklist because it spans different canonical pages; a bridge node is involved; This link is inferred from shared concepts, shared entities.; it also appears in 1 group pattern. Path: JustHireMe MCP -> Maintainer Release Checklist.
-- [[sources/architecture-1e26a0b9|Architecture]] mentions [[candidates/entities/justhireme|JustHireMe]] (extracted, 0.55). Why: it crosses communities community:agents-6 and community:backend-1; it spans different canonical pages; it bridges source and entity nodes; a bridge node is involved; it also appears in 1 group pattern. Architecture connects to JustHireMe because it crosses communities community:agents-6 and community:backend-1; it spans different canonical pages; it bridges source and entity nodes; a bridge node is involved; it also appears in 1 group pattern. Path: Architecture -> JustHireMe.
+- [[sources/architecture-1e26a0b9|Architecture]] mentions [[entities/justhireme|JustHireMe]] (extracted, 0.55). Why: it crosses communities community:agents-6 and community:backend-1; it spans different canonical pages; it bridges source and entity nodes; a bridge node is involved; it also appears in 1 group pattern. Architecture connects to JustHireMe because it crosses communities community:agents-6 and community:backend-1; it spans different canonical pages; it bridges source and entity nodes; a bridge node is involved; it also appears in 1 group pattern. Path: Architecture -> JustHireMe.
 
 ## Contradictions
 
@@ -185,7 +185,7 @@ related_source_ids: *ref_1
 
 ## Group Patterns
 
-- JustHireMe (participate_in, extracted, 0.90). 3 source nodes converge on JustHireMe through extracted mention edges. Members: [[candidates/entities/justhireme|JustHireMe]], [[sources/architecture-1e26a0b9|Architecture]], [[sources/justhireme-mcp-73dcb246|JustHireMe MCP]], [[sources/maintainer-release-checklist-e92a78c9|Maintainer Release Checklist]].
+- JustHireMe (participate_in, extracted, 0.90). 3 source nodes converge on JustHireMe through extracted mention edges. Members: [[entities/justhireme|JustHireMe]], [[sources/architecture-1e26a0b9|Architecture]], [[sources/justhireme-mcp-73dcb246|JustHireMe MCP]], [[sources/maintainer-release-checklist-e92a78c9|Maintainer Release Checklist]].
 
 ## New Research Sources
 

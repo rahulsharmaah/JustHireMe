@@ -2198,14 +2198,14 @@ async def _apply_context(job_id: str) -> tuple[dict, str, dict, str]:
     candidate = (profile.get("candidate") or {}) if isinstance(profile, dict) else {}
     identity = {
         **lead,
-        "name":            cfg.get("full_name", "") or candidate.get("n", "") or profile.get("n", ""),
-        "email":           cfg.get("email", ""),
-        "phone":           cfg.get("phone", ""),
-        "linkedin_url":    cfg.get("linkedin_url", ""),
-        "github":          cfg.get("github_url", ""),
-        "website":         cfg.get("website_url", ""),
-        "city":            cfg.get("city", ""),
-        "current_company": cfg.get("current_company", ""),
+        "name":            cfg.get("full_name", "") or lead.get("name", "") or candidate.get("n", "") or profile.get("n", ""),
+        "email":           cfg.get("email", "") or lead.get("email", ""),
+        "phone":           cfg.get("phone", "") or lead.get("phone", ""),
+        "linkedin_url":    cfg.get("linkedin_url", "") or lead.get("linkedin_url", ""),
+        "github":          cfg.get("github_url", "") or lead.get("github", ""),
+        "website":         cfg.get("website_url", "") or lead.get("website", ""),
+        "city":            cfg.get("city", "") or lead.get("city", ""),
+        "current_company": cfg.get("current_company", "") or lead.get("current_company", ""),
         "application_answers": _lead_application_answers(lead),
     }
 
@@ -2241,14 +2241,14 @@ async def read_lead_form(job_id: str, body: FormReadBody):
 
     cfg = get_settings()
     identity = {
-        "name":            cfg.get("full_name", "") or candidate.get("n", "") or profile.get("n", ""),
-        "email":           cfg.get("email", ""),
-        "phone":           cfg.get("phone", ""),
-        "linkedin_url":    cfg.get("linkedin_url", ""),
-        "github":          cfg.get("github_url", ""),
-        "website":         cfg.get("website_url", ""),
-        "city":            cfg.get("city", ""),
-        "current_company": cfg.get("current_company", ""),
+        "name":            cfg.get("full_name", "") or lead.get("name", "") or candidate.get("n", "") or profile.get("n", ""),
+        "email":           cfg.get("email", "") or lead.get("email", ""),
+        "phone":           cfg.get("phone", "") or lead.get("phone", ""),
+        "linkedin_url":    cfg.get("linkedin_url", "") or lead.get("linkedin_url", ""),
+        "github":          cfg.get("github_url", "") or lead.get("github", ""),
+        "website":         cfg.get("website_url", "") or lead.get("website", ""),
+        "city":            cfg.get("city", "") or lead.get("city", ""),
+        "current_company": cfg.get("current_company", "") or lead.get("current_company", ""),
         "application_answers": _lead_application_answers(lead),
     }
 
