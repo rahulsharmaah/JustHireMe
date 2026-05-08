@@ -5438,54 +5438,57 @@ button.profile-map-node {
    Final layer: keep the interface neutral, flat, and consistent. */
 :root,
 .dark {
-  --paper: #f6f8fb;
-  --paper-2: #eef2f6;
-  --paper-3: #e6ebf2;
-  --paper-4: #d7dee8;
+  --paper: #f7f9fc;
+  --paper-2: #f1f4f9;
+  --paper-3: #e8edf5;
+  --paper-4: #d8e0ec;
   --card: #ffffff;
 
-  --ink: #111827;
-  --ink-2: #344054;
-  --ink-3: #667085;
-  --ink-4: #98a2b3;
+  --ink: #0f172a;
+  --ink-2: #334155;
+  --ink-3: #64748b;
+  --ink-4: #94a3b8;
 
-  --line: #d8dee8;
-  --line-2: #e6ebf2;
-  --line-lo: #eef2f6;
+  --line: #d7deea;
+  --line-2: #e5eaf2;
+  --line-lo: #edf2f8;
 
-  --accent: #2563eb;
-  --accent-soft: #e8f0ff;
-  --accent-ink: #1d4ed8;
+  --accent: #635bff;
+  --accent-soft: #f0efff;
+  --accent-ink: #4f46e5;
 
-  --ok: var(--accent);
-  --ok-soft: var(--accent-soft);
-  --warn: var(--accent);
-  --warn-soft: var(--accent-soft);
-  --bad: #334155;
-  --bad-soft: #edf1f5;
+  --ok: #0f9f6e;
+  --ok-soft: #e8f7f1;
+  --ok-ink: #087f5b;
+  --warn: #b7791f;
+  --warn-soft: #fff7e6;
+  --warn-ink: #8a5a12;
+  --bad: #dc4c64;
+  --bad-soft: #fff0f3;
+  --bad-ink: #b4233c;
   --red: var(--bad);
 
-  --blue: var(--accent);
-  --blue-soft: var(--accent-soft);
-  --blue-ink: var(--accent-ink);
+  --blue: #2563eb;
+  --blue-soft: #eaf1ff;
+  --blue-ink: #1d4ed8;
   --purple: var(--accent);
   --purple-soft: var(--accent-soft);
   --purple-ink: var(--accent-ink);
-  --green: var(--accent);
-  --green-soft: var(--accent-soft);
-  --green-ink: var(--accent-ink);
-  --yellow: var(--accent);
-  --yellow-soft: var(--accent-soft);
-  --yellow-ink: var(--accent-ink);
-  --orange: var(--accent);
-  --orange-soft: var(--accent-soft);
-  --orange-ink: var(--accent-ink);
-  --teal: var(--accent);
-  --teal-soft: var(--accent-soft);
-  --teal-ink: var(--accent-ink);
-  --pink: var(--accent);
-  --pink-soft: var(--accent-soft);
-  --pink-ink: var(--accent-ink);
+  --green: var(--ok);
+  --green-soft: var(--ok-soft);
+  --green-ink: var(--ok-ink);
+  --yellow: #d9900a;
+  --yellow-soft: #fff8e1;
+  --yellow-ink: #8a5a12;
+  --orange: #f59e0b;
+  --orange-soft: #fff7e6;
+  --orange-ink: #9a5b00;
+  --teal: #0891b2;
+  --teal-soft: #e6f7fb;
+  --teal-ink: #0e7490;
+  --pink: #db2777;
+  --pink-soft: #fdf2f8;
+  --pink-ink: #be185d;
   --coral-soft: var(--accent-soft);
 
   --shadow-xs: none;
@@ -5500,8 +5503,8 @@ button.profile-map-node {
   --radius-pill: 6px;
   --radius: 8px;
 
-  --ui-app-background: #f6f8fb;
-  --ui-sidebar-background: #111827;
+  --ui-app-background: #f7f9fc;
+  --ui-sidebar-background: #0b1220;
   --ui-sidebar-filter: none;
   --ui-topbar-bg: #ffffff;
   --ui-topbar-border: var(--line);
@@ -5539,11 +5542,11 @@ button.profile-map-node {
   --ui-primary-button-shadow: none;
   --ui-premium-gradient: var(--accent);
 
-  --ui-sidebar-hover: rgba(255,255,255,0.08);
-  --ui-sidebar-active: rgba(255,255,255,0.14);
-  --ui-sidebar-active-border: rgba(255,255,255,0.18);
+  --ui-sidebar-hover: rgba(255,255,255,0.07);
+  --ui-sidebar-active: rgba(99,91,255,0.18);
+  --ui-sidebar-active-border: rgba(255,255,255,0.16);
   --ui-sidebar-active-shadow: none;
-  --ui-sidebar-panel-bg: rgba(255,255,255,0.06);
+  --ui-sidebar-panel-bg: rgba(255,255,255,0.055);
   --ui-sidebar-panel-border: rgba(255,255,255,0.12);
   --ui-sidebar-panel-shadow: none;
   --ui-sidebar-button-bg: rgba(255,255,255,0.08);
@@ -5552,7 +5555,7 @@ button.profile-map-node {
   --ui-nav-icon-active-color: var(--accent);
   --ui-nav-icon-active-border: #ffffff;
   --ui-nav-icon-active-shadow: none;
-  --ui-nav-icon-idle-bg: rgba(255,255,255,0.08);
+  --ui-nav-icon-idle-bg: rgba(255,255,255,0.07);
   --ui-nav-icon-idle-color: rgba(255,255,255,0.86);
   --ui-nav-icon-idle-border: rgba(255,255,255,0.12);
 
@@ -5577,11 +5580,11 @@ button.profile-map-node {
   --border: var(--line);
   --input: var(--line);
   --ring: var(--accent);
-  --sidebar: #111827;
+  --sidebar: #0b1220;
   --sidebar-foreground: #f9fafb;
   --sidebar-primary: #ffffff;
   --sidebar-primary-foreground: #111827;
-  --sidebar-accent: rgba(255,255,255,0.08);
+  --sidebar-accent: rgba(99,91,255,0.18);
   --sidebar-accent-foreground: #f9fafb;
   --sidebar-border: rgba(255,255,255,0.12);
   --sidebar-ring: rgba(255,255,255,0.22);
@@ -5748,10 +5751,16 @@ button:hover,
 }
 
 .queue-running,
-.queue-queued,
-.queue-succeeded,
-.queue-failed {
+.queue-queued {
   background: var(--accent) !important;
+}
+
+.queue-succeeded {
+  background: var(--ok) !important;
+}
+
+.queue-failed {
+  background: var(--bad) !important;
 }
 
 .apply-composer-kicker,
@@ -5765,6 +5774,29 @@ button:hover,
 .nav-item .dot,
 .status-breakdown .dot {
   color: var(--accent) !important;
+}
+
+.knowledge-status-pill.success,
+.success,
+.status-success {
+  background: var(--ok-soft) !important;
+  border-color: var(--ok) !important;
+  color: var(--ok-ink) !important;
+}
+
+.knowledge-status-pill.error,
+.error,
+.status-error {
+  background: var(--bad-soft) !important;
+  border-color: var(--bad) !important;
+  color: var(--bad-ink) !important;
+}
+
+.warning,
+.status-warning {
+  background: var(--warn-soft) !important;
+  border-color: var(--warn) !important;
+  color: var(--warn-ink) !important;
 }
 
 [class*="shadow-"] {
