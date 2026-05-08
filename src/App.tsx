@@ -28,6 +28,8 @@ import { ToastHost } from "./components/ToastHost";
 import { showToast } from "./lib/toast";
 
 const SIDEBAR_COLLAPSED_KEY = "justhireme.sidebar.collapsed";
+const THEME_MODE_KEY = "justhireme.theme.mode";
+type ThemeMode = "light" | "dark" | "device";
 
 export default function App() {
   const { conn, port, apiToken, logs, addLog: wsAddLog } = useWS();
@@ -50,6 +52,10 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => localStorage.getItem(ONBOARDING_KEY) !== "done");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true");
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    const saved = localStorage.getItem(THEME_MODE_KEY);
+    return saved === "light" || saved === "dark" || saved === "device" ? saved : "device";
+  });
   const [narrowShell, setNarrowShell] = useState(() => typeof window !== "undefined" && window.innerWidth < 760);
   const [applyDraft, setApplyDraft] = useState("");
   const [applyAutoFocus, setApplyAutoFocus] = useState(false);
@@ -101,6 +107,20 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(SIDEBAR_COLLAPSED_KEY, sidebarCollapsed ? "true" : "false");
   }, [sidebarCollapsed]);
+
+  useEffect(() => {
+    localStorage.setItem(THEME_MODE_KEY, themeMode);
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const apply = () => {
+      const resolved = themeMode === "device" ? (media.matches ? "dark" : "light") : themeMode;
+      document.documentElement.dataset.theme = themeMode === "device" ? "" : themeMode;
+      document.documentElement.classList.toggle("dark", resolved === "dark");
+      document.documentElement.style.colorScheme = resolved;
+    };
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, [themeMode]);
 
   useEffect(() => {
     const update = () => setNarrowShell(window.innerWidth < 760);
@@ -218,7 +238,7 @@ export default function App() {
   };
   return (
     <div className={`app-shell ${sidebarCollapsed || narrowShell ? "sidebar-is-collapsed" : ""}`} style={{ height: "100vh", width: "100vw", overflow: "hidden", alignItems: "stretch" }}>
-      <Sidebar view={view} setView={setView} leadCounts={leadCounts} online={conn === "connected"} onSettings={() => setShowSettings(true)} onSetup={openSetupGuide} collapsed={sidebarCollapsed || narrowShell} onToggleCollapsed={() => setSidebarCollapsed(prev => !prev)} />
+      <Sidebar view={view} setView={setView} leadCounts={leadCounts} online={conn === "connected"} onSettings={() => setShowSettings(true)} onSetup={openSetupGuide} collapsed={sidebarCollapsed || narrowShell} onToggleCollapsed={() => setSidebarCollapsed(prev => !prev)} themeMode={themeMode} onThemeModeChange={setThemeMode} />
       <div className="app-main">
         <Topbar view={view} sidebarCollapsed={sidebarCollapsed || narrowShell} onToggleSidebar={() => setSidebarCollapsed(prev => !prev)} tasks={tasks} onRefreshTasks={refreshTasks} />
         <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", background: "var(--paper)" }}>
@@ -239,7 +259,7 @@ export default function App() {
           <ApprovalDrawer key={liveSel.job_id} j={liveSel} api={api} onClose={() => setSel(null)} onFired={() => setSel(null)} />
         )}
         {showSettings && api && (
-          <SettingsModal key="settings" api={api} onClose={() => setShowSettings(false)} />
+          <SettingsModal key="settings" api={api} onClose={() => setShowSettings(false)} themeMode={themeMode} onThemeModeChange={setThemeMode} />
         )}
         {showOnboarding && api && (
           <OnboardingWizard

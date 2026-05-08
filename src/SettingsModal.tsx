@@ -9,12 +9,18 @@ import type { ApiFetch } from "./types";
 import { showToast } from "./lib/toast";
 
 interface Props { api: ApiFetch; onClose: () => void; }
+type ThemeMode = "light" | "dark" | "device";
 
-export default function SettingsModal({ api, onClose }: Props) {
+interface SettingsModalProps extends Props {
+  themeMode: ThemeMode;
+  onThemeModeChange: (mode: ThemeMode) => void;
+}
+
+export default function SettingsModal({ api, onClose, themeMode, onThemeModeChange }: SettingsModalProps) {
   const [cfg, setCfg]       = useState<Cfg>(EMPTY);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved]   = useState(false);
-  const [activeSection, setActiveSection] = useState<SettingsSectionId>("models");
+  const [activeSection, setActiveSection] = useState<SettingsSectionId>("appearance");
   const settingsIssues = useMemo(() => getSettingsIssues(cfg), [cfg]);
 
   useEffect(() => {
@@ -57,6 +63,7 @@ export default function SettingsModal({ api, onClose }: Props) {
 
   const prov = cfg.llm_provider || "ollama";
   const sections = [
+    { id: "appearance" as const, icon: "monitor", label: "Appearance", sub: "Theme and interface" },
     { id: "models" as const, icon: "settings", label: "Model provider", sub: "Default LLM and keys" },
     { id: "steps" as const, icon: "layers", label: "Workflow steps", sub: "Per-step overrides" },
     { id: "discovery" as const, icon: "search", label: "Discovery", sub: "Sources and signals" },
@@ -70,7 +77,7 @@ export default function SettingsModal({ api, onClose }: Props) {
         <header className="settings-header">
           <div className="settings-title-block">
             <h2>Settings</h2>
-            <p>Configure providers, workflow behavior, and discovery sources.</p>
+            <p>Control appearance, providers, workflow behavior, and discovery sources.</p>
           </div>
           <button className="btn btn-icon settings-close" onClick={onClose} aria-label="Close settings"><Icon name="x" size={15} /></button>
         </header>
@@ -92,6 +99,12 @@ export default function SettingsModal({ api, onClose }: Props) {
           </nav>
 
           <main className="settings-panel scroll">
+            {activeSection === "appearance" && (
+              <SettingsSectionHeading
+                title="Appearance"
+                description="Choose how JustHireMe should match your workspace."
+              />
+            )}
             {activeSection === "models" && (
               <SettingsSectionHeading
                 title="Model provider"
@@ -118,6 +131,7 @@ export default function SettingsModal({ api, onClose }: Props) {
             )}
 
             <div className="settings-panel-content">
+              {activeSection === "appearance" && <AppearanceSettings themeMode={themeMode} onThemeModeChange={onThemeModeChange} />}
               {activeSection === "models" && <GlobalSettings cfg={cfg} set={set} onChange={onChange} prov={prov} api={api} issues={settingsIssues.filter(issue => issue.section === "models")} />}
               {activeSection === "steps" && <StepSettings cfg={cfg} onChange={onChange} issues={settingsIssues.filter(issue => issue.section === "steps")} />}
               {activeSection === "discovery" && <DiscoverySettings cfg={cfg} set={set} onChange={onChange} />}
@@ -142,6 +156,48 @@ function SettingsSectionHeading({ title, description }: { title: string; descrip
     <div className="settings-panel-heading">
       <h3>{title}</h3>
       <p>{description}</p>
+    </div>
+  );
+}
+
+function AppearanceSettings({ themeMode, onThemeModeChange }: { themeMode: ThemeMode; onThemeModeChange: (mode: ThemeMode) => void }) {
+  const options = [
+    { id: "light", label: "Light", icon: "sun", detail: "Clean bright workspace" },
+    { id: "dark", label: "Dark", icon: "moon", detail: "Low-light dashboard" },
+    { id: "device", label: "Device", icon: "monitor", detail: "Follow system setting" },
+  ] as const;
+
+  return (
+    <div className="settings-appearance">
+      <div className="settings-preference-row">
+        <div>
+          <h4>Theme</h4>
+          <p>Saved locally and applied across every dashboard screen.</p>
+        </div>
+        <span className="settings-current-mode">{themeMode}</span>
+      </div>
+      <div className="settings-theme-grid" role="radiogroup" aria-label="Theme mode">
+        {options.map(option => {
+          const active = themeMode === option.id;
+          return (
+            <button
+              key={option.id}
+              type="button"
+              className={active ? "active" : ""}
+              onClick={() => onThemeModeChange(option.id)}
+              role="radio"
+              aria-checked={active}
+            >
+              <span className="settings-theme-icon"><Icon name={option.icon} size={16} /></span>
+              <span>
+                <strong>{option.label}</strong>
+                <small>{option.detail}</small>
+              </span>
+              <span className="settings-theme-check"><Icon name={active ? "check" : "circle"} size={13} /></span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -117,7 +117,7 @@ export const KEY_FIELD: Record<string, keyof Cfg> = {
   nvidia: "nvidia_api_key", openai: "openai_api_key", deepseek: "deepseek_api_key",
 };
 
-export type SettingsSectionId = "models" | "steps" | "discovery" | "automation";
+export type SettingsSectionId = "appearance" | "models" | "steps" | "discovery" | "automation";
 
 export interface SettingsIssue {
   section: SettingsSectionId;

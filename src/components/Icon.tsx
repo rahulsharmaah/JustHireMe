@@ -160,6 +160,12 @@ export default function Icon({ name, size = 16, stroke = 1.7, color = "currentCo
           <path d="m5 12 5 5L20 7" />
         </svg>
       );
+    case "circle":
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="6" />
+        </svg>
+      );
     case "fire":
       return (
         <svg {...props}>
@@ -216,6 +222,26 @@ export default function Icon({ name, size = 16, stroke = 1.7, color = "currentCo
         <svg {...props}>
           <circle cx="12" cy="12" r="9" />
           <path d="M12 7v5l3 2" />
+        </svg>
+      );
+    case "sun":
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
+      );
+    case "moon":
+      return (
+        <svg {...props}>
+          <path d="M21 13.4A8.5 8.5 0 1 1 10.6 3a7 7 0 0 0 10.4 10.4z" />
+        </svg>
+      );
+    case "monitor":
+      return (
+        <svg {...props}>
+          <rect x="3" y="4" width="18" height="13" rx="2" />
+          <path d="M8 21h8M12 17v4" />
         </svg>
       );
     case "trending":

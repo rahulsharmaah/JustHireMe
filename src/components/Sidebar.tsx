@@ -1,6 +1,8 @@
 import Icon from "./Icon";
 import type { View } from "../types";
 
+type ThemeMode = "light" | "dark" | "device";
+
 const NAV = [
   { id: "apply",     label: "Customize",     icon: "spark",  tone: "green"  },
   { id: "dashboard", label: "Dashboard",     icon: "home",   tone: "blue"   },
@@ -13,14 +15,20 @@ const NAV = [
   { id: "ingestion", label: "Add Context",   icon: "plus",   tone: "teal"   },
 ];
 
-export function Sidebar({ view, setView, leadCounts, online, onSettings, onSetup, collapsed, onToggleCollapsed }: {
+export function Sidebar({ view, setView, leadCounts, online, onSettings, onSetup, collapsed, onToggleCollapsed, themeMode, onThemeModeChange }: {
   view: View; setView: (v: View) => void;
   leadCounts: any; online: boolean;
   onSettings: () => void;
   onSetup?: () => void;
   collapsed: boolean;
   onToggleCollapsed: () => void;
+  themeMode: ThemeMode;
+  onThemeModeChange: (mode: ThemeMode) => void;
 }) {
+  const cycleTheme = () => {
+    onThemeModeChange(themeMode === "device" ? "dark" : themeMode === "dark" ? "light" : "device");
+  };
+
   return (
     <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
       <div className="row gap-3 sidebar-brand" style={{ padding: collapsed ? "4px 4px 18px 4px" : "4px 8px 18px 8px", justifyContent: collapsed ? "center" : "space-between" }}>
@@ -67,6 +75,42 @@ export function Sidebar({ view, setView, leadCounts, online, onSettings, onSetup
       </div>
 
       <div className="grow" />
+
+      <div className={`sidebar-theme-switch ${collapsed ? "collapsed" : ""}`}>
+        {!collapsed ? (
+          <>
+            <div className="sidebar-theme-label">Theme</div>
+            <div className="sidebar-theme-options" role="group" aria-label="Theme mode">
+              {([
+                { id: "light", label: "Light", icon: "sun" },
+                { id: "dark", label: "Dark", icon: "moon" },
+                { id: "device", label: "Device", icon: "monitor" },
+              ] as const).map(option => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={themeMode === option.id ? "active" : ""}
+                  onClick={() => onThemeModeChange(option.id)}
+                  title={`${option.label} theme`}
+                >
+                  <Icon name={option.icon} size={13} />
+                  <span>{option.label}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <button
+            type="button"
+            className="sidebar-theme-cycle"
+            onClick={cycleTheme}
+            title={`Theme: ${themeMode}`}
+            aria-label={`Theme: ${themeMode}`}
+          >
+            <Icon name={themeMode === "dark" ? "moon" : themeMode === "light" ? "sun" : "monitor"} size={15} />
+          </button>
+        )}
+      </div>
 
       <button className="profile-add-context" onClick={collapsed ? onToggleCollapsed : onSetup} style={{ marginBottom: 10, minHeight: 40 }} title={collapsed ? "Expand sidebar" : "Setup"}>
         <Icon name={collapsed ? "arrow-right" : "spark"} size={14} /> {!collapsed && "Setup"}
