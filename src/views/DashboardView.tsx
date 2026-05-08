@@ -81,7 +81,7 @@ export function DashboardView({
       {loading ? (
         <SkeletonGrid count={5} rows={2} />
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 14, marginBottom: 18 }}>
+        <div className="dashboard-stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 14, marginBottom: 18 }}>
           <StatCard tone="blue"   label="Leads found"      value={counts.discovered} sub="Awaiting eval"   icon="layers" />
           <StatCard tone="yellow" label="Evaluated"         value={counts.evaluated}  sub="Non-zero scores" icon="spark"  />
           <StatCard tone="purple" label="Resumes tailored"  value={counts.tailoring}  sub="PDFs cached"     icon="file"   />
@@ -90,13 +90,13 @@ export function DashboardView({
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14, marginBottom: 18 }}>
-        <div className="card" style={{ padding: 18 }}>
-          <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
+      <div className="dashboard-work-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14, marginBottom: 18 }}>
+        <div className="card dashboard-panel dashboard-action-panel" style={{ padding: 18 }}>
+          <div className="row dashboard-panel-head" style={{ justifyContent: "space-between", marginBottom: 12 }}>
             <h3>Today action queue</h3>
             <button className="btn btn-ghost" onClick={() => setView("pipeline")} style={{ fontSize: 12 }}>Pipeline <Icon name="arrow-right" size={12} /></button>
           </div>
-          <div className="col gap-2">
+          <div className="col gap-2 dashboard-panel-list">
             {loading ? (
               <LoadingPanel title="Loading action queue" rows={4} />
             ) : todayQueue.length === 0 ? (
@@ -105,7 +105,7 @@ export function DashboardView({
               const signal = leadSignal(lead);
               const nextAction = todayActionLabel(lead);
               return (
-                <div key={lead.job_id} onClick={() => openDrawer(lead)} className="lift" style={{ padding: 12, borderRadius: "var(--radius-card)", border: "1px solid var(--line)", background: "var(--card)", cursor: "pointer", display: "grid", gridTemplateColumns: "1fr auto", gap: 10 }}>
+                <div key={lead.job_id} onClick={() => openDrawer(lead)} className="lift dashboard-lead-row" style={{ padding: 12, borderRadius: "var(--radius-card)", border: "1px solid var(--line)", background: "var(--card)", cursor: "pointer", display: "grid", gridTemplateColumns: "1fr auto", gap: 10 }}>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lead.title}</div>
                     <div style={{ fontSize: 11.5, color: "var(--ink-3)", marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lead.learning_reason || lead.signal_reason || lead.reason || nextAction}</div>
@@ -123,18 +123,18 @@ export function DashboardView({
             })}
           </div>
         </div>
-        <div className="card" style={{ padding: 18, background: "var(--blue-soft)" }}>
-          <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
+        <div className="card dashboard-panel dashboard-strong-panel" style={{ padding: 18, background: "var(--blue-soft)" }}>
+          <div className="row dashboard-panel-head" style={{ justifyContent: "space-between", marginBottom: 12 }}>
             <h3>Strong leads</h3>
             <span className="pill mono" style={{ background: "var(--blue)", color: "var(--blue-ink)" }}>{dailyHot.length}</span>
           </div>
-          <div className="col gap-2">
+          <div className="col gap-2 dashboard-panel-list">
             {loading ? (
               <LoadingPanel title="Loading strong leads" rows={4} />
             ) : dailyHot.length === 0 ? (
               <div style={{ fontSize: 12, color: "var(--ink-3)", lineHeight: 1.45 }}>No scored leads yet.</div>
             ) : dailyHot.slice(0, 5).map(lead => (
-              <div key={lead.job_id} onClick={() => openDrawer(lead)} className="lift" style={{ padding: 10, borderRadius: "var(--radius-control)", border: "1px solid var(--line)", background: "var(--card)", cursor: "pointer", display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
+              <div key={lead.job_id} onClick={() => openDrawer(lead)} className="lift dashboard-lead-row" style={{ padding: 10, borderRadius: "var(--radius-control)", border: "1px solid var(--line)", background: "var(--card)", cursor: "pointer", display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lead.title}</div>
                   <div className="mono" style={{ fontSize: 10, color: "var(--ink-3)", marginTop: 3 }}>{lead.company}</div>
@@ -144,16 +144,19 @@ export function DashboardView({
             ))}
           </div>
         </div>
-        <div className="card" style={{ padding: 18, background: "var(--green-soft)" }}>
-          <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
+        <div className="card dashboard-panel dashboard-followup-panel" style={{ padding: 18, background: "var(--green-soft)" }}>
+          <div className="row dashboard-panel-head" style={{ justifyContent: "space-between", marginBottom: 12 }}>
             <h3>Follow-ups due</h3>
             <span className="pill mono" style={{ background: "var(--green)", color: "var(--green-ink)" }}>{dueFollowups.length}</span>
           </div>
-          <div className="col gap-2">
+          <div className="col gap-2 dashboard-panel-list">
             {dueFollowups.length === 0 ? (
-              <div style={{ fontSize: 12, color: "var(--ink-3)", lineHeight: 1.45 }}>No follow-ups due right now.</div>
+              <div className="dashboard-empty-state">
+                <span><Icon name="check" size={22} /></span>
+                <p>No follow-ups due right now.</p>
+              </div>
             ) : dueFollowups.slice(0, 5).map(lead => (
-              <div key={lead.job_id} onClick={() => openDrawer(lead)} className="lift" style={{ padding: 10, borderRadius: "var(--radius-control)", border: "1px solid var(--line)", background: "var(--card)", cursor: "pointer" }}>
+              <div key={lead.job_id} onClick={() => openDrawer(lead)} className="lift dashboard-lead-row" style={{ padding: 10, borderRadius: "var(--radius-control)", border: "1px solid var(--line)", background: "var(--card)", cursor: "pointer" }}>
                 <div style={{ fontSize: 12.5, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lead.title}</div>
                 <div className="mono" style={{ fontSize: 10, color: "var(--ink-3)", marginTop: 3 }}>{lead.company}</div>
               </div>
@@ -162,7 +165,7 @@ export function DashboardView({
         </div>
       </div>
 
-      <div className="card" style={{ padding: 18, background: "var(--yellow-soft)" }}>
+      <div className="card dashboard-events-panel" style={{ padding: 18, background: "var(--yellow-soft)" }}>
         <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
           <h3>Recent agent events</h3>
           <button className="btn btn-ghost" onClick={() => setView("activity")} style={{ fontSize: 12 }}>See all <Icon name="arrow-right" size={12} /></button>
