@@ -6739,3 +6739,223 @@ button[aria-busy="true"]::before,
   }
 }
 
+/* Compact pipeline header and full-height results scrolling */
+.pipeline-page {
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.pipeline-top {
+  flex: 0 0 auto !important;
+  padding: 8px 18px !important;
+  gap: 6px !important;
+  background: var(--paper) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.pipeline-overview {
+  grid-template-columns: minmax(220px, 1fr) repeat(7, minmax(82px, 0.5fr)) !important;
+  gap: 6px !important;
+  align-items: stretch !important;
+}
+
+.pipeline-overview-copy {
+  padding: 0 !important;
+}
+
+.pipeline-overview-copy h2 {
+  margin-top: 2px !important;
+  font-size: 15px !important;
+  line-height: 1.2 !important;
+}
+
+.pipeline-overview-copy p {
+  margin-top: 2px !important;
+  font-size: 11px !important;
+}
+
+.pipeline-metric {
+  min-height: 42px !important;
+  padding: 6px 8px !important;
+  border-radius: var(--radius-control) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  gap: 2px 6px !important;
+}
+
+.pipeline-metric:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.pipeline-metric span {
+  font-size: 14px !important;
+}
+
+.pipeline-metric small {
+  font-size: 8.5px !important;
+  letter-spacing: 0.04em !important;
+}
+
+.pipeline-notice {
+  min-height: 28px !important;
+  padding: 5px 9px !important;
+}
+
+.pipeline-toolbar {
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+.pipeline-tabs {
+  gap: 5px !important;
+}
+
+.pipeline-tabs button {
+  min-height: 28px !important;
+  padding: 4px 8px !important;
+  border-radius: var(--radius-control) !important;
+  font-size: 11.5px !important;
+}
+
+.pipeline-tabs button b {
+  min-width: 20px !important;
+  height: 18px !important;
+  font-size: 9.5px !important;
+}
+
+.pipeline-tabs button.active {
+  box-shadow: none !important;
+}
+
+.pipeline-actions {
+  gap: 6px !important;
+}
+
+.pipeline-actions .btn {
+  min-height: 30px !important;
+  padding: 6px 9px !important;
+}
+
+.pipeline-saved-views {
+  display: none !important;
+  gap: 6px !important;
+}
+
+.pipeline-saved-chip {
+  min-height: 28px !important;
+}
+
+.pipeline-saved-empty {
+  font-size: 11.5px !important;
+}
+
+.pipeline-filterbar {
+  padding: 7px !important;
+  gap: 7px !important;
+  border-radius: var(--radius-control) !important;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(360px, 1.45fr) auto !important;
+  align-items: end !important;
+}
+
+.pipeline-searchbox,
+.pipeline-field select,
+.pipeline-field input,
+.pipeline-field [role="combobox"] {
+  height: 30px !important;
+  min-height: 30px !important;
+}
+
+.pipeline-field {
+  gap: 3px !important;
+}
+
+.pipeline-field span {
+  font-size: 9.5px !important;
+  letter-spacing: 0.05em !important;
+}
+
+.pipeline-filter-fields {
+  grid-template-columns: minmax(100px, 1fr) minmax(100px, 1fr) minmax(112px, 1fr) 70px 70px !important;
+  gap: 6px !important;
+}
+
+.pipeline-filter-actions {
+  gap: 5px !important;
+}
+
+.pipeline-toggle,
+.pipeline-clear,
+.pipeline-count {
+  min-height: 26px !important;
+  padding: 0 8px !important;
+  font-size: 11px !important;
+}
+
+.pipeline-content {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 12px 18px 28px !important;
+}
+
+.pipeline-results-head {
+  margin-bottom: 8px !important;
+}
+
+.pipeline-results-head h3 {
+  font-size: 14px !important;
+}
+
+.pipeline-results-head p {
+  font-size: 11.5px !important;
+}
+
+.pipeline-list {
+  gap: 8px !important;
+  padding-bottom: 28px !important;
+}
+
+@media (max-width: 980px) {
+  .pipeline-overview {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .pipeline-overview-copy {
+    grid-column: 1 / -1 !important;
+  }
+
+  .pipeline-filterbar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .pipeline-filter-actions {
+    justify-content: flex-start !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .pipeline-top {
+    padding: 10px 12px !important;
+  }
+
+  .pipeline-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .pipeline-toolbar {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .pipeline-filter-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
