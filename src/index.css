@@ -7101,7 +7101,9 @@ button[aria-busy="true"]::before,
   padding: 16px !important;
   gap: 14px !important;
   border-radius: 7px !important;
-  background: var(--card) !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
   grid-template-columns: minmax(260px, 1.1fr) minmax(460px, 2fr) auto !important;
 }
 
