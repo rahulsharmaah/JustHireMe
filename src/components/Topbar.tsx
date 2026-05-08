@@ -109,21 +109,20 @@ function WorkerQueueIndicator({ tasks, onRefresh }: { tasks: WorkerTasksPayload;
    DASHBOARD VIEW
 ══════════════════════════════════════ */
 
-export const StatCard = ({ tone, label, value, sub, icon }: any) => (
+export const StatCard = ({ label, value, sub, icon }: any) => (
   <div className="stat-card" style={{
-    background: `linear-gradient(180deg, rgba(255,255,255,0.78), var(--${tone}-soft))`,
-    borderColor: `var(--${tone})`,
+    background: "var(--card)",
+    borderColor: "var(--line)",
   }}>
     <div style={{
       width: 30, height: 30, borderRadius: "var(--radius-tight)",
-      background: `var(--${tone})`, color: "#fff",
+      background: "var(--accent)", color: "#fff",
       display: "grid", placeItems: "center",
-      boxShadow: `0 10px 22px var(--${tone}-soft)`,
     }}>
       <Icon name={icon} size={15} />
     </div>
       <div className="col" style={{ gap: 4 }}>
-      <div className="display tabular type-metric-value type-metric-value-lg" style={{ color: `var(--${tone}-ink)` }}>{value}</div>
+      <div className="display tabular type-metric-value type-metric-value-lg" style={{ color: "var(--ink)" }}>{value}</div>
       <div className="type-metric-label">{label}</div>
       <div className="type-metric-sub">{sub}</div>
     </div>

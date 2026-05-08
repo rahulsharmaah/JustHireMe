@@ -444,7 +444,7 @@ export function ApprovalDrawer({ j, api, onClose, onFired }: {
                   flex: 1, padding: "8px 10px", borderRadius: "var(--radius-tight)", border: "none", cursor: "pointer",
                   background: activeDoc === kind ? "var(--card)" : "transparent",
                   color: activeDoc === kind ? "var(--ink)" : "var(--ink-3)",
-                  fontSize: 12, fontWeight: 700, boxShadow: activeDoc === kind ? "var(--shadow-xs)" : "none",
+                  fontSize: 12, fontWeight: 700,
                   display: "flex", justifyContent: "center", alignItems: "center", gap: 7,
                 }}>
                   {label}

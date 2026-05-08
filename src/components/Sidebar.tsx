@@ -50,7 +50,6 @@ export function Sidebar({ view, setView, leadCounts, online, port, beat, onSetti
                 background: active ? "var(--ui-nav-icon-active-bg)" : "var(--ui-nav-icon-idle-bg)",
                 color: active ? "var(--ui-nav-icon-active-color)" : "var(--ui-nav-icon-idle-color)",
                 border: active ? "1px solid var(--ui-nav-icon-active-border)" : "1px solid var(--ui-nav-icon-idle-border)",
-                boxShadow: active ? "var(--ui-nav-icon-active-shadow)" : "none",
               }}>
                 <Icon name={n.icon} size={15} stroke={1.9} />
               </div>
@@ -102,10 +101,9 @@ export function Sidebar({ view, setView, leadCounts, online, port, beat, onSetti
             <div className="col" style={{ gap: 2 }}>
               <div className="row gap-2">
                 <span style={{
-                  width: 7, height: 7, borderRadius: "50%",
-                  background: online ? "var(--ok)" : "var(--bad)",
-                  boxShadow: `0 0 0 3px ${online ? 'rgba(46,211,163,0.18)' : 'rgba(240,82,104,0.18)'}`,
-                  animation: online ? "blink 2s ease-in-out infinite" : "none",
+                  width: 8, height: 8, borderRadius: 2,
+                  background: online ? "var(--accent)" : "var(--ink-4)",
+                  border: "1px solid rgba(255,255,255,0.22)",
                 }} />
                 <span className="type-metric-label" style={{ fontSize: "11.5px", color: "inherit" }}>{online ? `Online · :${port}` : "Offline"}</span>
               </div>
@@ -113,10 +111,9 @@ export function Sidebar({ view, setView, leadCounts, online, port, beat, onSetti
             </div>
           ) : (
             <span style={{
-              width: 9, height: 9, borderRadius: "50%",
-              background: online ? "var(--ok)" : "var(--bad)",
-              boxShadow: `0 0 0 3px ${online ? 'rgba(46,211,163,0.18)' : 'rgba(240,82,104,0.18)'}`,
-              animation: online ? "blink 2s ease-in-out infinite" : "none",
+              width: 9, height: 9, borderRadius: 2,
+              background: online ? "var(--accent)" : "var(--ink-4)",
+              border: "1px solid rgba(255,255,255,0.22)",
               marginInline: "auto",
             }} />
           )}

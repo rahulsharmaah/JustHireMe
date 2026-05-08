@@ -5434,3 +5434,346 @@ button.profile-map-node {
   }
 }
 
+/* Clean geometric dashboard theme
+   Final layer: keep the interface neutral, flat, and consistent. */
+:root,
+.dark {
+  --paper: #f6f8fb;
+  --paper-2: #eef2f6;
+  --paper-3: #e6ebf2;
+  --paper-4: #d7dee8;
+  --card: #ffffff;
+
+  --ink: #111827;
+  --ink-2: #344054;
+  --ink-3: #667085;
+  --ink-4: #98a2b3;
+
+  --line: #d8dee8;
+  --line-2: #e6ebf2;
+  --line-lo: #eef2f6;
+
+  --accent: #2563eb;
+  --accent-soft: #e8f0ff;
+  --accent-ink: #1d4ed8;
+
+  --ok: var(--accent);
+  --ok-soft: var(--accent-soft);
+  --warn: var(--accent);
+  --warn-soft: var(--accent-soft);
+  --bad: #334155;
+  --bad-soft: #edf1f5;
+  --red: var(--bad);
+
+  --blue: var(--accent);
+  --blue-soft: var(--accent-soft);
+  --blue-ink: var(--accent-ink);
+  --purple: var(--accent);
+  --purple-soft: var(--accent-soft);
+  --purple-ink: var(--accent-ink);
+  --green: var(--accent);
+  --green-soft: var(--accent-soft);
+  --green-ink: var(--accent-ink);
+  --yellow: var(--accent);
+  --yellow-soft: var(--accent-soft);
+  --yellow-ink: var(--accent-ink);
+  --orange: var(--accent);
+  --orange-soft: var(--accent-soft);
+  --orange-ink: var(--accent-ink);
+  --teal: var(--accent);
+  --teal-soft: var(--accent-soft);
+  --teal-ink: var(--accent-ink);
+  --pink: var(--accent);
+  --pink-soft: var(--accent-soft);
+  --pink-ink: var(--accent-ink);
+  --coral-soft: var(--accent-soft);
+
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-popover: none;
+
+  --radius-card: 8px;
+  --radius-control: 6px;
+  --radius-tight: 4px;
+  --radius-pill: 6px;
+  --radius: 8px;
+
+  --ui-app-background: #f6f8fb;
+  --ui-sidebar-background: #111827;
+  --ui-sidebar-filter: none;
+  --ui-topbar-bg: #ffffff;
+  --ui-topbar-border: var(--line);
+  --ui-topbar-filter: none;
+  --ui-topbar-button-bg: #ffffff;
+  --ui-topbar-button-border: var(--line);
+
+  --ui-glass-surface: #ffffff;
+  --ui-glass-strong: #ffffff;
+  --ui-glass-border: var(--line);
+  --ui-glass-border-strong: var(--line);
+  --ui-glass-filter: none;
+  --ui-glass-shadow: none;
+  --ui-hero-light-bg: #ffffff;
+  --ui-hero-dark-bg: #ffffff;
+  --ui-hero-dark-border: var(--line);
+  --ui-hero-dark-shadow: none;
+  --ui-hero-dark-text: var(--ink-2);
+  --ui-hero-dark-heading: var(--ink);
+  --ui-hero-dark-muted: var(--ink-3);
+
+  --ui-button-bg: #ffffff;
+  --ui-button-border: var(--line);
+  --ui-button-hover-bg: var(--paper-2);
+  --ui-button-hover-border: var(--line);
+  --ui-button-filter: none;
+  --ui-button-shadow: none;
+  --ui-icon-button-bg: #ffffff;
+  --ui-icon-button-border: var(--line);
+
+  --ui-primary-gradient: var(--accent);
+  --ui-primary-gradient-hover: var(--accent-ink);
+  --ui-primary-border: var(--accent);
+  --ui-primary-border-hover: var(--accent-ink);
+  --ui-primary-button-shadow: none;
+  --ui-premium-gradient: var(--accent);
+
+  --ui-sidebar-hover: rgba(255,255,255,0.08);
+  --ui-sidebar-active: rgba(255,255,255,0.14);
+  --ui-sidebar-active-border: rgba(255,255,255,0.18);
+  --ui-sidebar-active-shadow: none;
+  --ui-sidebar-panel-bg: rgba(255,255,255,0.06);
+  --ui-sidebar-panel-border: rgba(255,255,255,0.12);
+  --ui-sidebar-panel-shadow: none;
+  --ui-sidebar-button-bg: rgba(255,255,255,0.08);
+  --ui-sidebar-button-border: rgba(255,255,255,0.14);
+  --ui-nav-icon-active-bg: #ffffff;
+  --ui-nav-icon-active-color: var(--accent);
+  --ui-nav-icon-active-border: #ffffff;
+  --ui-nav-icon-active-shadow: none;
+  --ui-nav-icon-idle-bg: rgba(255,255,255,0.08);
+  --ui-nav-icon-idle-color: rgba(255,255,255,0.86);
+  --ui-nav-icon-idle-border: rgba(255,255,255,0.12);
+
+  --ui-toast-bg: #ffffff;
+  --ui-toast-icon-bg: var(--paper-2);
+  --ui-list-tile-bg: #ffffff;
+  --ui-connector-stroke: var(--line);
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card-foreground: var(--ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--ink);
+  --primary: var(--accent);
+  --primary-foreground: #ffffff;
+  --secondary: var(--paper-2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--paper-2);
+  --muted-foreground: var(--ink-3);
+  --accent-foreground: #ffffff;
+  --destructive: var(--bad);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--accent);
+  --sidebar: #111827;
+  --sidebar-foreground: #f9fafb;
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: #111827;
+  --sidebar-accent: rgba(255,255,255,0.08);
+  --sidebar-accent-foreground: #f9fafb;
+  --sidebar-border: rgba(255,255,255,0.12);
+  --sidebar-ring: rgba(255,255,255,0.22);
+}
+
+html,
+body {
+  background-color: var(--paper) !important;
+  background-image:
+    linear-gradient(var(--line-lo) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-lo) 1px, transparent 1px) !important;
+  background-size: 32px 32px !important;
+  color: var(--ink);
+}
+
+*,
+*::before,
+*::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.app-shell,
+.main,
+.content,
+.apply-page,
+.dashboard-page,
+.pipeline-page,
+.profile-page,
+.activity-page,
+.inbox-page,
+.knowledge-page {
+  background: transparent !important;
+}
+
+.sidebar {
+  background: var(--ui-sidebar-background) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-right: 1px solid var(--sidebar-border) !important;
+}
+
+.topbar,
+.card,
+.card-flat,
+.metric-card,
+.stat-card,
+.dashboard-command,
+.dashboard-panel,
+.lead-card,
+.job-card,
+.activity-card,
+.settings-panel,
+.approval-drawer,
+.approval-content,
+.queue-menu,
+.toast,
+.knowledge-manifest-group,
+.knowledge-search-box,
+.knowledge-candidate-item,
+.apply-composer,
+.apply-result-card,
+.apply-output,
+.pipeline-shell,
+.profile-hero,
+.profile-list-tile,
+[class*="profile-list-tile-"],
+[class*="ingestion-accent-"] {
+  background: var(--card) !important;
+  border-color: var(--line) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.apply-composer::before,
+.profile-hero::before,
+.profile-hero::after,
+.dashboard-command::before,
+.dashboard-command::after,
+.pipeline-shell::before,
+.pipeline-shell::after {
+  display: none !important;
+}
+
+.dashboard-command,
+.hero-card,
+.hero-dark,
+.banner,
+.command-panel {
+  color: var(--ink) !important;
+  background: var(--card) !important;
+  border-color: var(--line) !important;
+}
+
+.dashboard-command *,
+.hero-dark *,
+.command-panel * {
+  color: inherit;
+}
+
+.btn,
+button,
+input,
+select,
+textarea,
+.field-input,
+.select-trigger,
+.pipeline-toggle,
+.profile-add-context {
+  border-radius: var(--radius-control) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.btn:hover,
+button:hover,
+.card:hover,
+.card-flat:hover,
+.metric-card:hover,
+.stat-card:hover,
+.lead-card:hover,
+.job-card:hover,
+.knowledge-candidate-item:hover,
+.nav-item:hover {
+  transform: none !important;
+}
+
+.btn-accent,
+.btn-primary,
+.profile-add-context,
+.pipeline-action-primary,
+.approval-primary,
+.primary-action {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #ffffff !important;
+}
+
+.btn-accent:hover,
+.btn-primary:hover,
+.profile-add-context:hover,
+.pipeline-action-primary:hover,
+.approval-primary:hover,
+.primary-action:hover {
+  background: var(--accent-ink) !important;
+  border-color: var(--accent-ink) !important;
+}
+
+.badge,
+.pill,
+.type-view-pill,
+.type-count-pill,
+.status-pill,
+.knowledge-status-pill,
+.lead-status,
+.queue-counts span {
+  border-radius: var(--radius-control) !important;
+}
+
+.queue-dot,
+.dot,
+.status-dot {
+  border-radius: 2px !important;
+}
+
+.queue-running,
+.queue-queued,
+.queue-succeeded,
+.queue-failed {
+  background: var(--accent) !important;
+}
+
+.apply-composer-kicker,
+.eyebrow,
+.type-view-pill,
+.type-metric-label {
+  color: var(--ink-3) !important;
+}
+
+.apply-composer-kicker .dot,
+.nav-item .dot,
+.status-breakdown .dot {
+  color: var(--accent) !important;
+}
+
+[class*="shadow-"] {
+  box-shadow: none !important;
+}
+
+[style*="gradient"],
+[style*="blur("] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+

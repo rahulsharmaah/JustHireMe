@@ -113,14 +113,14 @@ export function OnboardingWizard({ api, onFinish, onOpenSettings }: { api: ApiFe
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(9,11,17,0.34)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", display: "grid", placeItems: "center", padding: 22 }}
+      style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(15,23,42,0.22)", display: "grid", placeItems: "center", padding: 22 }}
     >
       <motion.section
         initial={{ y: 16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 10, opacity: 0 }}
         className="card"
-        style={{ width: "min(960px, 100%)", maxHeight: "min(760px, 94vh)", overflow: "auto", padding: 24, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 22, background: "rgba(255,255,255,0.95)", boxShadow: "0 28px 90px rgba(9,11,17,0.28), inset 0 1px 0 rgba(255,255,255,0.8)" }}
+        style={{ width: "min(960px, 100%)", maxHeight: "min(760px, 94vh)", overflow: "auto", padding: 24, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 22, background: "var(--card)" }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div>
