@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Icon from "../components/Icon";
-import { LoadingPanel, SkeletonGrid } from "../components/LoadingState";
+import { LoadingPanel, SkeletonGrid, SkeletonLine } from "../components/LoadingState";
 import { useKnowledgeCandidates, useKnowledgeGraph, useKnowledgePage, useKnowledgeStatus, useKnowledgeSummary } from "../hooks/useKnowledgeVault";
 import type { ApiFetch, GraphStats, KnowledgeCandidate, KnowledgeGraphNode, WorkerTask, WorkerTasksPayload } from "../types";
 
@@ -207,13 +207,20 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
   const [nodeTypeFilter, setNodeTypeFilter] = useState<"all" | "source" | "concept" | "entity">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshTask, setRefreshTask] = useState<WorkerTask | null>(null);
-  const [initialKnowledgeLoading, setInitialKnowledgeLoading] = useState(Boolean(api));
   const [graphZoom, setGraphZoom] = useState(0.85);
-  const summary = useKnowledgeSummary(api, reloadKey);
-  const knowledge = useKnowledgeGraph(api, reloadKey);
-  const status = useKnowledgeStatus(api, reloadKey, 3000);
-  const candidates = useKnowledgeCandidates(api, candidateFilter, reloadKey);
-  const page = useKnowledgePage(api, selectedPath, reloadKey);
+  const summaryResource = useKnowledgeSummary(api, reloadKey);
+  const knowledgeResource = useKnowledgeGraph(api, reloadKey);
+  const statusResource = useKnowledgeStatus(api, reloadKey, 3000);
+  const candidatesResource = useKnowledgeCandidates(api, candidateFilter, reloadKey);
+  const pageResource = useKnowledgePage(api, selectedPath, reloadKey);
+  const summary = summaryResource.data;
+  const knowledge = knowledgeResource.data;
+  const status = statusResource.data;
+  const candidates = candidatesResource.data;
+  const page = pageResource.data;
+  const initialKnowledgeLoading = Boolean(api) && (!summaryResource.loaded || !knowledgeResource.loaded || !statusResource.loaded);
+  const candidatesLoading = initialKnowledgeLoading || candidatesResource.loading;
+  const pageLoading = Boolean(selectedPath) && pageResource.loading;
   const refreshTaskActive = refreshTask?.kind === "knowledge.refresh" && ["queued", "running"].includes(refreshTask.status);
   const refreshInFlight = status.refreshing || refreshTaskActive;
   const refreshStatusLabel = refreshTaskActive
@@ -234,22 +241,6 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
   const vaultSourceCount = summary.sourceCount || status.sourceCount;
   const vaultPageCount = summary.pageCount || status.pageCount;
   const vaultAvailabilityLabel = vaultEnabled ? "Vault live" : api ? "Loading" : "Not available";
-
-  useEffect(() => {
-    if (!api) {
-      setInitialKnowledgeLoading(false);
-      return;
-    }
-    setInitialKnowledgeLoading(true);
-    const timer = window.setTimeout(() => setInitialKnowledgeLoading(false), 900);
-    return () => window.clearTimeout(timer);
-  }, [api, reloadKey]);
-
-  useEffect(() => {
-    if (vaultEnabled || knowledge.nodes.length || summary.featuredPages.length || status.lastRefreshError) {
-      setInitialKnowledgeLoading(false);
-    }
-  }, [knowledge.nodes.length, status.lastRefreshError, summary.featuredPages.length, vaultEnabled]);
 
   useEffect(() => {
     if (!api) return;
@@ -388,11 +379,11 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
           <div className="graph-overview-stats">
             <div>
               <span className="eyebrow">Vault nodes</span>
-              <div className="display tabular graph-total">{vaultNodeCount}</div>
+              {initialKnowledgeLoading ? <SkeletonLine width="48px" /> : <div className="display tabular graph-total">{vaultNodeCount}</div>}
             </div>
             <div className="graph-mini-stats">
-              <div><span>{vaultSourceCount}</span><small>Sources compiled</small></div>
-              <div><span>{vaultPageCount}</span><small>Wiki pages</small></div>
+              <div>{initialKnowledgeLoading ? <SkeletonLine width="36px" /> : <span>{vaultSourceCount}</span>}<small>Sources compiled</small></div>
+              <div>{initialKnowledgeLoading ? <SkeletonLine width="36px" /> : <span>{vaultPageCount}</span>}<small>Wiki pages</small></div>
             </div>
           </div>
         </div>
@@ -403,7 +394,7 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
               <div>
                 <h3 style={{ marginBottom: 4 }}>Vault Operations</h3>
                 <div className="mono knowledge-meta-line">
-                  {refreshMeta}
+                  {initialKnowledgeLoading ? "Loading vault status..." : refreshMeta}
                 </div>
               </div>
               <button className="knowledge-action-button" onClick={triggerRefresh} disabled={!api || refreshInFlight}>
@@ -414,11 +405,15 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
             <div className="knowledge-ops-grid">
               <div className="knowledge-status-row">
                 <span className={`pill mono knowledge-status-pill ${status.lastRefreshStatus === "error" || refreshTask?.status === "failed" ? "error" : status.lastRefreshStatus === "ok" ? "success" : ""}`}>
-                  {refreshStatusLabel}
+                  {initialKnowledgeLoading ? "Loading" : refreshStatusLabel}
                 </span>
-                {status.compiledAt && <span className="mono knowledge-meta-line">Compiled {new Date(status.compiledAt).toLocaleString()}</span>}
+                {initialKnowledgeLoading ? (
+                  <SkeletonLine width="220px" />
+                ) : status.compiledAt && <span className="mono knowledge-meta-line">Compiled {new Date(status.compiledAt).toLocaleString()}</span>}
               </div>
-              {refreshTaskActive && (
+              {initialKnowledgeLoading ? (
+                <SkeletonGrid count={2} rows={2} />
+              ) : refreshTaskActive && (
                 <div className="knowledge-stale-banner">
                   <Icon name="clock" size={15} />
                   <div>
@@ -431,7 +426,7 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
                   </div>
                 </div>
               )}
-              {status.stale && (
+              {!initialKnowledgeLoading && status.stale && (
                 <div className="knowledge-stale-banner">
                   <Icon name="clock" size={15} />
                   <div>
@@ -442,8 +437,8 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
                   </div>
                 </div>
               )}
-              {status.lastRefreshError && <div className="knowledge-error-copy">{status.lastRefreshError}</div>}
-              {status.lastRefreshSummary && (
+              {!initialKnowledgeLoading && status.lastRefreshError && <div className="knowledge-error-copy">{status.lastRefreshError}</div>}
+              {!initialKnowledgeLoading && status.lastRefreshSummary && (
                 <div className="knowledge-refresh-summary">
                   <span className="pill mono">{status.lastRefreshSummary.pageCount ?? "?"} pages</span>
                   <span className="pill mono">{status.lastRefreshSummary.sourceCount ?? "?"} sources</span>
@@ -452,7 +447,7 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
                   )}
                 </div>
               )}
-              {status.changedSources.length > 0 && (
+              {!initialKnowledgeLoading && status.changedSources.length > 0 && (
                 <div className="knowledge-changed-sources">
                   <div className="eyebrow">Changed Sources</div>
                   <ul>
@@ -465,8 +460,9 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
                   </ul>
                 </div>
               )}
-              <div className="knowledge-manifest-list">
-                {status.manifest.sourceGroups.map(group => (
+              {!initialKnowledgeLoading && (
+                <div className="knowledge-manifest-list">
+                  {status.manifest.sourceGroups.map(group => (
                   <div key={group.id} className="knowledge-manifest-group">
                     <div className="knowledge-manifest-head">
                       <span>{group.label}</span>
@@ -474,8 +470,9 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
                     </div>
                     <div className="knowledge-manifest-paths">{group.paths.join(" • ")}</div>
                   </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
 
@@ -499,7 +496,7 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
               </div>
             </div>
             <div className="knowledge-candidate-list">
-              {initialKnowledgeLoading ? (
+              {candidatesLoading ? (
                 <SkeletonGrid count={4} rows={3} />
               ) : candidates.items.slice(0, 8).map(candidate => (
                 <button
@@ -528,7 +525,7 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
                   </div>
                 </button>
               ))}
-              {!initialKnowledgeLoading && !candidates.items.length && (
+              {!candidatesLoading && !candidates.items.length && (
                 <div className="knowledge-empty-state">
                   <Icon name="check" size={18} />
                   <span>No candidate pages in this bucket right now.</span>
@@ -657,6 +654,8 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
                     </div>
                   )}
                 </>
+              ) : pageLoading ? (
+                <LoadingPanel title="Loading page detail" rows={4} />
               ) : (
                 <div className="knowledge-empty-state">
                   <Icon name="spark" size={18} />

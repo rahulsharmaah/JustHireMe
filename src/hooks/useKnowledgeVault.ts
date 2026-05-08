@@ -78,20 +78,41 @@ function useJsonResource<T>(
   pollMs = 0,
 ) {
   const [value, setValue] = useState<T>(emptyValue);
+  const [loading, setLoading] = useState(Boolean(api));
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    if (!api) return;
+    if (!api) {
+      setValue(emptyValue);
+      setLoading(false);
+      setLoaded(false);
+      return;
+    }
     let cancelled = false;
     let timer: number | null = null;
+    let firstLoad = true;
+    setLoading(true);
 
     const load = () => {
       api(path)
         .then(r => (r.ok ? r.json() : Promise.reject(new Error(`Request failed for ${path}`))))
         .then(data => {
-          if (!cancelled) setValue(data);
+          if (!cancelled) {
+            setValue(data);
+            setLoaded(true);
+          }
         })
         .catch(() => {
-          if (!cancelled) setValue(emptyValue);
+          if (!cancelled) {
+            setValue(emptyValue);
+            setLoaded(true);
+          }
+        })
+        .finally(() => {
+          if (!cancelled && firstLoad) {
+            setLoading(false);
+            firstLoad = false;
+          }
         });
     };
 
@@ -106,7 +127,7 @@ function useJsonResource<T>(
     };
   }, [api, emptyValue, path, pollMs, reloadKey]);
 
-  return value;
+  return { data: value, loading, loaded };
 }
 
 export function useKnowledgeSummary(api: ApiFetch | null, reloadKey = 0) {
@@ -132,23 +153,37 @@ export function useKnowledgeCandidates(api: ApiFetch | null, status: string, rel
 
 export function useKnowledgePage(api: ApiFetch | null, pagePath: string, reloadKey = 0) {
   const [page, setPage] = useState<KnowledgePageDetail | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   useEffect(() => {
     if (!api || !pagePath) {
       setPage(null);
+      setLoading(false);
+      setLoaded(false);
       return;
     }
     let cancelled = false;
+    setLoading(true);
     api(`/api/v1/knowledge/page?path=${encodeURIComponent(pagePath)}`)
       .then(r => (r.ok ? r.json() : null))
       .then(data => {
-        if (!cancelled) setPage(data);
+        if (!cancelled) {
+          setPage(data);
+          setLoaded(true);
+        }
       })
       .catch(() => {
-        if (!cancelled) setPage(null);
+        if (!cancelled) {
+          setPage(null);
+          setLoaded(true);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
   }, [api, pagePath, reloadKey]);
-  return page;
+  return { data: page, loading, loaded };
 }
