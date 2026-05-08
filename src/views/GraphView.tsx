@@ -251,11 +251,11 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
       const queryOk = !normalizedQuery || node.label.toLowerCase().includes(normalizedQuery) || (node.type || "").toLowerCase().includes(normalizedQuery);
       return typeOk && queryOk;
     });
-    return filtered.slice(0, 90);
+    return filtered.slice(0, 60);
   }, [knowledge.nodes, nodeTypeFilter, normalizedQuery]);
   const visibleNodeIds = useMemo(() => new Set(visibleNodes.map(node => node.id)), [visibleNodes]);
   const visibleEdges = useMemo(
-    () => knowledge.edges.filter(edge => visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)).slice(0, 180),
+    () => knowledge.edges.filter(edge => visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)).slice(0, 100),
     [knowledge.edges, visibleNodeIds],
   );
 
@@ -320,12 +320,8 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
       <div className="graph-shell">
         <div className="card graph-overview">
           <div className="graph-overview-copy">
-            <span className="eyebrow">Integrated project memory</span>
-            <h1 style={{ fontSize: 34 }}>Knowledge Graph</h1>
-            <p>
-              SwarmVault is now part of the app’s process: this screen reads the compiled Obsidian vault directly,
-              shows the knowledge graph in-product, and keeps the key project pages close to the workflows they support.
-            </p>
+            <h1>Knowledge Graph</h1>
+            <p>Explore the compiled project memory, inspect connected pages, and refresh the vault when sources change.</p>
           </div>
           <div className="graph-overview-stats">
             <div>
@@ -343,7 +339,7 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
           <section className="card knowledge-ops-card">
             <div className="knowledge-card-head">
               <div>
-                <h3 style={{ marginBottom: 4 }}>Knowledge Operations</h3>
+                <h3 style={{ marginBottom: 4 }}>Vault Operations</h3>
                 <div className="mono knowledge-meta-line">
                   {refreshMeta}
                 </div>
@@ -424,8 +420,8 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
           <section className="card knowledge-candidate-card">
             <div className="knowledge-card-head">
               <div>
-                <h3 style={{ marginBottom: 4 }}>Candidate Review Queue</h3>
-                <div className="mono knowledge-meta-line">Promote useful concepts and archive noisy ones so the graph gets cleaner over time.</div>
+                <h3 style={{ marginBottom: 4 }}>Review Queue</h3>
+                <div className="mono knowledge-meta-line">Promote useful concepts and archive noisy ones.</div>
               </div>
               <div className="knowledge-filter-row">
                 {(["pending", "promoted", "archived"] as const).map(filter => (
@@ -482,7 +478,7 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
           <section className="card graph-topology-card knowledge-explorer-card">
             <div className="knowledge-card-head">
               <div>
-                <h3 style={{ marginBottom: 4 }}>Vault Explorer</h3>
+                <h3 style={{ marginBottom: 4 }}>Graph Explorer</h3>
                 <div className="mono knowledge-meta-line">
                   {vaultCompiledAt ? `Compiled ${new Date(vaultCompiledAt).toLocaleString()}` : api ? "Loading knowledge vault..." : "Knowledge vault not compiled yet"}
                 </div>
@@ -588,8 +584,8 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
           <div className="card graph-topology-card">
             <div className="knowledge-card-head">
               <div>
-                <h3 style={{ marginBottom: 4 }}>App Runtime Graph</h3>
-                <div className="mono knowledge-meta-line">Candidate, skill, project, and lead counts from the local app database.</div>
+                <h3 style={{ marginBottom: 4 }}>Runtime Counts</h3>
+                <div className="mono knowledge-meta-line">Local app database totals.</div>
               </div>
               <span className="pill mono" style={{ background: "var(--blue-soft)", color: "var(--blue-ink)", border: "1px solid var(--blue)" }}>Live app data</span>
             </div>
