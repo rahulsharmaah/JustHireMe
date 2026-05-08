@@ -7208,6 +7208,32 @@ button[aria-busy="true"]::before,
   font-size: 10px !important;
 }
 
+.pipeline-approval-pill {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  padding: 4px 8px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  white-space: nowrap;
+}
+
+.pipeline-approval-pill.approved {
+  background: var(--event-agent-bg) !important;
+  border-color: var(--event-agent-border) !important;
+  color: var(--event-agent-fg) !important;
+}
+
+.pipeline-approval-pill.unapproved {
+  background: var(--bad-soft) !important;
+  border-color: var(--bad) !important;
+  color: var(--bad-ink, var(--bad)) !important;
+}
+
 .pipeline-job-meta {
   margin-top: 8px !important;
   font-size: 12px !important;
@@ -7624,6 +7650,193 @@ button[aria-busy="true"]::before,
 
   .dashboard-page .stat-card {
     min-height: 92px !important;
+  }
+}
+
+/* Theme-safe status badges and dark-mode tokens */
+:root {
+  --event-heartbeat-bg: #eaf1ff;
+  --event-heartbeat-fg: #1d4ed8;
+  --event-heartbeat-border: #bfdbfe;
+  --event-agent-bg: #e8f7f1;
+  --event-agent-fg: #087f5b;
+  --event-agent-border: #b8ead7;
+  --event-system-bg: #fff7e6;
+  --event-system-fg: #8a5a12;
+  --event-system-border: #f8dda6;
+}
+
+.event-kind-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20px;
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-family: var(--font-sans) !important;
+  font-size: 10px !important;
+  font-weight: 750 !important;
+  line-height: 1;
+  letter-spacing: 0 !important;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.event-kind-heartbeat {
+  background: var(--event-heartbeat-bg) !important;
+  border-color: var(--event-heartbeat-border) !important;
+  color: var(--event-heartbeat-fg) !important;
+}
+
+.event-kind-agent {
+  background: var(--event-agent-bg) !important;
+  border-color: var(--event-agent-border) !important;
+  color: var(--event-agent-fg) !important;
+}
+
+.event-kind-system {
+  background: var(--event-system-bg) !important;
+  border-color: var(--event-system-border) !important;
+  color: var(--event-system-fg) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --paper: #0b1220;
+    --paper-2: #111827;
+    --paper-3: #172033;
+    --paper-4: #22304a;
+    --card: #111827;
+
+    --ink: #f8fafc;
+    --ink-2: #dbe4f0;
+    --ink-3: #94a3b8;
+    --ink-4: #64748b;
+
+    --line: #273449;
+    --line-2: #1f2a3d;
+    --line-lo: rgba(148,163,184,0.12);
+
+    --accent: #818cf8;
+    --accent-soft: rgba(129,140,248,0.18);
+    --accent-ink: #c7d2fe;
+
+    --ok: #34d399;
+    --ok-soft: rgba(52,211,153,0.16);
+    --ok-ink: #a7f3d0;
+    --warn: #fbbf24;
+    --warn-soft: rgba(251,191,36,0.15);
+    --warn-ink: #fde68a;
+    --bad: #fb7185;
+    --bad-soft: rgba(251,113,133,0.16);
+    --bad-ink: #fecdd3;
+
+    --blue: #60a5fa;
+    --blue-soft: rgba(96,165,250,0.16);
+    --blue-ink: #bfdbfe;
+    --purple: #a78bfa;
+    --purple-soft: rgba(167,139,250,0.17);
+    --purple-ink: #ddd6fe;
+    --green: #34d399;
+    --green-soft: rgba(52,211,153,0.16);
+    --green-ink: #a7f3d0;
+    --yellow: #fbbf24;
+    --yellow-soft: rgba(251,191,36,0.16);
+    --yellow-ink: #fde68a;
+    --orange: #fb923c;
+    --orange-soft: rgba(251,146,60,0.16);
+    --orange-ink: #fed7aa;
+    --teal: #2dd4bf;
+    --teal-soft: rgba(45,212,191,0.16);
+    --teal-ink: #99f6e4;
+    --pink: #f472b6;
+    --pink-soft: rgba(244,114,182,0.16);
+    --pink-ink: #fbcfe8;
+
+    --ui-app-background: #0b1220;
+    --ui-sidebar-background: #050914;
+    --ui-topbar-bg: #0f172a;
+    --ui-topbar-border: var(--line);
+    --ui-topbar-button-bg: #111827;
+    --ui-topbar-button-border: var(--line);
+    --ui-glass-surface: #111827;
+    --ui-glass-strong: #172033;
+    --ui-glass-border: var(--line);
+    --ui-glass-border-strong: #334155;
+    --ui-hero-light-bg: #111827;
+    --ui-hero-dark-bg: #111827;
+    --ui-hero-dark-border: var(--line);
+    --ui-hero-dark-text: var(--ink-2);
+    --ui-hero-dark-heading: var(--ink);
+    --ui-hero-dark-muted: var(--ink-3);
+    --ui-button-bg: #111827;
+    --ui-button-border: var(--line);
+    --ui-button-hover-bg: #172033;
+    --ui-button-hover-border: #334155;
+    --ui-icon-button-bg: #111827;
+    --ui-icon-button-border: var(--line);
+    --ui-toast-bg: #111827;
+    --ui-toast-icon-bg: #172033;
+    --ui-list-tile-bg: #111827;
+    --ui-connector-stroke: #334155;
+
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --card-foreground: var(--ink);
+    --popover: #111827;
+    --popover-foreground: var(--ink);
+    --secondary: var(--paper-2);
+    --secondary-foreground: var(--ink);
+    --muted: var(--paper-2);
+    --muted-foreground: var(--ink-3);
+    --border: var(--line);
+    --input: var(--line);
+    --ring: var(--accent);
+
+    --event-heartbeat-bg: rgba(96,165,250,0.16);
+    --event-heartbeat-fg: #dbeafe;
+    --event-heartbeat-border: rgba(96,165,250,0.34);
+    --event-agent-bg: rgba(52,211,153,0.16);
+    --event-agent-fg: #d1fae5;
+    --event-agent-border: rgba(52,211,153,0.34);
+    --event-system-bg: rgba(251,191,36,0.16);
+    --event-system-fg: #fef3c7;
+    --event-system-border: rgba(251,191,36,0.34);
+  }
+
+  html,
+  body {
+    background-color: var(--paper) !important;
+    color: var(--ink) !important;
+  }
+
+  .dashboard-page,
+  .pipeline-page,
+  .graph-page,
+  .activity-page,
+  .lead-inbox-page,
+  .ingestion-page,
+  .profile-page {
+    background: var(--paper) !important;
+    color: var(--ink) !important;
+  }
+
+  .pipeline-top,
+  .pipeline-content,
+  .dashboard-command,
+  .dashboard-panel,
+  .dashboard-events-panel,
+  .pipeline-list,
+  .pipeline-job-card {
+    background: var(--card) !important;
+    border-color: var(--line) !important;
+  }
+
+  .pipeline-job-card:hover,
+  .dashboard-lead-row:hover {
+    background: var(--paper-2) !important;
   }
 }
 

@@ -171,16 +171,13 @@ export function DashboardView({
           <button className="btn btn-ghost" onClick={() => setView("activity")} style={{ fontSize: 12 }}>See all <Icon name="arrow-right" size={12} /></button>
         </div>
         <div className="col gap-1" style={{ fontSize: 12 }}>
-          {logs.slice(0, 6).map((ln, i) => {
-            const tone = ln.kind === "heartbeat" ? "blue" : ln.kind === "agent" ? "green" : "yellow";
-            return (
+          {logs.slice(0, 6).map((ln, i) => (
               <div key={ln.id} className="row gap-3" style={{ padding: "7px 10px", borderRadius: "var(--radius-tight)", background: i === 0 ? "var(--card)" : "transparent" }}>
                 <span className="mono tabular" style={{ fontSize: 10, color: "var(--ink-3)", minWidth: 50 }}>{ln.ts}</span>
-                <span className="mono" style={{ fontSize: 9.5, fontWeight: 600, padding: "1px 6px", borderRadius: "var(--radius-tight)", background: `var(--${tone})`, color: `var(--${tone}-ink)`, textTransform: "uppercase", letterSpacing: "0.08em" }}>{ln.kind}</span>
+                <span className={`mono event-kind-badge event-kind-${ln.kind}`}>{ln.kind}</span>
                 <span style={{ fontSize: 12, flex: 1, color: "var(--ink-2)" }}>{ln.msg}</span>
               </div>
-            );
-          })}
+          ))}
         </div>
       </div>
     </div>

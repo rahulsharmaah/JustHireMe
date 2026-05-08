@@ -34,11 +34,10 @@ export function ActivityView({ logs }: { logs: LogLine[] }) {
               if (actTab === "system") return l.kind === "system";
               return true;
             }).map((ln) => {
-              const tone = ln.kind === "heartbeat" ? "blue" : ln.kind === "agent" ? "green" : "yellow";
               return (
                 <div key={ln.id} className="row gap-3" style={{ marginBottom: 5, alignItems: "baseline" }}>
                   <span className="mono tabular activity-log-time">{ln.ts}</span>
-                  <span className="mono activity-log-kind" style={{ background: `var(--${tone})`, color: `var(--${tone}-ink)` }}>{ln.kind}</span>
+                  <span className={`mono activity-log-kind event-kind-badge event-kind-${ln.kind}`}>{ln.kind}</span>
                   <span className="activity-log-source">{ln.src}</span>
                   <span style={{ flex: 1 }}>{ln.msg}</span>
                 </div>

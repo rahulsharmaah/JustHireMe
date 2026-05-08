@@ -178,6 +178,10 @@ export function PipelineJobCard({ lead, onOpen, onDelete, showGenerate = false, 
   const statusTone = getTone(lead.status);
   const display = leadDisplayHeading(lead);
   const urlLabel = lead.url ? lead.url.replace(/^https?:\/\//, "").slice(0, 42) : "No source URL";
+  const approved = ["approved", "applied", "interviewing", "accepted"].includes(lead.status || "");
+  const approvalLabel = approved
+    ? `Approved - ${lead.status || "approved"}`
+    : `Not approved yet - ${lead.status || "discovered"}`;
 
   const handleGenerate = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -199,8 +203,13 @@ export function PipelineJobCard({ lead, onOpen, onDelete, showGenerate = false, 
             <b>||</b>
             <span className="company">{display.company}</span>
           </div>
-          <span className="pipeline-status-pill" style={{ background: `var(--${statusTone}-soft)`, color: `var(--${statusTone}-ink)`, borderColor: `var(--${statusTone})` }}>
-            {lead.status || "discovered"}
+          <span
+            className={`pipeline-status-pill pipeline-approval-pill ${approved ? "approved" : "unapproved"}`}
+            title={approvalLabel}
+            aria-label={approvalLabel}
+          >
+            <Icon name={approved ? "check" : "x"} size={12} />
+            <span>{approved ? "Approved" : "Unapproved"}</span>
           </span>
         </div>
         <div className="pipeline-job-meta">
