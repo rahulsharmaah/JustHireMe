@@ -42,7 +42,7 @@ export default function App() {
   const { leads, setLeads, loading: leadsLoading, error: leadsError } = useLeads(api, wsAddLog);
   const dueFollowups = useDueFollowups(api);
   const stats  = useGraphStats(api);
-  const { tasks, refreshTasks } = useWorkerTasks(api);
+  const { tasks, refreshTasks, loading: tasksLoading } = useWorkerTasks(api);
   const [view, setView]           = useState<View>("apply");
   const [sel, setSel]             = useState<Lead | null>(null);
   // Always pass the live version of the selected lead so the drawer reflects real-time updates
@@ -223,10 +223,10 @@ export default function App() {
         <Topbar view={view} sidebarCollapsed={sidebarCollapsed || narrowShell} onToggleSidebar={() => setSidebarCollapsed(prev => !prev)} tasks={tasks} onRefreshTasks={refreshTasks} />
         <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", background: "var(--paper)" }}>
           {view === "apply"     && <ErrorBoundary label="Apply"><ApplyJobView port={port} api={api} leads={leads} openDrawer={setSel} initialInput={applyDraft} autoFocus={applyAutoFocus} /></ErrorBoundary>}
-          {view === "dashboard" && <ErrorBoundary label="Dashboard"><DashboardView leads={leads} dueFollowups={dueFollowups} logs={logs} setView={setView} openDrawer={setSel} scanning={scanning} reevaluating={reevaluating} cleaning={cleaning} onScan={onScan} onStopScan={onStopScan} onReevaluate={onReevaluateJobs} onStopReevaluate={onStopReevaluate} onCleanup={onCleanupLeads} scanErr={scanErr} /></ErrorBoundary>}
+          {view === "dashboard" && <ErrorBoundary label="Dashboard"><DashboardView leads={leads} dueFollowups={dueFollowups} logs={logs} setView={setView} openDrawer={setSel} scanning={scanning} reevaluating={reevaluating} cleaning={cleaning} onScan={onScan} onStopScan={onStopScan} onReevaluate={onReevaluateJobs} onStopReevaluate={onStopReevaluate} onCleanup={onCleanupLeads} scanErr={scanErr} loading={leadsLoading || !api} /></ErrorBoundary>}
           {view === "inbox"     && <ErrorBoundary label="Inbox"><LeadInboxView port={port} api={api} onCreated={setSel} /></ErrorBoundary>}
           {view === "pipeline"  && <ErrorBoundary label="Pipeline"><PipelineView leads={leads} openDrawer={setSel} deleteLead={deleteLead} port={port} api={api} scanning={scanning} reevaluating={reevaluating} cleaning={cleaning} onReevaluate={onReevaluateJobs} onStopReevaluate={onStopReevaluate} onCleanup={onCleanupLeads} loading={leadsLoading || !port || !api} error={leadsError} /></ErrorBoundary>}
-          {view === "jobs"      && <ErrorBoundary label="Jobs"><JobsView tasks={tasks} onRefresh={refreshTasks} /></ErrorBoundary>}
+          {view === "jobs"      && <ErrorBoundary label="Jobs"><JobsView tasks={tasks} onRefresh={refreshTasks} loading={tasksLoading} /></ErrorBoundary>}
           {view === "graph"     && <ErrorBoundary label="Graph"><GraphView stats={stats} api={api} /></ErrorBoundary>}
           {view === "activity"  && <ErrorBoundary label="Activity"><ActivityView logs={logs} /></ErrorBoundary>}
           {view === "profile"   && (api ? <ErrorBoundary label="Profile"><ProfileView api={api} setView={setView} /></ErrorBoundary> : <BackendUnavailable title="Profile" conn={conn} port={port} />)}

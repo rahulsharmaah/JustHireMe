@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ApiFetch, WorkerTasksPayload } from "../types";
 
 const EMPTY: WorkerTasksPayload = {
@@ -11,18 +11,26 @@ const EMPTY: WorkerTasksPayload = {
 
 export function useWorkerTasks(api: ApiFetch | null) {
   const [tasks, setTasks] = useState<WorkerTasksPayload>(EMPTY);
+  const [loading, setLoading] = useState(true);
+  const hasLoaded = useRef(false);
 
   const refresh = useCallback(async () => {
     if (!api) {
+      hasLoaded.current = false;
       setTasks(EMPTY);
+      setLoading(false);
       return;
     }
     try {
+      if (!hasLoaded.current) setLoading(true);
       const r = await api("/api/v1/tasks?limit=20");
       if (!r.ok) throw new Error("tasks unavailable");
       setTasks(await r.json());
     } catch {
       setTasks(prev => ({ ...prev, enabled: false }));
+    } finally {
+      hasLoaded.current = true;
+      setLoading(false);
     }
   }, [api]);
 
@@ -42,5 +50,5 @@ export function useWorkerTasks(api: ApiFetch | null) {
     };
   }, [refresh]);
 
-  return { tasks, refreshTasks: refresh };
+  return { tasks, refreshTasks: refresh, loading };
 }

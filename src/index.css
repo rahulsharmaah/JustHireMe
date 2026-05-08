@@ -6347,3 +6347,87 @@ button:hover,
   }
 }
 
+/* Shared loading states */
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.skeleton-card,
+.loading-panel {
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: var(--radius-card);
+}
+
+.skeleton-card {
+  min-height: 118px;
+  padding: 16px;
+  display: grid;
+  align-content: center;
+  gap: 12px;
+}
+
+.skeleton-line {
+  display: block;
+  height: 12px;
+  border-radius: var(--radius-control);
+  background: linear-gradient(90deg, var(--paper-3), var(--paper-2), var(--paper-3));
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 1.35s ease-in-out infinite;
+}
+
+.skeleton-card .skeleton-line:first-child {
+  height: 18px;
+}
+
+.loading-panel {
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+  color: var(--ink-2);
+}
+
+.loading-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.loading-panel .spinner {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.loading-panel-body {
+  display: grid;
+  gap: 10px;
+}
+
+button[aria-busy="true"],
+.btn[aria-busy="true"] {
+  cursor: wait !important;
+  opacity: 0.78;
+}
+
+button[aria-busy="true"]::before,
+.btn[aria-busy="true"]::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  flex: 0 0 auto;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 120% 0; }
+  100% { background-position: -120% 0; }
+}
+

@@ -1,15 +1,17 @@
 import Icon from "../components/Icon";
 import type { Lead, LogLine, View } from "../types";
 import { StatCard } from "../components/Topbar";
+import { SkeletonGrid, LoadingPanel } from "../components/LoadingState";
 import { leadSignal, needsTodayAction, todayActionLabel } from "../lib/leadUtils";
 
 export function DashboardView({
   leads, dueFollowups, logs, setView, openDrawer,
-  scanning, reevaluating, cleaning, onScan, onStopScan, onReevaluate, onStopReevaluate, onCleanup, scanErr,
+  scanning, reevaluating, cleaning, onScan, onStopScan, onReevaluate, onStopReevaluate, onCleanup, scanErr, loading,
 }: {
   leads: Lead[]; dueFollowups: Lead[]; logs: LogLine[]; setView: (v: View) => void; openDrawer: (l: Lead) => void;
   scanning: boolean; reevaluating: boolean; cleaning: boolean;
   onScan: () => void; onStopScan: () => void; onReevaluate: () => void; onStopReevaluate: () => void; onCleanup: () => void; scanErr: string | null;
+  loading: boolean;
 }) {
   const counts = {
     total:      leads.length,
@@ -76,13 +78,17 @@ export function DashboardView({
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 14, marginBottom: 18 }}>
-        <StatCard tone="blue"   label="Leads found"      value={counts.discovered} sub="Awaiting eval"   icon="layers" />
-        <StatCard tone="yellow" label="Evaluated"         value={counts.evaluated}  sub="Non-zero scores" icon="spark"  />
-        <StatCard tone="purple" label="Resumes tailored"  value={counts.tailoring}  sub="PDFs cached"     icon="file"   />
-        <StatCard tone="green"  label="Awaiting approval" value={counts.approved}   sub="Ready to fire"   icon="check"  />
-        <StatCard tone="orange" label="Applications sent" value={counts.applied}    sub="Success"         icon="arrow-up" />
-      </div>
+      {loading ? (
+        <SkeletonGrid count={5} rows={2} />
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 14, marginBottom: 18 }}>
+          <StatCard tone="blue"   label="Leads found"      value={counts.discovered} sub="Awaiting eval"   icon="layers" />
+          <StatCard tone="yellow" label="Evaluated"         value={counts.evaluated}  sub="Non-zero scores" icon="spark"  />
+          <StatCard tone="purple" label="Resumes tailored"  value={counts.tailoring}  sub="PDFs cached"     icon="file"   />
+          <StatCard tone="green"  label="Awaiting approval" value={counts.approved}   sub="Ready to fire"   icon="check"  />
+          <StatCard tone="orange" label="Applications sent" value={counts.applied}    sub="Success"         icon="arrow-up" />
+        </div>
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14, marginBottom: 18 }}>
         <div className="card" style={{ padding: 18 }}>
@@ -91,7 +97,9 @@ export function DashboardView({
             <button className="btn btn-ghost" onClick={() => setView("pipeline")} style={{ fontSize: 12 }}>Pipeline <Icon name="arrow-right" size={12} /></button>
           </div>
           <div className="col gap-2">
-            {todayQueue.length === 0 ? (
+            {loading ? (
+              <LoadingPanel title="Loading action queue" rows={4} />
+            ) : todayQueue.length === 0 ? (
               <div className="card-flat" style={{ padding: 14, color: "var(--ink-3)", fontSize: 12 }}>Nothing urgent. Run a scan, paste a lead, or review the full pipeline.</div>
             ) : todayQueue.map(lead => {
               const signal = leadSignal(lead);
@@ -121,7 +129,9 @@ export function DashboardView({
             <span className="pill mono" style={{ background: "var(--blue)", color: "var(--blue-ink)" }}>{dailyHot.length}</span>
           </div>
           <div className="col gap-2">
-            {dailyHot.length === 0 ? (
+            {loading ? (
+              <LoadingPanel title="Loading strong leads" rows={4} />
+            ) : dailyHot.length === 0 ? (
               <div style={{ fontSize: 12, color: "var(--ink-3)", lineHeight: 1.45 }}>No scored leads yet.</div>
             ) : dailyHot.slice(0, 5).map(lead => (
               <div key={lead.job_id} onClick={() => openDrawer(lead)} className="lift" style={{ padding: 10, borderRadius: "var(--radius-control)", border: "1px solid var(--line)", background: "var(--card)", cursor: "pointer", display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>

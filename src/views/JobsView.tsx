@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import Icon from "../components/Icon";
+import { LoadingPanel, SkeletonGrid } from "../components/LoadingState";
 import type { WorkerTask, WorkerTasksPayload, WorkerTaskStatus } from "../types";
 
 const FILTERS: Array<{ id: "all" | WorkerTaskStatus; label: string }> = [
@@ -32,7 +33,7 @@ function statusLabel(status: WorkerTaskStatus) {
   return status[0].toUpperCase() + status.slice(1);
 }
 
-export function JobsView({ tasks, onRefresh }: { tasks: WorkerTasksPayload; onRefresh?: () => void }) {
+export function JobsView({ tasks, onRefresh, loading = false }: { tasks: WorkerTasksPayload; onRefresh?: () => void; loading?: boolean }) {
   const [filter, setFilter] = useState<"all" | WorkerTaskStatus>("all");
   const rows = useMemo(() => {
     const seen = new Set<string>();
@@ -56,12 +57,16 @@ export function JobsView({ tasks, onRefresh }: { tasks: WorkerTasksPayload; onRe
         </button>
       </div>
 
-      <div className="jobs-metrics">
-        <div className="jobs-metric"><span>Running</span><b>{tasks.counts.running}</b></div>
-        <div className="jobs-metric"><span>Queued</span><b>{tasks.counts.queued}</b></div>
-        <div className="jobs-metric"><span>Completed</span><b>{tasks.counts.succeeded}</b></div>
-        <div className="jobs-metric"><span>Failed</span><b>{tasks.counts.failed}</b></div>
-      </div>
+      {loading ? (
+        <SkeletonGrid count={4} rows={1} />
+      ) : (
+        <div className="jobs-metrics">
+          <div className="jobs-metric"><span>Running</span><b>{tasks.counts.running}</b></div>
+          <div className="jobs-metric"><span>Queued</span><b>{tasks.counts.queued}</b></div>
+          <div className="jobs-metric"><span>Completed</span><b>{tasks.counts.succeeded}</b></div>
+          <div className="jobs-metric"><span>Failed</span><b>{tasks.counts.failed}</b></div>
+        </div>
+      )}
 
       <div className="jobs-tabs">
         {FILTERS.map(item => (
@@ -78,7 +83,9 @@ export function JobsView({ tasks, onRefresh }: { tasks: WorkerTasksPayload; onRe
           <span>Attempts</span>
           <span>Updated</span>
         </div>
-        {rows.length === 0 ? (
+        {loading ? (
+          <LoadingPanel title="Loading worker jobs" rows={5} />
+        ) : rows.length === 0 ? (
           <div className="jobs-empty">
             <Icon name="check" size={18} />
             <span>No jobs in this view.</span>

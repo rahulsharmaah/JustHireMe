@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Icon from "../components/Icon";
+import { LoadingPanel, SkeletonGrid } from "../components/LoadingState";
 import { useKnowledgeCandidates, useKnowledgeGraph, useKnowledgePage, useKnowledgeStatus, useKnowledgeSummary } from "../hooks/useKnowledgeVault";
 import type { ApiFetch, GraphStats, KnowledgeCandidate, KnowledgeGraphNode, WorkerTask, WorkerTasksPayload } from "../types";
 
@@ -169,6 +170,7 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
   const [nodeTypeFilter, setNodeTypeFilter] = useState<"all" | "source" | "concept" | "entity">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshTask, setRefreshTask] = useState<WorkerTask | null>(null);
+  const [initialKnowledgeLoading, setInitialKnowledgeLoading] = useState(Boolean(api));
   const summary = useKnowledgeSummary(api, reloadKey);
   const knowledge = useKnowledgeGraph(api, reloadKey);
   const status = useKnowledgeStatus(api, reloadKey, 3000);
@@ -194,6 +196,22 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
   const vaultSourceCount = summary.sourceCount || status.sourceCount;
   const vaultPageCount = summary.pageCount || status.pageCount;
   const vaultAvailabilityLabel = vaultEnabled ? "Vault live" : api ? "Loading" : "Not available";
+
+  useEffect(() => {
+    if (!api) {
+      setInitialKnowledgeLoading(false);
+      return;
+    }
+    setInitialKnowledgeLoading(true);
+    const timer = window.setTimeout(() => setInitialKnowledgeLoading(false), 900);
+    return () => window.clearTimeout(timer);
+  }, [api, reloadKey]);
+
+  useEffect(() => {
+    if (vaultEnabled || knowledge.nodes.length || summary.featuredPages.length || status.lastRefreshError) {
+      setInitialKnowledgeLoading(false);
+    }
+  }, [knowledge.nodes.length, status.lastRefreshError, summary.featuredPages.length, vaultEnabled]);
 
   useEffect(() => {
     if (!api) return;
@@ -437,7 +455,9 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
               </div>
             </div>
             <div className="knowledge-candidate-list">
-              {candidates.items.slice(0, 8).map(candidate => (
+              {initialKnowledgeLoading ? (
+                <SkeletonGrid count={4} rows={3} />
+              ) : candidates.items.slice(0, 8).map(candidate => (
                 <button
                   key={candidate.path}
                   className={`knowledge-candidate-item ${selectedPath === candidate.path ? "active" : ""}`}
@@ -464,7 +484,7 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
                   </div>
                 </button>
               ))}
-              {!candidates.items.length && (
+              {!initialKnowledgeLoading && !candidates.items.length && (
                 <div className="knowledge-empty-state">
                   <Icon name="check" size={18} />
                   <span>No candidate pages in this bucket right now.</span>
@@ -487,7 +507,9 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
                 {vaultAvailabilityLabel}
               </span>
             </div>
-            {vaultEnabled ? (
+            {initialKnowledgeLoading ? (
+              <LoadingPanel title="Loading knowledge graph" rows={5} />
+            ) : vaultEnabled ? (
               <>
                 <div className="knowledge-home-copy">{summary.home || "Open the featured pages to inspect the compiled project memory."}</div>
                 <div className="knowledge-explorer-toolbar">
