@@ -6489,3 +6489,253 @@ button[aria-busy="true"]::before,
   100% { background-position: -120% 0; }
 }
 
+/* Profile page clean layout pass */
+.profile-page {
+  height: 100% !important;
+  padding: 18px 24px 42px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  background: var(--paper) !important;
+}
+
+.profile-shell-compact {
+  width: 100% !important;
+  max-width: 1280px !important;
+  height: auto !important;
+  min-height: auto !important;
+  margin: 0 auto !important;
+}
+
+.profile-workspace {
+  display: grid !important;
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr) !important;
+  align-items: start !important;
+  gap: 16px !important;
+  height: auto !important;
+  min-height: auto !important;
+}
+
+.profile-left-rail,
+.profile-main-panel {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  align-self: start !important;
+}
+
+.profile-left-rail {
+  display: grid !important;
+  gap: 16px !important;
+  overflow: visible !important;
+  padding-right: 0 !important;
+}
+
+.profile-main-panel {
+  display: grid !important;
+  grid-template-rows: auto auto !important;
+  gap: 16px !important;
+}
+
+.profile-identity-card,
+.profile-signal-card,
+.profile-quality-card,
+.profile-map-card,
+.profile-tab-card {
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  padding: 18px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-card) !important;
+  background: var(--card) !important;
+  box-shadow: none !important;
+}
+
+.profile-identity-card,
+.profile-signal-card {
+  display: grid !important;
+  gap: 16px !important;
+}
+
+.profile-identity-head {
+  align-items: flex-start !important;
+  gap: 12px !important;
+}
+
+.profile-name {
+  max-width: 100% !important;
+  margin-top: 6px !important;
+  font-size: 26px !important;
+  line-height: 1.08 !important;
+}
+
+.profile-summary {
+  max-width: 100% !important;
+  margin: 0 !important;
+  color: var(--ink-2) !important;
+  line-height: 1.55 !important;
+}
+
+.profile-pill-row {
+  margin-top: 0 !important;
+}
+
+.profile-add-context {
+  margin-top: 0 !important;
+}
+
+.profile-quality-card {
+  gap: 14px !important;
+}
+
+.profile-quality-list {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.profile-map-head,
+.profile-tabs {
+  align-items: center !important;
+}
+
+.profile-map-card {
+  display: grid !important;
+  gap: 16px !important;
+}
+
+.profile-map-visual {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+}
+
+.profile-map-connectors {
+  display: none !important;
+}
+
+.profile-map-node,
+.profile-map-node-skills,
+.profile-map-center-node,
+.profile-map-node-experience,
+.profile-map-node-projects {
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 96px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  padding: 16px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-card) !important;
+  background: var(--paper-2) !important;
+  box-shadow: none !important;
+}
+
+.profile-map-node:hover,
+.profile-map-node.active {
+  transform: none !important;
+  background: var(--card) !important;
+  border-color: var(--accent) !important;
+}
+
+.profile-map-center-node {
+  color: var(--ink) !important;
+}
+
+.profile-map-icon {
+  width: 40px !important;
+  height: 40px !important;
+  flex: 0 0 auto !important;
+}
+
+.profile-map-center-node .profile-map-icon {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.profile-map-copy,
+.profile-map-center-node {
+  min-width: 0 !important;
+}
+
+.profile-map-node strong,
+.profile-map-center-node strong {
+  overflow-wrap: anywhere !important;
+  font-size: 14px !important;
+  line-height: 1.25 !important;
+}
+
+.profile-tab-card {
+  display: grid !important;
+  gap: 14px !important;
+}
+
+.profile-tabs {
+  gap: 8px !important;
+}
+
+.profile-tabs button.active {
+  background: var(--ink) !important;
+  border-color: var(--ink) !important;
+  color: var(--card) !important;
+}
+
+.profile-tab-scroll {
+  display: grid !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.profile-tab-scroll .profile-skill-grid,
+.profile-timeline,
+.profile-project-grid {
+  overflow: visible !important;
+  padding-right: 0 !important;
+}
+
+.profile-tab-scroll .profile-skill-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+}
+
+.profile-timeline,
+.profile-project-grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+}
+
+.profile-list-tile,
+.profile-timeline-item,
+.profile-project-card,
+.profile-quality-item {
+  background: var(--paper-2) !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 1180px) {
+  .profile-workspace {
+    grid-template-columns: 1fr !important;
+  }
+
+  .profile-left-rail {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .profile-left-rail,
+  .profile-map-visual {
+    grid-template-columns: 1fr !important;
+  }
+}
+
