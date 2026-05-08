@@ -19,6 +19,7 @@ export function Topbar({
     dashboard: "Command Center",
     inbox:     "Leads",
     pipeline:  "Job Pipeline",
+    jobs:      "Jobs",
     graph:     "Knowledge Graph",
     activity:  "Live Activity",
     profile:   "Profile",
@@ -31,9 +32,6 @@ export function Topbar({
           <Icon name="arrow-right" size={14} style={{ transform: sidebarCollapsed ? "rotate(0deg)" : "rotate(180deg)" }} />
         </button>
         <h2 className="type-topbar-title">{titles[view]}</h2>
-        <span className="pill mono type-view-pill" style={{ background: "var(--paper-3)", color: "var(--ink-3)" }}>
-          {view.toUpperCase()}
-        </span>
       </div>
       <div className="topbar-actions">
         {tasks && <WorkerQueueIndicator tasks={tasks} onRefresh={onRefreshTasks} />}
@@ -109,7 +107,7 @@ function WorkerQueueIndicator({ tasks, onRefresh }: { tasks: WorkerTasksPayload;
    DASHBOARD VIEW
 ══════════════════════════════════════ */
 
-export const StatCard = ({ label, value, sub, icon }: any) => (
+export const StatCard = ({ label, value, icon }: any) => (
   <div className="stat-card" style={{
     background: "var(--card)",
     borderColor: "var(--line)",
@@ -124,7 +122,6 @@ export const StatCard = ({ label, value, sub, icon }: any) => (
       <div className="col" style={{ gap: 4 }}>
       <div className="display tabular type-metric-value type-metric-value-lg" style={{ color: "var(--ink)" }}>{value}</div>
       <div className="type-metric-label">{label}</div>
-      <div className="type-metric-sub">{sub}</div>
     </div>
   </div>
 );

@@ -17,6 +17,7 @@ import { DashboardView } from "./views/DashboardView";
 import { LeadInboxView } from "./views/LeadInboxView";
 import { ApplyJobView } from "./views/ApplyJobView";
 import { PipelineView } from "./views/PipelineView";
+import { JobsView } from "./views/JobsView";
 import { GraphView } from "./views/GraphView";
 import { ActivityView } from "./views/ActivityView";
 import { ProfileView } from "./views/ProfileView";
@@ -29,7 +30,7 @@ import { showToast } from "./lib/toast";
 const SIDEBAR_COLLAPSED_KEY = "justhireme.sidebar.collapsed";
 
 export default function App() {
-  const { conn, port, apiToken, logs, beat, addLog: wsAddLog } = useWS();
+  const { conn, port, apiToken, logs, addLog: wsAddLog } = useWS();
   const api = useMemo<ApiFetch | null>(() => {
     if (!port || !apiToken) return null;
     return (path, opts) => {
@@ -217,7 +218,7 @@ export default function App() {
   };
   return (
     <div className={`app-shell ${sidebarCollapsed || narrowShell ? "sidebar-is-collapsed" : ""}`} style={{ height: "100vh", width: "100vw", overflow: "hidden", alignItems: "stretch" }}>
-      <Sidebar view={view} setView={setView} leadCounts={leadCounts} online={conn === "connected"} port={port} beat={beat} onSettings={() => setShowSettings(true)} onSetup={openSetupGuide} collapsed={sidebarCollapsed || narrowShell} onToggleCollapsed={() => setSidebarCollapsed(prev => !prev)} />
+      <Sidebar view={view} setView={setView} leadCounts={leadCounts} online={conn === "connected"} onSettings={() => setShowSettings(true)} onSetup={openSetupGuide} collapsed={sidebarCollapsed || narrowShell} onToggleCollapsed={() => setSidebarCollapsed(prev => !prev)} />
       <div className="app-main">
         <Topbar view={view} sidebarCollapsed={sidebarCollapsed || narrowShell} onToggleSidebar={() => setSidebarCollapsed(prev => !prev)} tasks={tasks} onRefreshTasks={refreshTasks} />
         <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", background: "var(--paper)" }}>
@@ -225,6 +226,7 @@ export default function App() {
           {view === "dashboard" && <ErrorBoundary label="Dashboard"><DashboardView leads={leads} dueFollowups={dueFollowups} logs={logs} setView={setView} openDrawer={setSel} scanning={scanning} reevaluating={reevaluating} cleaning={cleaning} onScan={onScan} onStopScan={onStopScan} onReevaluate={onReevaluateJobs} onStopReevaluate={onStopReevaluate} onCleanup={onCleanupLeads} scanErr={scanErr} /></ErrorBoundary>}
           {view === "inbox"     && <ErrorBoundary label="Inbox"><LeadInboxView port={port} api={api} onCreated={setSel} /></ErrorBoundary>}
           {view === "pipeline"  && <ErrorBoundary label="Pipeline"><PipelineView leads={leads} openDrawer={setSel} deleteLead={deleteLead} port={port} api={api} scanning={scanning} reevaluating={reevaluating} cleaning={cleaning} onReevaluate={onReevaluateJobs} onStopReevaluate={onStopReevaluate} onCleanup={onCleanupLeads} loading={leadsLoading || !port || !api} error={leadsError} /></ErrorBoundary>}
+          {view === "jobs"      && <ErrorBoundary label="Jobs"><JobsView tasks={tasks} onRefresh={refreshTasks} /></ErrorBoundary>}
           {view === "graph"     && <ErrorBoundary label="Graph"><GraphView stats={stats} api={api} /></ErrorBoundary>}
           {view === "activity"  && <ErrorBoundary label="Activity"><ActivityView logs={logs} /></ErrorBoundary>}
           {view === "profile"   && (api ? <ErrorBoundary label="Profile"><ProfileView api={api} setView={setView} /></ErrorBoundary> : <BackendUnavailable title="Profile" conn={conn} port={port} />)}

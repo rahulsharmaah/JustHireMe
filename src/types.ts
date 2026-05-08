@@ -1,5 +1,5 @@
 export type ConnSt = "disconnected" | "connecting" | "connected";
-export type View = "apply" | "dashboard" | "inbox" | "pipeline" | "graph" | "activity" | "profile" | "ingestion";
+export type View = "apply" | "dashboard" | "inbox" | "pipeline" | "jobs" | "graph" | "activity" | "profile" | "ingestion";
 export type PipelineTab = "today" | "all" | "hot" | "found" | "evaluated" | "generated" | "applied" | "discarded";
 export type LeadSort = "recommended" | "newest" | "signal" | "match" | "company";
 export type SeniorityFilter = "all" | "beginner" | "fresher" | "junior" | "mid" | "senior" | "unknown";

@@ -5438,6 +5438,41 @@ button.profile-map-node {
    Final layer: keep the interface neutral, flat, and consistent. */
 :root,
 .dark {
+  --font-sans: "Segoe UI", "Inter", "SF Pro Text", system-ui, -apple-system, sans-serif;
+  --font-mono: "Segoe UI", "Inter", "SF Pro Text", system-ui, -apple-system, sans-serif;
+  --font-display: "Segoe UI", "Inter", "SF Pro Display", system-ui, -apple-system, sans-serif;
+  --font-serif: "Segoe UI", "Inter", "SF Pro Text", system-ui, -apple-system, sans-serif;
+
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-base: 14px;
+  --text-lg: 15px;
+  --text-xl: 16px;
+  --text-2xl: 18px;
+  --text-3xl: 20px;
+  --text-4xl: 24px;
+  --text-5xl: 28px;
+  --text-6xl: 32px;
+  --text-page-title: 28px;
+  --text-section-title: 20px;
+  --text-card-title: 15px;
+  --text-body: 14px;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 650;
+  --weight-heavy: 700;
+  --weight-display: 700;
+
+  --tracking-tight: 0;
+  --tracking-heading: 0;
+  --tracking-display: 0;
+  --tracking-label: 0.04em;
+  --tracking-eyebrow: 0.08em;
+
   --paper: #f7f9fc;
   --paper-2: #f1f4f9;
   --paper-3: #e8edf5;
@@ -5600,6 +5635,71 @@ body {
   color: var(--ink);
 }
 
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-sans) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.display,
+.mono,
+.tabular,
+.type-brand,
+.type-topbar-title,
+.type-metric-value,
+.type-metric-label,
+.type-metric-sub,
+.eyebrow {
+  font-family: var(--font-sans) !important;
+  letter-spacing: 0 !important;
+}
+
+h1 {
+  font-size: var(--text-page-title) !important;
+  line-height: 1.12 !important;
+}
+
+h2,
+.type-topbar-title {
+  font-size: var(--text-section-title) !important;
+  line-height: 1.18 !important;
+}
+
+h3 {
+  font-size: var(--text-card-title) !important;
+}
+
+.type-metric-value-sm,
+.type-metric-value-md,
+.type-metric-value-lg,
+.type-metric-value-xl {
+  font-size: 28px !important;
+  line-height: 1.05 !important;
+}
+
+.eyebrow,
+.type-metric-label,
+.type-metric-sub,
+.type-count-pill,
+.pill,
+.badge {
+  font-size: 11px !important;
+}
+
+.btn,
+.nav-item,
+.queue-title {
+  font-size: 13px !important;
+}
+
 *,
 *::before,
 *::after {
@@ -5683,6 +5783,32 @@ body {
 .hero-dark *,
 .command-panel * {
   color: inherit;
+}
+
+.dashboard-command {
+  padding: 20px !important;
+}
+
+.dashboard-command .row {
+  align-items: flex-start !important;
+}
+
+.dashboard-command-copy {
+  max-width: none !important;
+}
+
+.dashboard-summary {
+  margin-top: 12px !important;
+}
+
+.apply-composer-subtitle,
+.type-version {
+  display: none !important;
+}
+
+.stat-card {
+  min-height: 118px !important;
+  align-items: center !important;
 }
 
 .btn,
@@ -5797,6 +5923,173 @@ button:hover,
   background: var(--warn-soft) !important;
   border-color: var(--warn) !important;
   color: var(--warn-ink) !important;
+}
+
+.jobs-page {
+  height: 100%;
+  padding: 24px;
+  background: transparent;
+}
+
+.jobs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.jobs-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.jobs-metric {
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: var(--radius-card);
+  padding: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.jobs-metric span {
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.jobs-metric b {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.jobs-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.jobs-tab.active {
+  background: var(--accent-soft) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent-ink) !important;
+}
+
+.jobs-table-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.jobs-table-head,
+.jobs-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 120px 100px 110px;
+  gap: 12px;
+  align-items: center;
+}
+
+.jobs-table-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.jobs-row {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-2);
+  font-size: 13px;
+}
+
+.jobs-row:last-child {
+  border-bottom: 0;
+}
+
+.jobs-row-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.jobs-row-main b {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jobs-row-main p {
+  margin-top: 3px;
+  color: var(--bad-ink);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.jobs-status {
+  width: max-content;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--ink-2);
+  background: var(--paper-2);
+}
+
+.jobs-status-running,
+.jobs-status-queued {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.jobs-status-succeeded {
+  background: var(--ok-soft);
+  border-color: var(--ok);
+  color: var(--ok-ink);
+}
+
+.jobs-status-failed {
+  background: var(--bad-soft);
+  border-color: var(--bad);
+  color: var(--bad-ink);
+}
+
+.jobs-empty {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+@media (max-width: 820px) {
+  .jobs-page {
+    padding: 18px;
+  }
+
+  .jobs-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .jobs-table-head {
+    display: none;
+  }
+
+  .jobs-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
 }
 
 [class*="shadow-"] {

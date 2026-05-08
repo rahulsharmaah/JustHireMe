@@ -1,7 +1,7 @@
 import Icon from "../components/Icon";
 import type { Lead, LogLine, View } from "../types";
 import { StatCard } from "../components/Topbar";
-import { getMark, getTone, leadSignal, needsTodayAction, todayActionLabel } from "../lib/leadUtils";
+import { leadSignal, needsTodayAction, todayActionLabel } from "../lib/leadUtils";
 
 export function DashboardView({
   leads, dueFollowups, logs, setView, openDrawer,
@@ -19,7 +19,6 @@ export function DashboardView({
     approved:   leads.filter(l=>l.status==="approved").length,
     applied:    leads.filter(l=>l.status==="applied").length,
   };
-  const topMatches = [...leads].filter(l => l.score > 0).sort((a,b) => b.score - a.score).slice(0, 4);
   const todayQueue = [...leads]
     .filter(needsTodayAction)
     .sort((a, b) => Number(Boolean(b.followup_due_at)) - Number(Boolean(a.followup_due_at)) || leadSignal(b) - leadSignal(a))
@@ -34,8 +33,7 @@ export function DashboardView({
       <div className="card dashboard-command">
         <div className="row" style={{ justifyContent: "space-between", alignItems: "stretch", gap: 22, flexWrap: "wrap" }}>
           <div className="dashboard-command-copy">
-            <span className="eyebrow dashboard-kicker">Agent workspace</span>
-            <h1>Today's run</h1>
+            <h1>Dashboard</h1>
             <div className="dashboard-summary">
               <span><b>{leads.length}</b> leads</span>
               <span><b>{todayQueue.length}</b> need action</span>
@@ -74,34 +72,6 @@ export function DashboardView({
               <button className="btn" onClick={() => setView("activity")}><Icon name="pulse" size={13} /> Live activity</button>
             </div>
             {scanErr && <div style={{ marginTop: 6, fontSize: 12, color: "var(--bad)", fontWeight: 500 }}>⚠ {scanErr}</div>}
-          </div>
-          <div className="dashboard-review-rail">
-            <div className="eyebrow" style={{ marginBottom: 2 }}>Top matches awaiting review</div>
-            {topMatches.length === 0 ? (
-              <div className="card-flat" style={{ padding: 14, fontSize: 12, color: "var(--ink-3)" }}>Run a scan to find matches.</div>
-            ) : topMatches.map(l => (
-              <div key={l.job_id} onClick={() => openDrawer(l)} className="lift" style={{
-                background: "rgba(255,255,255,0.72)", border: "1px solid var(--line)", borderRadius: "var(--radius-card)",
-                padding: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 10,
-              }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: "var(--radius-control)",
-                  background: `var(--${getTone(l.status)})`, color: `var(--${getTone(l.status)}-ink)`,
-                  display: "grid", placeItems: "center",
-                  fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 760,
-                  border: `1px solid var(--${getTone(l.status)}-ink)`,
-                }}>{getMark(l.company)}</div>
-                <div className="col" style={{ flex: 1, minWidth: 0, gap: 1 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.title}</div>
-                  <div className="mono" style={{ fontSize: 10, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{l.company}</div>
-                </div>
-                <span style={{
-                  fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-pill)",
-                  background: l.score >= 85 ? "var(--green)" : l.score >= 50 ? "var(--yellow)" : "var(--bad-soft)",
-                  color: l.score >= 85 ? "var(--green-ink)" : l.score >= 50 ? "var(--yellow-ink)" : "var(--bad)",
-                }}>{l.score}%</span>
-              </div>
-            ))}
           </div>
         </div>
       </div>

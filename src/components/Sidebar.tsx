@@ -6,15 +6,16 @@ const NAV = [
   { id: "dashboard", label: "Dashboard",     icon: "home",   tone: "blue"   },
   { id: "inbox",     label: "Leads",         icon: "plus",   tone: "orange" },
   { id: "pipeline",  label: "Job Pipeline",  icon: "layers", tone: "purple" },
+  { id: "jobs",      label: "Jobs",          icon: "pulse",  tone: "blue"   },
   { id: "graph",     label: "Knowledge",     icon: "graph",  tone: "green"  },
   { id: "activity",  label: "Activity",      icon: "pulse",  tone: "orange" },
   { id: "profile",   label: "Profile",       icon: "user",   tone: "pink"   },
   { id: "ingestion", label: "Add Context",   icon: "plus",   tone: "teal"   },
 ];
 
-export function Sidebar({ view, setView, leadCounts, online, port, beat, onSettings, onSetup, collapsed, onToggleCollapsed }: {
+export function Sidebar({ view, setView, leadCounts, online, onSettings, onSetup, collapsed, onToggleCollapsed }: {
   view: View; setView: (v: View) => void;
-  leadCounts: any; online: boolean; port: number | null; beat: number;
+  leadCounts: any; online: boolean;
   onSettings: () => void;
   onSetup?: () => void;
   collapsed: boolean;
@@ -28,7 +29,6 @@ export function Sidebar({ view, setView, leadCounts, online, port, beat, onSetti
           {!collapsed && (
             <div className="col" style={{ lineHeight: 1.1 }}>
               <div className="type-brand">JustHireMe</div>
-              <div className="type-version">v0.1-alpha</div>
             </div>
           )}
         </div>
@@ -66,33 +66,10 @@ export function Sidebar({ view, setView, leadCounts, online, port, beat, onSetti
         })}
       </div>
 
-      {!collapsed && <div className="eyebrow" style={{ padding: "16px 12px 4px 12px" }}>Status breakdown</div>}
-      {!collapsed && <div className="col gap-1">
-        {[
-          ["evaluating",   "Evaluating",   "accent",  leadCounts.evaluating],
-          ["approved",     "Approved",     "accent",  leadCounts.approved],
-          ["applied",      "Applied",      "accent",  leadCounts.applied],
-          ["interviewing", "Interviewing", "accent",  leadCounts.interviewing],
-          ["accepted",     "Accepted",     "accent",  leadCounts.accepted],
-          ["rejected",     "Rejected",     "accent",  leadCounts.rejected],
-        ].map(([k, label, tone, n]) => (
-          <div key={k} className="row" style={{
-            padding: "7px 12px", fontSize: 12, color: "rgba(255,255,255,0.60)", justifyContent: "space-between",
-            borderRadius: "var(--radius-tight)",
-          }}>
-            <div className="row gap-2">
-              <span style={{ width: 8, height: 8, borderRadius: 3, background: `var(--${tone})`, border: `1px solid var(--${tone}-ink)`, opacity: 0.85 }} />
-              <span>{label}</span>
-            </div>
-            <span className="mono tabular type-count-pill" style={{ color: "rgba(255,255,255,0.34)" }}>{n || 0}</span>
-          </div>
-        ))}
-      </div>}
-
       <div className="grow" />
 
-      <button className="profile-add-context" onClick={collapsed ? onToggleCollapsed : onSetup} style={{ marginBottom: 10, minHeight: 44 }} title={collapsed ? "Expand sidebar" : "Setup Guide"}>
-        <Icon name={collapsed ? "arrow-right" : "spark"} size={14} style={collapsed ? undefined : undefined} /> {!collapsed && "Setup Guide"}
+      <button className="profile-add-context" onClick={collapsed ? onToggleCollapsed : onSetup} style={{ marginBottom: 10, minHeight: 40 }} title={collapsed ? "Expand sidebar" : "Setup"}>
+        <Icon name={collapsed ? "arrow-right" : "spark"} size={14} /> {!collapsed && "Setup"}
       </button>
 
       <div className="card-flat" style={{ padding: 10, background: "var(--card)" }}>
@@ -105,9 +82,8 @@ export function Sidebar({ view, setView, leadCounts, online, port, beat, onSetti
                   background: online ? "var(--accent)" : "var(--ink-4)",
                   border: "1px solid rgba(255,255,255,0.22)",
                 }} />
-                <span className="type-metric-label" style={{ fontSize: "11.5px", color: "inherit" }}>{online ? `Online · :${port}` : "Offline"}</span>
+                <span className="type-metric-label" style={{ color: "inherit" }}>{online ? "Online" : "Offline"}</span>
               </div>
-              <span className="mono tabular type-count-pill" style={{ color: "var(--ink-3)" }}>♥ {beat}</span>
             </div>
           ) : (
             <span style={{
