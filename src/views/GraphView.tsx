@@ -68,11 +68,13 @@ function nodeTone(node: KnowledgeGraphNode) {
 function KnowledgeNetwork({
   nodes,
   edges,
+  zoom,
   selectedId,
   onSelect,
 }: {
   nodes: KnowledgeGraphNode[];
   edges: { source: string; target: string; id: string }[];
+  zoom: number;
   selectedId: string;
   onSelect: (node: KnowledgeGraphNode) => void;
 }) {
@@ -122,43 +124,45 @@ function KnowledgeNetwork({
           <stop offset="100%" stopColor="rgba(50,215,255,0.18)" />
         </linearGradient>
       </defs>
-      {[...layout.centers.entries()].map(([key, center]) => (
-        <g key={key}>
-          <circle cx={center.x} cy={center.y} r="64" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.26)" />
-          <text x={center.x} y={center.y - 74} textAnchor="middle" className="knowledge-network-community">{key.replace(/^community:/, "")}</text>
-        </g>
-      ))}
-      {edges.map(edge => {
-        const from = layout.positions.get(edge.source);
-        const to = layout.positions.get(edge.target);
-        if (!from || !to) return null;
-        const active = selectedId && (edge.source === selectedId || edge.target === selectedId);
-        return (
-          <line
-            key={edge.id}
-            x1={from.x}
-            y1={from.y}
-            x2={to.x}
-            y2={to.y}
-            stroke={active ? "rgba(0,122,255,0.52)" : "url(#knowledge-edge)"}
-            strokeWidth={active ? 1.7 : 1}
-            opacity={active ? 1 : 0.34}
-          />
-        );
-      })}
-      {nodes.map(node => {
-        const pos = layout.positions.get(node.id);
-        if (!pos) return null;
-        const active = selectedId === node.id;
-        const tone = nodeTone(node);
-        return (
-          <g key={node.id} transform={`translate(${pos.x}, ${pos.y})`} className="knowledge-network-node" onClick={() => onSelect(node)}>
-            <circle r={active ? 12 : 8} fill={`var(--${tone}-soft)`} stroke={`var(--${tone})`} strokeWidth={active ? 2.5 : 1.5} />
-            {active && <circle r={18} fill="none" stroke={`var(--${tone})`} strokeOpacity="0.35" />}
-            <text y={active ? 28 : 22} textAnchor="middle" className="knowledge-network-label">{node.label}</text>
+      <g transform={`translate(${width / 2} ${height / 2}) scale(${zoom}) translate(${-width / 2} ${-height / 2})`}>
+        {[...layout.centers.entries()].map(([key, center]) => (
+          <g key={key}>
+            <circle cx={center.x} cy={center.y} r="64" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.26)" />
+            <text x={center.x} y={center.y - 74} textAnchor="middle" className="knowledge-network-community">{key.replace(/^community:/, "")}</text>
           </g>
-        );
-      })}
+        ))}
+        {edges.map(edge => {
+          const from = layout.positions.get(edge.source);
+          const to = layout.positions.get(edge.target);
+          if (!from || !to) return null;
+          const active = selectedId && (edge.source === selectedId || edge.target === selectedId);
+          return (
+            <line
+              key={edge.id}
+              x1={from.x}
+              y1={from.y}
+              x2={to.x}
+              y2={to.y}
+              stroke={active ? "rgba(0,122,255,0.52)" : "url(#knowledge-edge)"}
+              strokeWidth={active ? 1.7 : 1}
+              opacity={active ? 1 : 0.34}
+            />
+          );
+        })}
+        {nodes.map(node => {
+          const pos = layout.positions.get(node.id);
+          if (!pos) return null;
+          const active = selectedId === node.id;
+          const tone = nodeTone(node);
+          return (
+            <g key={node.id} transform={`translate(${pos.x}, ${pos.y})`} className="knowledge-network-node" onClick={() => onSelect(node)}>
+              <circle r={active ? 12 : 8} fill={`var(--${tone}-soft)`} stroke={`var(--${tone})`} strokeWidth={active ? 2.5 : 1.5} />
+              {active && <circle r={18} fill="none" stroke={`var(--${tone})`} strokeOpacity="0.35" />}
+              <text y={active ? 28 : 22} textAnchor="middle" className="knowledge-network-label">{node.label}</text>
+            </g>
+          );
+        })}
+      </g>
     </svg>
   );
 }
@@ -171,6 +175,7 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshTask, setRefreshTask] = useState<WorkerTask | null>(null);
   const [initialKnowledgeLoading, setInitialKnowledgeLoading] = useState(Boolean(api));
+  const [graphZoom, setGraphZoom] = useState(0.85);
   const summary = useKnowledgeSummary(api, reloadKey);
   const knowledge = useKnowledgeGraph(api, reloadKey);
   const status = useKnowledgeStatus(api, reloadKey, 3000);
@@ -295,6 +300,10 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
   const onSelectNode = (node: KnowledgeGraphNode) => {
     const path = pagePathById.get(node.pageId || node.id);
     if (path) setSelectedPath(path);
+  };
+
+  const setClampedGraphZoom = (nextZoom: number) => {
+    setGraphZoom(Math.min(1.6, Math.max(0.65, Math.round(nextZoom * 100) / 100)));
   };
 
   const triggerRefresh = async () => {
@@ -532,8 +541,37 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
                       </button>
                     ))}
                   </div>
+                  <div className="knowledge-zoom-controls" aria-label="Graph zoom controls">
+                    <button
+                      className="knowledge-zoom-button"
+                      onClick={() => setClampedGraphZoom(graphZoom - 0.1)}
+                      disabled={graphZoom <= 0.65}
+                      aria-label="Zoom out"
+                      title="Zoom out"
+                    >
+                      <Icon name="minus" size={14} />
+                    </button>
+                    <button
+                      className="knowledge-zoom-value"
+                      onClick={() => setClampedGraphZoom(1)}
+                      aria-label="Reset zoom"
+                      title="Reset zoom"
+                    >
+                      <Icon name="reset" size={13} />
+                      <span>{Math.round(graphZoom * 100)}%</span>
+                    </button>
+                    <button
+                      className="knowledge-zoom-button"
+                      onClick={() => setClampedGraphZoom(graphZoom + 0.1)}
+                      disabled={graphZoom >= 1.6}
+                      aria-label="Zoom in"
+                      title="Zoom in"
+                    >
+                      <Icon name="plus" size={14} />
+                    </button>
+                  </div>
                 </div>
-                <KnowledgeNetwork nodes={visibleNodes} edges={visibleEdges} selectedId={selectedNodeId} onSelect={onSelectNode} />
+                <KnowledgeNetwork nodes={visibleNodes} edges={visibleEdges} zoom={graphZoom} selectedId={selectedNodeId} onSelect={onSelectNode} />
                 <div className="knowledge-meta-line mono">
                   Showing {visibleNodes.length} nodes and {visibleEdges.length} edges
                   {normalizedQuery ? ` for "${searchQuery.trim()}"` : ""}
