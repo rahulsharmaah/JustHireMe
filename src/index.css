@@ -7335,8 +7335,7 @@ button[aria-busy="true"]::before,
 }
 
 .dashboard-summary {
-  align-items: center !important;
-  gap: 0 !important;
+  display: none !important;
 }
 
 .dashboard-summary span {
