@@ -78,9 +78,14 @@ function KnowledgeNetwork({
   selectedId: string;
   onSelect: (node: KnowledgeGraphNode) => void;
 }) {
-  const width = 920;
-  const height = 520;
-  const padding = 70;
+  const width = 1160;
+  const height = 760;
+  const clusterGap = 22;
+  const columns = nodes.length > 18 ? 3 : 2;
+  const clusterWidth = (width - clusterGap * (columns + 1)) / columns;
+  const clusterHeight = 180;
+  const labelWidth = Math.min(154, clusterWidth / 2 - 20);
+  const truncate = (value: string, max = 22) => value.length > max ? `${value.slice(0, max - 1)}...` : value;
   const layout = useMemo(() => {
     const groups = new Map<string, KnowledgeGraphNode[]>();
     nodes.forEach(node => {
@@ -90,31 +95,49 @@ function KnowledgeNetwork({
       groups.set(key, bucket);
     });
     const groupEntries = [...groups.entries()].sort((a, b) => b[1].length - a[1].length);
-    const centers = new Map<string, { x: number; y: number }>();
-    groupEntries.forEach(([key], index) => {
-      const angle = (-Math.PI / 2) + (index * 2 * Math.PI / Math.max(groupEntries.length, 1));
-      const radius = Math.min(width, height) * 0.28;
-      centers.set(key, {
-        x: width / 2 + Math.cos(angle) * radius,
-        y: height / 2 + Math.sin(angle) * radius,
-      });
-    });
-    const positions = new Map<string, { x: number; y: number }>();
+    const clusterRows = Math.max(1, Math.ceil(groupEntries.length / columns));
+    const computedClusterHeight = Math.max(148, Math.min(clusterHeight, (height - clusterGap * (clusterRows + 1)) / clusterRows));
+    const clusters = new Map<string, { x: number; y: number; width: number; height: number; label: string; hidden: number }>();
+    const positions = new Map<string, { x: number; y: number; width: number; height: number; label: string; hidden?: boolean }>();
     groupEntries.forEach(([key, group]) => {
-      const center = centers.get(key) || { x: width / 2, y: height / 2 };
-      group.forEach((node, index) => {
-        const localAngle = (index * 2 * Math.PI) / Math.max(group.length, 1);
-        const orbit = 18 + (Math.floor(index / 8) * 16);
-        const x = center.x + Math.cos(localAngle) * orbit;
-        const y = center.y + Math.sin(localAngle) * orbit;
+      const groupIndex = groupEntries.findIndex(([entryKey]) => entryKey === key);
+      const col = groupIndex % columns;
+      const row = Math.floor(groupIndex / columns);
+      const x = clusterGap + col * (clusterWidth + clusterGap);
+      const y = clusterGap + row * (computedClusterHeight + clusterGap);
+      const sorted = [...group].sort((a, b) => (b.degree || 0) - (a.degree || 0) || a.label.localeCompare(b.label));
+      const maxItems = computedClusterHeight > 166 ? 8 : 6;
+      const visible = sorted.slice(0, maxItems);
+      const hidden = Math.max(0, sorted.length - visible.length);
+      clusters.set(key, { x, y, width: clusterWidth, height: computedClusterHeight, label: key.replace(/^community:/, ""), hidden });
+      visible.forEach((node, index) => {
+        const nodeCol = index % 2;
+        const nodeRow = Math.floor(index / 2);
+        const pillX = x + 18 + nodeCol * (clusterWidth / 2);
+        const pillY = y + 48 + nodeRow * 31;
         positions.set(node.id, {
-          x: Math.min(width - padding, Math.max(padding, x)),
-          y: Math.min(height - padding, Math.max(padding, y)),
+          x: pillX,
+          y: pillY,
+          width: labelWidth,
+          height: 24,
+          label: truncate(node.label),
         });
       });
+      if (hidden > 0 && visible.length) {
+        const summaryX = x + 18 + (visible.length % 2) * (clusterWidth / 2);
+        const summaryY = y + 48 + Math.floor(visible.length / 2) * 31;
+        positions.set(`${key}:more`, {
+          x: summaryX,
+          y: summaryY,
+          width: labelWidth,
+          height: 24,
+          label: `+${hidden} more`,
+          hidden: true,
+        });
+      }
     });
-    return { positions, centers };
-  }, [nodes]);
+    return { positions, clusters };
+  }, [nodes, clusterWidth, labelWidth]);
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="knowledge-network-svg" role="img" aria-label="Knowledge graph">
@@ -125,10 +148,13 @@ function KnowledgeNetwork({
         </linearGradient>
       </defs>
       <g transform={`translate(${width / 2} ${height / 2}) scale(${zoom}) translate(${-width / 2} ${-height / 2})`}>
-        {[...layout.centers.entries()].map(([key, center]) => (
-          <g key={key}>
-            <circle cx={center.x} cy={center.y} r="64" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.26)" />
-            <text x={center.x} y={center.y - 74} textAnchor="middle" className="knowledge-network-community">{key.replace(/^community:/, "")}</text>
+        {[...layout.clusters.entries()].map(([key, cluster]) => (
+          <g key={key} className="knowledge-network-cluster">
+            <rect x={cluster.x} y={cluster.y} width={cluster.width} height={cluster.height} rx="10" />
+            <text x={cluster.x + 16} y={cluster.y + 24} className="knowledge-network-community">{truncate(cluster.label, 28)}</text>
+            <text x={cluster.x + cluster.width - 16} y={cluster.y + 24} textAnchor="end" className="knowledge-network-count">
+              {cluster.hidden ? `${cluster.hidden} hidden` : ""}
+            </text>
           </g>
         ))}
         {edges.map(edge => {
@@ -139,13 +165,13 @@ function KnowledgeNetwork({
           return (
             <line
               key={edge.id}
-              x1={from.x}
-              y1={from.y}
-              x2={to.x}
-              y2={to.y}
+              x1={from.x + from.width / 2}
+              y1={from.y + from.height / 2}
+              x2={to.x + to.width / 2}
+              y2={to.y + to.height / 2}
               stroke={active ? "rgba(0,122,255,0.52)" : "url(#knowledge-edge)"}
               strokeWidth={active ? 1.7 : 1}
-              opacity={active ? 1 : 0.34}
+              opacity={active ? 0.9 : 0.16}
             />
           );
         })}
@@ -155,13 +181,20 @@ function KnowledgeNetwork({
           const active = selectedId === node.id;
           const tone = nodeTone(node);
           return (
-            <g key={node.id} transform={`translate(${pos.x}, ${pos.y})`} className="knowledge-network-node" onClick={() => onSelect(node)}>
-              <circle r={active ? 12 : 8} fill={`var(--${tone}-soft)`} stroke={`var(--${tone})`} strokeWidth={active ? 2.5 : 1.5} />
-              {active && <circle r={18} fill="none" stroke={`var(--${tone})`} strokeOpacity="0.35" />}
-              <text y={active ? 28 : 22} textAnchor="middle" className="knowledge-network-label">{node.label}</text>
+            <g key={node.id} transform={`translate(${pos.x}, ${pos.y})`} className={`knowledge-network-node ${active ? "active" : ""}`} onClick={() => onSelect(node)}>
+              <title>{node.label}</title>
+              <rect width={pos.width} height={pos.height} rx="7" fill={`var(--${tone}-soft)`} stroke={`var(--${tone})`} strokeWidth={active ? 2 : 1.2} />
+              <circle cx="12" cy="12" r="4" fill={`var(--${tone})`} />
+              <text x="22" y="16" className="knowledge-network-label">{pos.label}</text>
             </g>
           );
         })}
+        {[...layout.positions.entries()].filter(([, pos]) => pos.hidden).map(([key, pos]) => (
+          <g key={key} transform={`translate(${pos.x}, ${pos.y})`} className="knowledge-network-more">
+            <rect width={pos.width} height={pos.height} rx="7" />
+            <text x={pos.width / 2} y="16" textAnchor="middle">{pos.label}</text>
+          </g>
+        ))}
       </g>
     </svg>
   );
@@ -274,7 +307,9 @@ export function GraphView({ stats, api }: { stats: GraphStats; api: ApiFetch | n
       const queryOk = !normalizedQuery || node.label.toLowerCase().includes(normalizedQuery) || (node.type || "").toLowerCase().includes(normalizedQuery);
       return typeOk && queryOk;
     });
-    return filtered.slice(0, 60);
+    return filtered
+      .sort((a, b) => (b.degree || 0) - (a.degree || 0) || a.label.localeCompare(b.label))
+      .slice(0, normalizedQuery ? 60 : 36);
   }, [knowledge.nodes, nodeTypeFilter, normalizedQuery]);
   const visibleNodeIds = useMemo(() => new Set(visibleNodes.map(node => node.id)), [visibleNodes]);
   const visibleEdges = useMemo(

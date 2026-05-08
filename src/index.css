@@ -6295,15 +6295,49 @@ button:hover,
   transition: transform 180ms ease;
 }
 
-.knowledge-network-svg circle[fill="rgba(255,255,255,0.18)"] {
-  fill: var(--paper-2) !important;
-  stroke: var(--line) !important;
+.knowledge-network-cluster rect {
+  fill: rgba(255,255,255,0.74);
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.knowledge-network-count {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  fill: var(--ink-3);
 }
 
 .knowledge-network-label {
+  font-family: var(--font-sans) !important;
   font-size: 11px !important;
-  font-weight: 600 !important;
-  fill: var(--ink-2) !important;
+  font-weight: 720 !important;
+  fill: var(--ink) !important;
+  pointer-events: none;
+}
+
+.knowledge-network-node rect {
+  fill: var(--card);
+}
+
+.knowledge-network-node.active rect {
+  fill: #fff !important;
+}
+
+.knowledge-network-node:hover rect {
+  fill: #fff !important;
+}
+
+.knowledge-network-more rect {
+  fill: var(--paper-2);
+  stroke: var(--line);
+}
+
+.knowledge-network-more text {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 720;
+  fill: var(--ink-3);
 }
 
 .knowledge-featured-strip {
