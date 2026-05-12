@@ -5,7 +5,7 @@ import type { ApiFetch, ContactLookup, KeywordCoverage, Lead } from "../types";
 import { roleFromLead } from "../lib/leadUtils";
 import { showToast } from "../lib/toast";
 
-export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoFocus }: { port: number | null; api: ApiFetch | null; leads: Lead[]; openDrawer: (l: Lead) => void; initialInput?: string; autoFocus?: boolean }) {
+export function ApplyJobView({ port, api, backendReady, leads, openDrawer, initialInput, autoFocus }: { port: number | null; api: ApiFetch | null; backendReady: boolean; leads: Lead[]; openDrawer: (l: Lead) => void; initialInput?: string; autoFocus?: boolean }) {
   const [input, setInput] = useState("");
   const initialApplied = useRef(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -154,7 +154,13 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
   }, [busy, resumeReady, coverReady]);
 
   const submit = async () => {
-    if (!port || !api || busy || !input.trim()) return;
+    if (busy || !input.trim()) return;
+    if (!port || !api || !backendReady) {
+      const message = "Backend is still connecting. Wait for the sidebar to show Online, then try again.";
+      setErr(message);
+      showToast({ id: "apply-package", tone: "error", title: "Backend offline", message });
+      return;
+    }
     setBusy(true);
     setErr(null);
     setResumeBlobUrl(null);
@@ -228,9 +234,14 @@ export function ApplyJobView({ port, api, leads, openDrawer, initialInput, autoF
             placeholder="Paste job URL or full job description"
             rows={liveLead ? 8 : 12}
           />
-          <button className="btn btn-accent apply-primary-action" onClick={submit} disabled={!port || !api || busy || !input.trim()} aria-busy={busy}>
+          <button className="btn btn-accent apply-primary-action" onClick={submit} disabled={!backendReady || !port || !api || busy || !input.trim()} aria-busy={busy}>
             <Icon name="spark" size={15} color="#fff" /> {busy ? "Analysing and generating..." : "Analyse & Generate"}
           </button>
+          {!backendReady && (
+            <div style={{ color: "var(--orange-ink)", background: "var(--orange-soft)", border: "1px solid var(--orange)", borderRadius: 8, padding: "9px 11px", fontSize: 12 }}>
+              Backend is connecting. Keep this page open until the sidebar shows Online.
+            </div>
+          )}
           {err && <div style={{ color: "var(--bad)", background: "var(--bad-soft)", border: "1px solid var(--bad)", borderRadius: 8, padding: "9px 11px", fontSize: 12 }}>{err}</div>}
           <div className="apply-run-strip">
             <div className="apply-run-step">
